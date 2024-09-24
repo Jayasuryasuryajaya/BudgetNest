@@ -1,0 +1,32 @@
+
+    <!-- Faq Section -->
+<section id="faq" class="faq section light-background">
+
+        <div class="container-fluid">
+  
+          <div class="row gy-4">
+  
+            <div class="col-lg-7 d-flex flex-column justify-content-center order-2 order-lg-1">
+  
+              <div class="content px-xl-5" data-aos="fade-up" data-aos-delay="100">
+                <h3><span>Frequently Asked </span><strong>Questions</strong></h3>
+                <p>
+                  Here you will find the frequently asked questions about our platform.
+                </p>
+              </div>
+  
+              <div class="faq-container px-xl-5" data-aos="fade-up" data-aos-delay="200">
+                {% for faq in faqs %}
+                    <div class="faq-item {% if forloop.first %}faq-active{% endif %}">
+                        <i class="faq-icon bi bi-question-circle"></i>
+                        <h3>{{ faq.Domanda }}</h3>  <!-- Assicurati che 'question' sia il campo corretto -->
+                        <div class="faq-content">
+                            <p>{{ faq.Risposta }}</p>  <!-- Assicurati che 'answer' sia il campo corretto -->
+                        </div>
+                        <i class="faq-toggle bi bi-chevron-right"></i>
+                    </div><!-- End Faq item-->
+                {% endfor %}
+            </div>
+            
+         </div>
+   </section><!-- /Faq Section -->

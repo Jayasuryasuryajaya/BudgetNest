@@ -1,6 +1,9 @@
 from django.db import models
 from Users.models import Utente
-# Create your models here.
+from Challenges.models import SfidaFamigliare, SfidaPersonale
+from Budgeting.models import Transazione
+from Budgeting.models import ObbiettivoSpesa,PianoDiRisparmio
+
 class Notifica(models.Model):
     contenuto = models.TextField()
     destinatario = models.ForeignKey(Utente, on_delete=models.CASCADE)
@@ -9,11 +12,12 @@ class Notifica(models.Model):
     letta = models.BooleanField(default=False)
     data_lettura = models.DateField(null=True, blank=True)
 
+
 class NotificaFamiglia(models.Model):
     id_notifica = models.ForeignKey(Notifica, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=20)
-    rif_transazione = models.BigIntegerField(null=True, blank=True)
-    rif_sfida = models.IntegerField(null=True, blank=True)
+    rif_transazione = models.ForeignKey(Transazione, on_delete=models.CASCADE)
+    rif_sfida = models.ForeignKey(SfidaFamigliare, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = ('id_notifica',)
@@ -21,9 +25,10 @@ class NotificaFamiglia(models.Model):
 class NotificaSistema(models.Model):
     id_notifica = models.ForeignKey(Notifica, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=20)
-    rif_piano_risparmio = models.IntegerField(null=True, blank=True)
-    rif_obbiettivo_spesa = models.IntegerField(null=True, blank=True)
-    rif_sfida_personale = models.IntegerField(null=True, blank=True)
+    rif_piano_risparmio = models.ForeignKey(PianoDiRisparmio, on_delete=models.CASCADE)
+    rif_obbiettivo_spesa = models.ForeignKey(ObbiettivoSpesa, on_delete=models.CASCADE)
+    rif_sfida_personale = models.ForeignKey(SfidaPersonale, on_delete=models.CASCADE)
+
 
     class Meta:
         unique_together = ('id_notifica',)

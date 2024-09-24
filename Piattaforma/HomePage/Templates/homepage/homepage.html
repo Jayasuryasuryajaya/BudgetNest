@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% load static %}
+
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>BudgetNest</title>
+  <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+  
+
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
+  <!-- Main CSS File -->
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+</head>
+
+
+<body class="index-page">
+  {% include 'header/header.html' %}
+  
+  <main class="main">
+    {% load static %}
+    <section id="hero" class="hero section dark-background d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
+      <div class="container text-center">
+        <div class="row gy-4 justify-content-center">
+          <div class="col-lg-6 d-flex flex-column align-items-center" data-aos="fade-in">
+            <h1>Organize your finances with</h1>
+            <h1><span>BudgetNest</span></h1>
+            <p>With us, you can manage your personal and family finances.</p>
+            <div class="d-flex justify-content-center">
+              <a href="#about" class="btn-get-started">Get Started</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <svg class="hero-waves" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 24 150 28" preserveAspectRatio="none" style="position: absolute; bottom: 0; width: 100%;">
+        <defs>
+          <path id="wave-path" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z"></path>
+        </defs>
+        <g class="wave1">
+          <use xlink:href="#wave-path" x="50" y="3"></use>
+        </g>
+        <g class="wave2">
+          <use xlink:href="#wave-path" x="50" y="0"></use>
+        </g>
+        <g class="wave3">
+          <use xlink:href="#wave-path" x="50" y="9"></use>
+        </g>
+      </svg>
+    
+    </section><!-- /Hero Section -->
+    
+
+    <!-- About Section -->
+    <section id="features" class="about section">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+        <div class="row align-items-xl-center gy-5">
+
+          <div class="col-xl-5 content">
+            <h3>Features</h3>
+            <h2>An innovative method for financial control</h2>
+            <p>
+              Thanks to the platform's features, you'll be able to manage your finances and investments in a simple and precise manner.</p>
+          </div>
+
+          <div class="col-xl-7">
+            <div class="row gy-4 icon-boxes">
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="icon-box">
+                  <i class="bi bi-cash-stack"></i>
+                  <h3>Insert your transactions</h3>
+                  <p>Easily log your income and expenses to keep track of your financial movements.</p>
+                </div>
+              </div> <!-- End Icon Box -->
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+                <div class="icon-box">
+                  <i class="bi bi-piggy-bank"></i>
+                  <h3>Create personalized savings plans</h3>
+                  <p>Set up custom savings plans with practical tips to help you reach your financial goals.</p>
+                </div>
+              </div> <!-- End Icon Box -->
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="icon-box">
+                  <i class="bi bi-people"></i>
+                  <h3>Track your family finances:</h3>
+                  <p>Monitor income and expenses for the entire family, with tools for shared financial transparency</p>
+                </div>
+              </div> <!-- End Icon Box -->
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
+                <div class="icon-box">
+                  <i class="bi bi-graph-up-arrow"></i>
+                  <h3>Keep track of your investments</h3>
+                  <p>Stay updated on your investments without needing to access your broker account.</p>
+                </div>
+              </div> 
+              
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="icon-box">
+                  <i class="bi bi-clipboard-data"></i>
+                  <h3>Monitor your expenses with reports</h3>
+                  <p>Gain insights into your spending habits through detailed reports and charts.</p>
+                </div>
+              </div> <!-- End Icon Box -->
+
+              <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
+                <div class="icon-box">
+                  <i class="bi bi-flag"></i>
+                  <h3>Compete with your family in savings challenges:</h3>
+                  <p>Engage in monthly savings challenges with family members and earn virtual rewards.</p>
+                </div>
+              </div>
+              
+              <!-- End Icon Box -->
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section><!-- /About Section -->
+
+   <!-- Stat section -->
+    <section id="stats" class="stats section light-background">
+
+      <div class="container" data-aos="fade-up" data-aos-delay="100">
+    
+        <div class="row gy-4 justify-content-center align-items-center">
+    
+          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
+            <i class="bi bi-person-check"></i>
+            <div class="stats-item">
+              <span data-purecounter-start="0" data-purecounter-end="{{ utenti }}" data-purecounter-duration="1" class="purecounter"></span>
+              <p>Registered Users</p>
+            </div>
+          </div>
+    
+          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
+            <i class="bi bi-people"></i>
+            <div class="stats-item">
+              <span data-purecounter-start="0" data-purecounter-end="{{famiglie}}" data-purecounter-duration="1" class="purecounter"></span>
+              <p>Registered Families</p>
+            </div>
+          </div><!-- End Stats Item -->
+    
+          <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
+            <i class="bi bi-wallet2"></i>
+            <div class="stats-item">
+              <span data-purecounter-start="0" data-purecounter-end="{{transazioni}}" data-purecounter-duration="1" class="purecounter"></span>
+              <p>Registered Transactions</p>
+            </div>
+          </div><!-- End Stats Item -->
+    
+        </div>
+    
+      </div>
+    
+    </section><!-- /Stats Section -->
+    
+
+  
+    {% include 'Faq/Faq.html' %}
+
+   
+
+  
+
+  </main>
+
+
+
+  {% include 'footer/footer.html' %}
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+
+
+  <script src="{% static 'vendor/aos/aos.js' %}"></script>
+  <script src="{% static 'vendor/glightbox/js/glightbox.min.js' %}"></script>
+  <script src="{% static 'vendor/purecounter/purecounter_vanilla.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+
+</body>
+
+</html>

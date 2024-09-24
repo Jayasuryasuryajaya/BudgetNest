@@ -10,13 +10,19 @@ class BudgetingConfig(AppConfig):
 
 class CategoriaSpesa(models.Model):
     nome = models.CharField(max_length=50)
+    def __str__(self):
+        return self.nome
+
 
 class SottoCategoriaSpesa(models.Model):
     categoria_superiore = models.ForeignKey(CategoriaSpesa, on_delete=models.CASCADE)
-    utente = models.ForeignKey(Utente, on_delete=models.CASCADE)
+    utente = models.ForeignKey(Utente, on_delete=models.CASCADE, null= True)
     personalizzata = models.BooleanField(default=False)
     data_creazione = models.DateField()
     nome = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.categoria_superiore.nome + ' -> ' + str(self.nome);
 
 class ObbiettivoSpesa(models.Model):
     importo = models.DecimalField(max_digits=10, decimal_places=2)
@@ -33,4 +39,48 @@ class PianoDiRisparmio(models.Model):
     data_scadenza = models.DateField()
     data_creazione = models.DateField()
     conto = models.ForeignKey(Conto, on_delete=models.CASCADE)
+    
+class CategoriaTransazione(models.TextChoices):
+    DELEGATA = 'delegata', 'Transazione Delegata'
+    SINGOLA = 'singola', 'Transazione Singola'
+    PERIODICA = 'periodica', 'Transazione Periodica'
+    FUTURA = 'futura', 'Transazione Futura'
+    TRASFERIMENTO = 'trasferimento', 'Trasferimento tra Conti'
+    INVESTIMENTO = 'investimento', 'Transazione di Investimento'
+    
+class TipoRinnovo(models.TextChoices):
+    SETTIMANALE = 'settimanale', 'Rinnovo Settimanale'
+    MENSILE = 'mensile', 'Rinnovo Mensile'
+    SEMESTRALE = 'semestrale', 'Rinnovo Semestrale'
+    NESSUNO = 'nessuno' , 'Nessun Rinnovo'
+    
+    
+class Transazione(models.Model):
+    importo = models.DecimalField(max_digits=10, decimal_places=2)
+    data = models.DateField()
+    mostra = models.BooleanField(default=True)
+    tipo_transazione = models.CharField(
+        max_length=20,
+        choices=CategoriaTransazione.choices,
+        default=CategoriaTransazione.SINGOLA,  
+    )
+    prossimo_rinnovo = models.DateField(null=True, blank=True)
+    ticker = models.CharField(max_length=10, null=True, blank=True)
+    prezzo_azione = models.FloatField(null=True, blank=True)
+    numero_azioni = models.FloatField(null=True, blank=True)
+    borsa = models.CharField(max_length=50, null=True, blank=True)
+    valuta = models.CharField(max_length=3, null=True, blank=True)
+    conto = models.ForeignKey(Conto, on_delete=models.CASCADE)
+    utente = models.ForeignKey(Utente, on_delete=models.CASCADE)
+    categoria = models.ForeignKey(CategoriaSpesa, null=True, blank=True, on_delete=models.SET_NULL)
+    sotto_categoria = models.ForeignKey(SottoCategoriaSpesa, null=True, blank=True, on_delete=models.SET_NULL)
+    mittente_delega = models.ForeignKey(Utente, null=True, blank=True, related_name='delegante', on_delete=models.SET_NULL)
+    accetta_delega = models.BooleanField(null=True, blank=True)
+    descrizione = models.TextField(null=True, blank=True)
+    tipo_rinnovo = models.CharField(
+        max_length=20,
+        choices=TipoRinnovo.choices,
+        default=TipoRinnovo.NESSUNO,  
+    )
+
     

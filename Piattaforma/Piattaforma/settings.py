@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'Notifications',
     'Reward',
     'Users',
+    'Faq',
 ]
 
 MIDDLEWARE = [
@@ -58,10 +59,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'Piattaforma.urls'
 
+STATIC_URL = '/static/'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'Templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
