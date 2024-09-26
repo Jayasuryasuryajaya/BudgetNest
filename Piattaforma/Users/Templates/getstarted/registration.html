@@ -1,0 +1,66 @@
+{% extends "registration/base.html" %}
+
+{% block content %}
+<section class="register-section d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
+  <div class="container text-center">
+    <div class="row gy-4 justify-content-center">
+      <div class="col-lg-6 d-flex flex-column align-items-center">
+        {% if user.is_authenticated %}
+          <h1>Welcome to BudgetNest!</h1>
+          <p>You are already logged in. You can access your <a href="{% url 'dashboard' %}">dashboard</a>.</p>
+        {% else %}
+
+        <h1 style="margin-top: 80px">Register for BudgetNest</h1>
+        <p>Please fill in the form to create an account.</p>
+
+        {% if form.errors %}
+          <div class="alert alert-danger" role="alert">
+            There were errors in your registration. Please check the form below.
+          </div>
+          <div>
+            {% for field, errors in form.errors.items %}
+              <div>{{ errors|join:" " }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'registrazione' %}" class="mt-4">
+          {% csrf_token %}
+          <div class="mb-3">
+            {{ form.nome }}
+          </div>
+          <div class="mb-3">
+            {{ form.cognome }}
+          </div>
+          <div class="mb-3">
+            {{ form.username }}
+          </div>
+          <div class="mb-3">
+            {{ form.email }}
+          </div>
+          <div class="mb-3">
+            {{ form.password }}
+          </div>
+          <div class="mb-3">
+            {{ form.telefono }}
+          </div>
+          <div class="mb-3">
+           
+            {{ form.sesso }}
+          </div>
+          <div class="mb-3">
+            {{ form.data_di_nascita.label_tag }}
+            {{ form.data_di_nascita }}
+          </div>
+          <button type="submit" class="btn btn-success">Register</button>
+        </form>
+
+        <p class="mt-5">
+          Already have an account? <a href="{% url 'login' %}">Login here</a>.
+        </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

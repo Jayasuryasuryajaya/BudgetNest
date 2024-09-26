@@ -3,7 +3,9 @@ from django.template import Template , Context
 from Users.services import UserService  
 from Budgeting.servicies import BudgetingService
 from Faq.services import FaqService
-# Create your views here.
+from django.views.decorators.cache import never_cache
+
+@never_cache
 def HomePage (request): 
     users = UserService.count_utenti
     families = UserService.count_famiglie

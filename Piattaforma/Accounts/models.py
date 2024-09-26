@@ -11,7 +11,7 @@ class Conto(models.Model):
     tipo = models.CharField(
         max_length=20,
         choices=TipoConto.choices,
-        default=TipoConto.CORRENTE,  # Valore predefinito se non viene specificato
+        default=TipoConto.CORRENTE,
     )
     def __str__(self):
         return self.nome + ' ' + str(self.saldo)
