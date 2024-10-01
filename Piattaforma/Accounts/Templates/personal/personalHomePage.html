@@ -1,0 +1,508 @@
+{% extends "registration/base.html" %}
+
+{% block content %}
+  <section id="dashboard" class="sections personal d-flex align-items-start flex-column" style="min-height: 130vh; position: relative;">
+
+    <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
+     style="align-items: center; 
+            margin-top: 40px; margin-left:30px; margin-right:30px; justify-content: flex-start;
+            border-radius: 15px; background-color: white; 
+            border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
+             /* Altezza massima ridotta */
+            max-width: auto; padding-bottom: 5px; padding-top: 5px;">
+    {% if not conti %}
+    <div id="conto_esempio" class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
+    color: white; background-color: #100d30; text-align: left; height: auto;">
+        <i class="bi bi-bank"></i>
+        <h4 style="margin-top: 5px; color: white;">Example Account </h4>
+        <h6 style="color: white;">Balance: 0.00 €</h6>
+    </div>
+    {% endif %}
+
+    {% for conto in conti %}
+    <div id="singolo_conto_{{ conto.id }}" class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
+        color: white; background-color: #100d30; text-align: left; height: auto;">
+        
+        {% if conto.tipo == 'corrente' %}
+            <i class="bi bi-bank"></i>
+        {% elif conto.tipo == 'investimento' %}
+            <i class="bi bi-bar-chart"></i>
+        {% elif conto.tipo == 'risparmio' %}
+            <i class="bi bi-safe"></i>
+        {% endif %}
+
+        <h3 style="margin-top:5px; color: white; font-size: 18px;">{{ conto.nome }}</h3> <!-- Dimensione del testo ridotta -->
+        <h6 style="color: white; font-size: 14px;">Saldo: {{ conto.saldo }} €</h6> <!-- Dimensione del testo ridotta -->
+    </div>
+    {% endfor %}
+    
+    <div id="openModalBtn" class="singolo-conto conto-box" style="border-radius: 50%; background-color: #00995c; 
+    width: 40px; height: 40px; 
+    display: flex; align-items: center; justify-content: center; margin-right: 15px; margin-left: 15px;">  
+        <i class="bi bi-plus" style="color: white; font-size: 20px;"></i> <!-- Dimensione icona ridotta -->
+    </div>
+</div>
+
+
+
+        
+
+       <!-- Modale -->
+        <div id="myModal" class="modal">
+          <div class="modal-content">
+            <button class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
+          <div id="responseMessage" style="color: red;"></div>
+
+            <h4 class = "color:#100d30 ">Insert your bank account</h4>
+            <form id="contoForm" method="post" action="{% url 'SezionePersonale' %}" class="mt-4">
+
+              {% csrf_token %}
+              <div class="mb-3">
+                {{ form.nome }}
+              </div>
+              <div class="mb-4">
+                {{ form.saldo }}
+              </div>
+              <div class="mb-4">
+                {{ form.tipo }}
+              </div><div style="display: flex; justify-content: center;">
+                <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; 
+                        border-radius: 20px;  border: 1px solid #d3d3d3;">Create</button>
+              </div>
+              <input type="hidden" name="next" value="{{ next }}">
+            </form>
+          </div>
+        </div>
+      </div>  
+  
+      <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;">
+        <div id="leftDiv" style="flex: 5; margin-right: 30px; padding: 10px; border-radius: 8px; text-align: center;">
+            <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
+                 style="align-items: center; 
+                        margin-top: 70px; margin-left:30px; margin-right:30px; justify-content: flex-start;
+                        border-radius: 15px; background-color: white; 
+                        border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
+                        max-height: auto; max-width: auto; padding-bottom: 10px; padding-top: 10px">
+                Grafico
+            </div>
+        </div>
+        <div id="rightDiv" style="flex: 1; margin-left: 10px; padding: 10px; border-radius: 8px; text-align: center;">
+            <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
+                 style="border-radius: 15px; background-color: white; padding: 10px;">
+        
+                <div class="d-flex flex-column" style="align-items: center; width: 100%;">
+                    <button id= "newTransactionBtn" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #00995c; color: white; cursor: pointer;  width: 90%;">
+                        New transaction
+                    </button>
+                    <button  style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
+                        New spending goal
+                    </button>
+                    <button id="newSavingPlan" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
+                        New savings plan
+                    </button>
+                </div>
+        
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modale per la nuova transazione -->
+<div id="transactionModal" class="modal">
+    <div class="modal-content" id = "transactionFormDiv">
+        <button  id="closeModelTransaction" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+        <div id="transactionResponseMessage" style="color: red; text-align: center; /* Centro il testo */
+    
+    font-size: 14px; 
+    margin-top: 10px;"></div>
+        <h4 style="color: #100d30;">Insert your transaction</h4>
+        <form id="transactionForm" method="post" class="mt-4" action = "{% url "gestioneTransazione" %}">
+            {% csrf_token %}
+           
+            <div class="mb-3" id =  "tipo">
+                {{ formTransazione.tipo_transazione }}
+            </div>
+            <div id= "formTransazioneContainer"class="mb-4">
+                {{ formTransazione.conto}}
+            </div>
+            <div class="mb-4">
+                {{ formTransazione.importo }}
+            </div>
+            <div class="mb-4">
+                {{ formTransazione.data}}
+            </div>
+            <div class="mb-4">
+                {{ formTransazione.descrizione}}
+            </div>
+                        
+
+            
+            <div class="mb-4 singola periodica delegata futura"  style="display:block;">
+                {{ formTransazione.categoria}}
+            </div>
+            <div class="mb-4 singola periodica delegata futura "  style="display:block;">
+                {{ formTransazione.sotto_categoria}}
+            </div>
+            <div class="mb-4 periodica" style="display:none;">
+                {{ formTransazione.tipo_rinnovo}}
+            </div>
+            <div class="mb-4 investimento"  style="display:none;">
+                {{ formTransazione.ticker}}
+            </div>
+            <div class="mb-4 investimento"  style="display:none;">
+                {{ formTransazione.numero_azioni}}
+            </div>
+            <div class="mb-4 investimento"  style="display:none;">
+                {{ formTransazione.prezzo_ordine}}
+            </div>
+            <div class="mb-4 investimento"  style="display:none;">
+                {{ formTransazione.borsa}}
+            </div>
+            <div class="mb-4 investimento"  style="display:none;">
+                {{ formTransazione.valuta}}
+            </div>
+            <div class="mb-4 trasferimento"  style="display:none;">
+                {{ formTransazione.conto_arrivo}}
+            </div>
+
+            <div style="display: flex; justify-content: center;">
+                <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; 
+                        border-radius: 20px; border: 1px solid #d3d3d3; ">Create</button>
+            </div>
+            <input type="hidden" name="next" value="{{ next }}">
+        </form>
+    </div>
+</div>
+
+
+ 
+    <div id="SavingsPlanModal" class="modal">
+        <div class="modal-content" id = "SavingFormDiv">
+            <button  id="SavingsPlanModalExit" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+            <div id="SavingsPlanResponseMessage" style="color: red; text-align: center; /* Centro il testo */
+            font-size: 14px; 
+            margin-top: 10px;"></div>
+            <h4 style="color: #100d30;">Insert your saving plan</h4>
+            <form id="SavingsPlanForm" method="post" class="mt-4" action="{% url 'gestionePianoRisparmio' %}" >
+                {% csrf_token %}
+               
+                <div class="mb-3" id =  "tipo">
+                    {{ formPiano.obbiettivo }}
+                </div>
+                <div class="mb-3" id =  "tipo">
+                    {{ formPiano.data_scadenza }}
+                </div>
+                <div class="mb-3" id =  "tipo">
+                    {{ formPiano.conto }}
+                </div>
+                            
+                
+    
+                <div style="display: flex; justify-content: center;">
+                    <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; 
+                            border-radius: 20px; border: 1px solid #d3d3d3; ">Create</button>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+        </div>
+    </div>
+
+
+
+
+
+</section>
+  
+  
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const contoForm = document.getElementById('contoForm');
+        const responseMessage = document.getElementById('responseMessage');
+        const contiContainer = document.getElementById('contiContainer');
+        const TransazioneForm = document.getElementById('transactionForm');
+        const responseMessageTransaction = document.getElementById('transactionResponseMessage');
+        const SavingForm = document.getElementById('SavingsPlanModal');
+        const SavingsresponseMessage = document.getElementById('SavingsPlanResponseMessage');
+
+
+        const closeModal = (modal) => {
+            modal.style.display = 'none';
+            contoForm.reset();
+            responseMessage.textContent = '';
+        };
+
+        // Gestisci l'invio del modulo per i conti
+        contoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(contoForm); // Crea un oggetto FormData con i dati del form
+
+            fetch(contoForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const contiElements = document.querySelectorAll('.singolo-conto');
+                    document.getElementById('formTransazioneContainer').innerHTML = data.formTransazione;
+                    contiElements.forEach(conto => conto.remove());
+
+                    data.conti.forEach(conto => {
+                        const contoDiv = document.createElement('div');
+                        contoDiv.className = 'conto-box singolo-conto';
+                        contoDiv.style.margin = '10px'; 
+                        contoDiv.style.padding = '15px'; 
+                        contoDiv.style.borderRadius = '10px';
+                        contoDiv.style.color = 'white';
+                        contoDiv.style.backgroundColor = '#100d30';
+                        contoDiv.style.textAlign = 'left';
+                        contoDiv.style.maxHeight = '100px'; 
+
+                        let iconHtml = '';
+                        if (conto.tipo === 'corrente') {
+                            iconHtml = '<i class="bi bi-bank"></i>';
+                        } else if (conto.tipo === 'investimento') {
+                            iconHtml = '<i class="bi bi-bar-chart"></i>';
+                        } else if (conto.tipo === 'risparmio') {
+                            iconHtml = '<i class="bi bi-safe"></i>';
+                        }
+
+                        contoDiv.innerHTML = `${iconHtml}
+                            <h3 style="margin-top:5px; color: white; font-size: 18px;">${conto.nome}</h3>
+                            <h6 style="color: white; font-size: 14px;">Saldo: ${conto.saldo} €</h6>`;
+                        contiContainer.appendChild(contoDiv);
+                    });
+
+                    // Per il bottone
+                    const addButton = document.createElement('div');
+                    addButton.id = 'openModalBtn';
+                    addButton.className = 'conto-box singolo-conto';
+                    addButton.style.borderRadius = '50%';
+                    addButton.style.backgroundColor = '#00995c';
+                    addButton.style.width = '40px';
+                    addButton.style.height = '40px'; 
+                    addButton.style.display = 'flex';
+                    addButton.style.alignItems = 'center';
+                    addButton.style.justifyContent = 'center';
+                    addButton.style.marginRight = '15px'; 
+                    addButton.style.marginLeft = '15px'; 
+
+                    const addButtonIcon = document.createElement('i');
+                    addButtonIcon.className = 'bi bi-plus';
+                    addButtonIcon.style.color = 'white';
+                    addButtonIcon.style.fontSize = '20px'; 
+
+                    addButton.appendChild(addButtonIcon); 
+                    contiContainer.appendChild(addButton);
+
+                    addButton.onclick = function() {
+                        const modal = document.getElementById('myModal');
+                        modal.style.display = 'block';
+                    };
+
+                    closeModal(document.getElementById('myModal'));
+
+                } else {
+                    let firstField = Object.keys(data.errors)[0]; 
+                    responseMessage.textContent = data.errors[firstField][0]; 
+                    responseMessage.style.color = 'red';
+                    contoForm.reset();
+                }
+            });
+        });
+
+        document.getElementById('openModalBtn').onclick = function() {
+            const modal = document.getElementById('myModal');
+            responseMessage.textContent = '';
+            modal.style.display = 'block';
+        };
+
+        document.getElementById('newTransactionBtn').onclick = function() {
+            const modal = document.getElementById('transactionModal');
+            responseMessageTransaction.textContent = '';
+            modal.style.display = 'block';
+        };
+
+        const closeModalTransazione = () => {
+            const modal = document.getElementById('transactionModal');
+            document.querySelectorAll('.periodica, .investimento, .futura, .delegata, .trasferimento').forEach(function(field) {
+                field.style.display = 'none'; // Nasconde tutti i campi di transazione
+            });
+            document.querySelectorAll('.singola').forEach(function(field) {
+                field.style.display = 'block'; // Nasconde tutti i campi di transazione
+            });
+            modal.style.display = 'none';
+            responseMessageTransaction.textContent = '';
+            TransazioneForm.reset();
+        };
+
+        // Aggiungi l'evento click al documento per chiudere il modulo della transazione
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('transactionModal');
+            const isClickInside = modal.contains(event.target) || event.target === document.getElementById('newTransactionBtn');
+
+            if (!isClickInside) {
+                closeModalTransazione(); // Chiudi il modulo se il click è all'esterno
+            }
+        });
+
+        // Aggiungi l'evento click al pulsante di chiusura del modale transazione
+        document.getElementById('closeModelTransaction').onclick = function() {
+            closeModalTransazione(); // Chiudi il modale delle transazioni
+        };
+
+        // Gestisci l'invio del modulo per la transazione
+        TransazioneForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(TransazioneForm); // Crea un oggetto FormData con i dati del form
+
+            fetch(TransazioneForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Rimuovi gli elementi esistenti
+                    const contiElements = document.querySelectorAll('.singolo-conto');
+                    contiElements.forEach(conto => conto.remove());
+
+                    // Aggiungi i nuovi conti aggiornati
+                    data.conti.forEach(conto => {
+                        const contoDiv = document.createElement('div');
+                        contoDiv.className = 'conto-box singolo-conto';
+                        contoDiv.style.margin = '10px'; 
+                        contoDiv.style.padding = '15px'; 
+                        contoDiv.style.borderRadius = '10px';
+                        contoDiv.style.color = 'white';
+                        contoDiv.style.backgroundColor = '#100d30';
+                        contoDiv.style.textAlign = 'left';
+                        contoDiv.style.maxHeight = '100px'; 
+
+                        let iconHtml = '';
+                        if (conto.tipo === 'corrente') {
+                            iconHtml = '<i class="bi bi-bank"></i>';
+                        } else if (conto.tipo === 'investimento') {
+                            iconHtml = '<i class="bi bi-bar-chart"></i>';
+                        } else if (conto.tipo === 'risparmio') {
+                            iconHtml = '<i class="bi bi-safe"></i>';
+                        }
+
+                        contoDiv.innerHTML = `${iconHtml}
+                            <h3 style="margin-top:5px; color: white; font-size: 18px;">${conto.nome}</h3>
+                            <h6 style="color: white; font-size: 14px;">Saldo: ${conto.saldo} €</h6>`;
+                        contiContainer.appendChild(contoDiv);
+                    });
+
+                    // Per il bottone
+                    const addButton = document.createElement('div');
+                    addButton.id = 'openModalBtn';
+                    addButton.className = 'conto-box singolo-conto';
+                    addButton.style.borderRadius = '50%';
+                    addButton.style.backgroundColor = '#00995c';
+                    addButton.style.width = '40px';
+                    addButton.style.height = '40px'; 
+                    addButton.style.display = 'flex';
+                    addButton.style.alignItems = 'center';
+                    addButton.style.justifyContent = 'center';
+                    addButton.style.marginRight = '15px'; 
+                    addButton.style.marginLeft = '15px'; 
+
+                    const addButtonIcon = document.createElement('i');
+                    addButtonIcon.className = 'bi bi-plus';
+                    addButtonIcon.style.color = 'white';
+                    addButtonIcon.style.fontSize = '20px'; 
+
+                    addButton.appendChild(addButtonIcon); 
+                    contiContainer.appendChild(addButton);
+
+                    addButton.onclick = function() {
+                        const modal = document.getElementById('myModal');
+                        modal.style.display = 'block';
+                    };
+
+                    closeModal(document.getElementById('myModal'));
+                    
+                    closeModalTransazione();
+                } else {
+                    let firstField = Object.keys(data.errors)[0];
+                    transactionResponseMessage.textContent = data.errors[firstField][0];
+                    transactionResponseMessage.style.color = 'red';
+                }
+            });
+        });
+
+        document.getElementById('tipo').addEventListener('change', function() {
+            var tipoTransazione = this.querySelector('select').value; // Assicurati di selezionare il valore corretto
+
+            // Nascondi tutte le descrizioni
+            document.querySelectorAll('.descrizione').forEach(function(descrizione) {
+                descrizione.style.display = 'none'; // Nasconde tutte le descrizioni
+            });
+
+            // Nascondi tutti i campi di transazione
+            document.querySelectorAll('.singola, .periodica, .investimento, .futura, .delegata').forEach(function(field) {
+                field.style.display = 'none'; // Nasconde tutti i campi di transazione
+            });
+
+            // Mostra solo la descrizione corrispondente
+            if (tipoTransazione === 'singola') {
+                document.querySelectorAll('.singola').forEach(function(singola) {
+                    singola.style.display = 'block';  
+                });
+            } else if (tipoTransazione === 'periodica') {
+                document.querySelectorAll('.periodica').forEach(function(periodica) {
+                    periodica.style.display = 'block'; 
+                });
+            } else if (tipoTransazione === 'investimento') {
+                document.querySelectorAll('.investimento').forEach(function(investimento) {
+                    investimento.style.display = 'block'; 
+                });
+            } else if (tipoTransazione === 'futura') {
+                document.querySelectorAll('.futura').forEach(function(futura) {
+                    futura.style.display = 'block'; 
+                });
+            } else if (tipoTransazione === 'delegata') {
+                document.querySelectorAll('.delegata').forEach(function(delegata) {
+                    delegata.style.display = 'block'; 
+                });
+            } else if (tipoTransazione === 'trasferimento') {
+                document.querySelectorAll('.trasferimento').forEach(function(delegata) {
+                    delegata.style.display = 'block'; 
+                });
+            }
+        });
+
+
+
+        document.getElementById('newSavingPlan').onclick = function() {
+            const modal = document.getElementById('SavingsPlanModal');
+            responseMessage.textContent = '';
+            modal.style.display = 'block';
+        };
+
+
+        const closeModalSavingPlan = (modal) => {
+
+            modal.style.display = 'none';
+            SavingForm.reset();
+            SavingsresponseMessage.textContent = '';
+        };
+
+        document.getElementById('SavingsPlanModalExit').onclick = function() {
+            const modal = document.getElementById('SavingsPlanModal');
+            closeModalSavingPlan(modal); // Chiudi il modale corretto
+        };
+
+    });
+</script>
+
+{% endblock content %}
+

@@ -1,10 +1,43 @@
 {% extends "registration/base.html" %}
 
-{% block content %}
-<section id= "dashboard" class="login-section d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
-       
-        <h1>Benvenuto</h1>
-        
-        <script src="" async defer></script>
-</section>
-    {% endblock %}
+    {% block content %}
+    
+      <section id="dashboard" class="sections section dark-background d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
+        <div class="container text-center">
+          <div class="row gy-4 justify-content-center">
+                
+            <!-- Primo Rettangolo -->
+            <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-right" data-aos-delay="200">
+              <div class="section-box p-4">
+                <i class="bi bi-pie-chart"></i>
+                <h3>Personal Budgeting</h3>
+                <p>Access the panel to monitor your personal income, expenses, and budgets.</p>
+                <a href="{% url 'SezionePersonale' %}" class="btn-get-started">Go to section</a>
+              </div>
+            </div>
+            
+            <!-- Secondo Rettangolo -->
+            <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-down" data-aos-delay="300">
+              <div class="section-box p-4">
+                <i class="bi bi-people"></i>
+                <h3>Family Budgeting</h3>
+                <p>Create and manage family financial plans with ease.</p>
+                <a href="" class="btn-get-started">Go to section</a>
+              </div>
+            </div>
+            
+            <!-- Terzo Rettangolo -->
+            <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-left" data-aos-delay="400">
+              <div class="section-box p-4">
+                <i class="bi bi-graph-up-arrow"></i>
+                <h3>Investments</h3>
+                <p>Keep track of your investments without accessing your broker account.</p>
+                <a href="" class="btn-get-started">Go to section</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    
+    {% endblock content %}
+    

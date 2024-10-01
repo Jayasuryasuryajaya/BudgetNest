@@ -17,6 +17,10 @@
   --nav-font: "Poppins",  sans-serif;
 }
 
+.personal
+{
+  background-color: #f4f5fe; 
+}
 /* Global Colors - The following color variables are used throughout the website. Updating them here will change the color scheme of the entire website */
 :root { 
   --background-color: #ffffff; /* Background color for the entire website, including individual sections */
@@ -1743,4 +1747,91 @@ section,
 .contact .php-email-form button[type=submit]:hover {
   background: color-mix(in srgb, var(--accent-color), transparent 25%);
 }
+
+.section-box {
+  border: 2px solid #ffffff; 
+  border-radius: 25px;
+  transition: transform 0.3s ease; 
+}
+
+.section-box:hover {
+  transform: scale(1.05); 
+}
+
+.conto-box {
+  width: 200px;
+  text-align: center;  /* Centrare il testo */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);  /* Ombra leggera per i rettangoli */
+}
+
+/* Stile base del modale */
+.modal {
+  display: none; /* Nascosto per default */
+  position: fixed; /* Posizionamento fisso sulla finestra */
+  z-index: 1; /* Al di sopra di tutto */
+  left: 0;
+  top: 0;
+  width: 100%; /* Larghezza piena */
+  height: 100%; /* Altezza piena */
+  overflow: auto; /* Scroll se necessario */
+  background-color: rgba(0, 0, 0, 0.4); 
+  align-content: center;/* Sfondo semi-trasparente */
+}
+
+/* Contenuto del modale */
+.modal-content {
+  background-color: white;
+  margin: 15% auto; /* Distanza dall'alto e centratura */
+  padding: 20px;
+  border-radius: 20px;
+  width: 40%;
+  align-items: center;
+}
+
+/* X per chiudere */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  align-self:flex-end;
+}
+
+.close:hover, .close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.form-control{
+  border-radius: 25px;
+  
+}
+
+.form-control:focus {
+  border-color: #00995c; /* Cambia il colore del bordo quando il campo è in focus */
+  box-shadow: 0 0 7px #00995c; /* Aggiungi un'ombra colorata */
+  outline: none; /* Rimuove l'outline predefinito del browser */
+}
+
+#transactionFormDiv {
+  position: fixed; /* Fisso nella pagina */
+  top: 25%; /* Posizionamento verticale al centro */
+  left: 50%; /* Posizionamento orizzontale al centro */
+  transform: translate(-50%, -50%); /* Centrare l'elemento */
+  z-index: 1000; /* Assicurati che sia sopra il resto della pagina */
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+ 
+  max-width: 35%;
+  max-height: 80vh; /* Limita l'altezza del form */
+  overflow-y: auto; /* Permetti lo scrolling interno */
+}
+
+.no-scroll {
+  overflow: hidden; /* Disabilita lo scroll */
+}
+
+
 

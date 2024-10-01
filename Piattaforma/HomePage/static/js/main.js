@@ -177,4 +177,36 @@
   window.addEventListener('load', navmenuScrollspy);
   document.addEventListener('scroll', navmenuScrollspy);
 
+ 
+  
+  document.addEventListener("DOMContentLoaded", function() {
+    var modal = document.getElementById("myModal");
+    var openModalBtn = document.getElementById("openModalBtn");
+    var closeModalBtn = document.getElementsByClassName("close")[0];
+
+    // Mostra il modale al clic
+    openModalBtn.onclick = function() {
+      modal.style.display = "block";
+    }
+
+    // Chiudi il modale al clic sulla X
+    closeModalBtn.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // Chiudi il modale cliccando fuori dal contenuto
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  });
+
+  
+
+
+
+
+
+
 })();

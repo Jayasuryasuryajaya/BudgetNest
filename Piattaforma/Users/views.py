@@ -1,30 +1,28 @@
-from django.shortcuts import render, HttpResponseRedirect
+from django.shortcuts import render, HttpResponseRedirect, redirect
 from django.contrib.auth.models import User
-from django.contrib.auth import logout
+from django.contrib.auth import logout, login as auth_login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
-from django.shortcuts import redirect
-from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import authenticate
-from .forms import NuovoUtente 
-from .forms import *
+
+from Users.models import Utente
+from .forms import NuovoUtente
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from Budgeting.services import BudgetingService
+
 
 @never_cache
 def Login(request):
     form = AuthenticationForm(request, data=request.POST or None)
-    
-    print("Dati ricevuti:", request.POST) 
-    print("prova")
+    print("ciao")
     if form.is_valid():
         user = form.get_user()
         auth_login(request, user)
-        print("funziona")
         
-        
+    
+    
     return render(request, 'registration/login.html', {'form': form})
+
 
 
 @never_cache
@@ -60,8 +58,15 @@ def registration(request):
             )
            
             utente_loggato = authenticate(request, username=username, password=password)
+            
+            
             if utente_loggato is not None:
-                auth_login(request, utente_loggato)
+              
+              auth_login(request, utente_loggato)
+               
+                
+            
+           
             return redirect('dashboard')
     
         

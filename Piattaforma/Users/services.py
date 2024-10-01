@@ -6,10 +6,13 @@ class UserService:
       return Utente.objects.all()
     
     def get_all_Famiglia():
-      return Utente.objects.all()
+      return Famiglia.objects.all()
        
     def count_utenti():
         return Utente.objects.count()  
     
     def count_famiglie():
-        return Famiglia.objects.count() 
+        return Famiglia.objects.count()
+      
+    def get_utenti_by_user(id):
+        return Utente.objects.get(user_profile_id = id)  

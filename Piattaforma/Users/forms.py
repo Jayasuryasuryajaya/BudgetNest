@@ -18,7 +18,7 @@ class NuovoUtente(ModelForm):
             }
         )
     )
-
+    
     class Meta:
         model = Utente
         fields = ["username", "email", "password", "nome", "cognome", "data_di_nascita", 

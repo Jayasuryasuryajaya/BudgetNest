@@ -15,11 +15,11 @@ class CategoriaSpesa(models.Model):
 
 
 class SottoCategoriaSpesa(models.Model):
-    categoria_superiore = models.ForeignKey(CategoriaSpesa, on_delete=models.CASCADE)
+    categoria_superiore = models.ForeignKey(CategoriaSpesa, on_delete=models.CASCADE,)
     utente = models.ForeignKey(Utente, on_delete=models.CASCADE, null= True)
     personalizzata = models.BooleanField(default=False)
     data_creazione = models.DateField()
-    nome = models.CharField(max_length=50)
+    nome = models.CharField(max_length=50, null= True)
     
     def __str__(self):
         return self.categoria_superiore.nome + ' -> ' + str(self.nome);
@@ -59,6 +59,7 @@ class Transazione(models.Model):
     importo = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField()
     mostra = models.BooleanField(default=True)
+    eseguita = models.BooleanField(default=True)
     tipo_transazione = models.CharField(
         max_length=20,
         choices=CategoriaTransazione.choices,
@@ -70,7 +71,7 @@ class Transazione(models.Model):
     numero_azioni = models.FloatField(null=True, blank=True)
     borsa = models.CharField(max_length=50, null=True, blank=True)
     valuta = models.CharField(max_length=3, null=True, blank=True)
-    conto = models.ForeignKey(Conto, on_delete=models.CASCADE)
+    conto = models.ForeignKey(Conto, on_delete=models.CASCADE,  related_name='conto_partenza')
     utente = models.ForeignKey(Utente, on_delete=models.CASCADE)
     categoria = models.ForeignKey(CategoriaSpesa, null=True, blank=True, on_delete=models.SET_NULL)
     sotto_categoria = models.ForeignKey(SottoCategoriaSpesa, null=True, blank=True, on_delete=models.SET_NULL)
@@ -80,7 +81,11 @@ class Transazione(models.Model):
     tipo_rinnovo = models.CharField(
         max_length=20,
         choices=TipoRinnovo.choices,
-        default=TipoRinnovo.NESSUNO,  
+        default=TipoRinnovo.NESSUNO,
+        null=True,
+        blank=True
     )
+    conto_arrivo = models.ForeignKey(Conto, on_delete=models.CASCADE, null= True, blank=True,  related_name='conto_arrivo')
+    
 
     

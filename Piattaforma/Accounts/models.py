@@ -6,7 +6,7 @@ class TipoConto(models.TextChoices):
     INVESTIMENTO = 'investimento', 'Conto di Investimento'
     RISPARMIO = 'risparmio', 'Conto di Risparmio'
 class Conto(models.Model):
-    nome = models.CharField(max_length=50)
+    nome = models.CharField(max_length=10)
     saldo = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     tipo = models.CharField(
         max_length=20,
