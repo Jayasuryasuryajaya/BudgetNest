@@ -5,7 +5,7 @@
 
     <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
      style="align-items: center; 
-            margin-top: 40px; margin-left:30px; margin-right:30px; justify-content: flex-start;
+            margin-top: 60px; margin-left:30px; margin-right:30px; justify-content: flex-start;
             border-radius: 15px; background-color: white; 
             border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
              /* Altezza massima ridotta */
@@ -32,10 +32,12 @@
         {% endif %}
 
         <h3 style="margin-top:5px; color: white; font-size: 18px;">{{ conto.nome }}</h3> <!-- Dimensione del testo ridotta -->
-        <h6 style="color: white; font-size: 14px;">Saldo: {{ conto.saldo }} €</h6> <!-- Dimensione del testo ridotta -->
+        <h6 style="color: white; font-size: 14px;">Balance: {{ conto.saldo }} €</h6> <!-- Dimensione del testo ridotta -->
     </div>
     {% endfor %}
     
+    
+
     <div id="openModalBtn" class="singolo-conto conto-box" style="border-radius: 50%; background-color: #00995c; 
     width: 40px; height: 40px; 
     display: flex; align-items: center; justify-content: center; margin-right: 15px; margin-left: 15px;">  
@@ -44,46 +46,15 @@
 </div>
 
 
-
-        
-
-       <!-- Modale -->
-        <div id="myModal" class="modal">
-          <div class="modal-content">
-            <button class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
-          <div id="responseMessage" style="color: red;"></div>
-
-            <h4 class = "color:#100d30 ">Insert your bank account</h4>
-            <form id="contoForm" method="post" action="{% url 'SezionePersonale' %}" class="mt-4">
-
-              {% csrf_token %}
-              <div class="mb-3">
-                {{ form.nome }}
-              </div>
-              <div class="mb-4">
-                {{ form.saldo }}
-              </div>
-              <div class="mb-4">
-                {{ form.tipo }}
-              </div><div style="display: flex; justify-content: center;">
-                <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; 
-                        border-radius: 20px;  border: 1px solid #d3d3d3;">Create</button>
-              </div>
-              <input type="hidden" name="next" value="{{ next }}">
-            </form>
-          </div>
-        </div>
-      </div>  
-  
-      <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;">
-        <div id="leftDiv" style="flex: 5; margin-right: 30px; padding: 10px; border-radius: 8px; text-align: center;">
+<div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;">
+        <div id="leftDiv" style="flex: 4; margin-right: 30px; padding: 10px; border-radius: 8px; text-align: center;">
             <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
                  style="align-items: center; 
                         margin-top: 70px; margin-left:30px; margin-right:30px; justify-content: flex-start;
-                        border-radius: 15px; background-color: white; 
+                        border-radius: 15px; 
                         border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
-                        max-height: auto; max-width: auto; padding-bottom: 10px; padding-top: 10px">
-                Grafico
+                        max-height: auto; padding-bottom: 10px; padding-top: 10px">
+                        <canvas id="saldoChart" width="400" height="300" style = "margin-left:20px; margin-right:20px; margin-bottom:20px;  padding:10px"  ></canvas>
             </div>
         </div>
         <div id="rightDiv" style="flex: 1; margin-left: 10px; padding: 10px; border-radius: 8px; text-align: center;">
@@ -94,7 +65,7 @@
                     <button id= "newTransactionBtn" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #00995c; color: white; cursor: pointer;  width: 90%;">
                         New transaction
                     </button>
-                    <button  style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
+                    <button   id= "openSpendingGoalModal" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
                         New spending goal
                     </button>
                     <button id="newSavingPlan" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
@@ -105,7 +76,296 @@
             </div>
         </div>
     </div>
+
+
+
+<div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;">
+        <div id="leftDiv" style="flex: 4; margin-right: 30px; padding: 10px; border-radius: 8px; text-align: center;">
+            <div id="pianiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
+                 style="align-items: center; 
+                        margin-top: 70px; margin-left:30px; margin-right:30px; justify-content: flex-start;
+                        border-radius: 15px; background-color: white; 
+                        border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
+                        max-height: auto; max-width: auto; padding-bottom: 10px; padding-top: 10px">
+
+
+                        {% if not conti %}
+
+                        <div  class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
+                        color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width : 25%">
+                   
+                    <div class="progress-circle" style="position: relative; display: inline-block; margin-bottom: 10px;">
+                        <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
+                            <path class="circle-bg"
+                                d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="#ddd"
+                                stroke-width="3" />
+                            <path class="circle"
+                                stroke-dasharray=" 70, 100" 
+                                d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="#00995c"
+                                stroke-width="3"
+                                transform="rotate(180 18 18)"/>
+                        </svg>
+                        <!-- Logo posizionato al centro della barra curva -->
+                        <div class="logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                <i class="bi bi-safe" style="font-size: 20px;"></i>
+                            
+                        </div>
+                    </div>
+                
+                   
+                    <h3 style="margin-top: 5px; color: white; font-size: 18px;">Saving account</h3>
+                
+                    <!-- Saldo del conto -->
+                    <h6 style="color: white; font-size: 14px;">Goal: XXXX €</h6>
+                    <h6 style="color: white; font-size: 12px;  margin-top: 10px;"> Due date </h6>
+                  
+
+                    
+                
+                </div>
+
+
+
+                        {% endif %}
+
+                        {% for piano in pianiRisparmio %}
+                
+                <div  class="singolo-piano conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
+                        color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width : 29.5%">
+                   
+                    <div class="progress-circle" style="position: relative; display: inline-block; margin-bottom: 10px;">
+                        <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
+                            <path class="circle-bg"
+                                d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="#ddd"
+                                stroke-width="3" />
+                            <path class="circle"
+                                stroke-dasharray=" {{piano.percentuale_completamento }}, 100" 
+                                d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="#00995c"
+                                stroke-width="3"
+                                transform="rotate(180 18 18)"/>
+                        </svg>
+                        <!-- Logo posizionato al centro della barra curva -->
+                        <div class="logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                <i class="bi bi-safe" style="font-size: 20px;"></i>
+                            
+                        </div>
+                    </div>
+                
+                   
+                    <h3 style="margin-top: 5px; color: white; font-size: 18px;">{{ piano.conto }}</h3>
+                
+                    <!-- Saldo del conto -->
+                    <h6 style="color: white; font-size: 14px;">Goal: {{ piano.obbiettivo }} €</h6>
+                    <h6 style="color: white; font-size: 12px;  margin-top: 10px;"> {{ piano.data_scadenza }} €</h6>
+                  
+
+                    
+                
+                </div>
+                
+                {% endfor %}
+            </div>
+          
+    </div>
+
+    <div id="rightDiv" style="flex: 4; margin-left: 10px; padding: 10px; border-radius: 8px; text-align: center;">
+        <div id="ObbiettiviContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
+             style="border-radius: 15px; background-color: white; padding: 10px;">
     
+            {% if not lista_obbiettivi_spesa %} 
+                <h1 class ".piano-spesa">Ciao</h1>
+            {% else %}
+                {% for obbiettivo in lista_obbiettivi_spesa %}
+                <div class="piano-spesa conto-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);">
+                    
+                    <!-- Nome della categoria target -->
+                    <div class="categoria-target" style="flex: 1; text-align: left;">
+                        <h3 style="margin: 0; font-size: 18px; color: white">{{ obbiettivo.categoria_target }}</h3>
+                    </div>
+                    
+                    <!-- Barra di completamento (centrata) -->
+                    <div class="progress-bar-container" style="flex: 2; margin: 0 20px; position: relative;">
+                        <div class="progress-bar-bg" style="background-color: #ddd; border-radius: 5px; height: 20px; width: 100%;">
+                            <div class="progress-bar" style="width: {{ obbiettivo.percentuale_completamento }}%; background-color: red; height: 100%; border-radius: 5px;">
+                            </div>
+                        </div>
+                        <!-- Percentuale completamento sopra la barra -->
+                    </div>
+                    
+                    <!-- Data di scadenza -->
+                    <div class="data-scadenza" style="flex: 1;  text-align: right; ">
+                        <h6 style="margin: 0; font-size: 14px; color: white;">{{ obbiettivo.data_scadenza }}</h6>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+
+
+        <div id="transazioniContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
+             style="border-radius: 15px;margin-left: auto; margin-right: auto; background-color: white; padding: 10px; margin-top: 50px; width: 70%">
+
+    
+             {% if not transazioni %}
+             <h1 class="transazione-box">Nessuna transazione disponibile</h1>
+         {% else %}
+
+
+         {% if conteggio_odierne < 5 %}
+         {% for t in transazioni|slice:":5" %}
+             
+         <div class="transazione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
+           
+                
+            <div class="icona-transazione" style="margin-right: 15px;">
+               {% if t.importo > 0 %}
+                <i class="bi bi-plus-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                {% else %}
+                <i class="bi bi-dash-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                {% endif %}
+            </div>
+            
+
+            
+            <div class="dettagli-transazione" style="flex: 1; text-align: left;">
+
+               {% if t.tipo_transazione == 'trasferimento' %}
+                       <h3 style="margin: 0; font-size: 18px; color: #00995c;">Transfer</h3>
+                       <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
+               {% else %}
+                       {% if t.importo >= 0 %}
+                       <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }}</h3>
+                       {% else %}
+                           <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }}</h3>
+                       {% endif %}
+                       <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
+               {% endif %}
+              
+           </div>
+           
+
+            
+            <div class="importo-transazione" style="flex: 1; text-align: right;">
+                <h3 style="margin: 0; font-size: 18px; color: white;">€ {{ t.importo }}</h3>
+                <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.data }}</p>
+            </div>
+            
+        </div>
+        {% endfor %}
+         
+     {% else %}
+         {% for t in transazioni_odierne %}
+
+            
+         <div class="transazione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
+           
+                
+            <div class="icona-transazione" style="margin-right: 15px;">
+               {% if t.importo > 0 %}
+                <i class="bi bi-plus-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                {% else %}
+                <i class="bi bi-dash-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                {% endif %}
+            </div>
+            
+
+            
+            <div class="dettagli-transazione" style="flex: 1; text-align: left;">
+
+               {% if t.tipo_transazione == 'trasferimento' %}
+                       <h3 style="margin: 0; font-size: 18px; color: #00995c;">Transfer</h3>
+                       <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
+               {% else %}
+                       {% if t.importo >= 0 %}
+                       <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }}</h3>
+                       {% else %}
+                           <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }}</h3>
+                       {% endif %}
+                       <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
+               {% endif %}
+              
+           </div>
+           
+
+            
+            <div class="importo-transazione" style="flex: 1; text-align: right;">
+                <h3 style="margin: 0; font-size: 18px; color: white;">€ {{ t.importo }}</h3>
+                <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.data }}</p>
+            </div>
+            
+        </div>
+        {% endfor %} 
+        
+     {% endif %}
+     
+
+            
+
+            
+         {% endif %}
+         
+        </div>
+       
+
+
+
+    </div>
+
+    
+</div>
+    
+
+
+
+
+
+       <!-- Modale -->
+<div id="myModal" class="modal">
+    
+    <div class="modal-content">
+      <button class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
+    <div id="responseMessage" style="color: red;"></div>
+
+      <h4 class = "color:#100d30 ">Insert your bank account</h4>
+      <form id="contoForm" method="post" action="{% url 'SezionePersonale' %}" class="mt-4">
+
+        {% csrf_token %}
+        <div class="mb-3">
+          {{ form.nome }}
+        </div>
+        <div class="mb-4">
+          {{ form.saldo }}
+        </div>
+        <div class="mb-4">
+          {{ form.tipo }}
+        </div><div style="display: flex; justify-content: center;">
+          <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; 
+                  border-radius: 20px;  border: 1px solid #d3d3d3;">Create</button>
+        </div>
+        <input type="hidden" name="next" value="{{ next }}">
+      </form>
+    </div>
+  </div>
+</div>  
+</div>
+ 
     <!-- Modale per la nuova transazione -->
 <div id="transactionModal" class="modal">
     <div class="modal-content" id = "transactionFormDiv">
@@ -173,16 +433,45 @@
     </div>
 </div>
 
+<!-- Modale per l obbiettivo di spesa-->
+<div id="SpendingGoalModal" class="modal">
+    <div class="modal-content" >
+        <button id="SpendingGoalModalExit" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+        <div id="SpendingGoalResponseMessage" style="color: red; text-align: center; font-size: 14px; margin-top: 10px;"></div>
+        <h4 style="color: #100d30;">Insert your spending goal</h4>
+        <form id="SpendingGoalForm" method="post" class="mt-4" action="{% url 'gestioneObbiettivoSpesa' %}">
+            {% csrf_token %}
+            
+            <div class="mb-3" id="formSpendingGoalContainer">
+                {{ formObbiettivo.importo }}
+            </div>
+            <label for="id_categoria_target" style="color: #100d30;padding-bottom:10px">Category Target</label>
+            <div class="mb-3">
+                {{ formObbiettivo.categoria_target }}
+            </div>
+            <div class="mb-3">
+                <label for="id_tipo" style="color: #100d30; padding-bottom:10px">Duration</label>
+                {{ formObbiettivo.tipo }}
+            </div>
 
- 
-    <div id="SavingsPlanModal" class="modal">
+
+            <div style="display: flex; justify-content: center;">
+                <button type="submit" style="background: #00995c; color: white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3;">Create</button>
+            </div>
+            <input type="hidden" name="next" value="{{ next }}">
+        </form>
+    </div>
+</div>
+
+ <!-- Modale per il piano risparmio-->
+<div id="SavingsPlanModal" class="modal">
         <div class="modal-content" id = "SavingFormDiv">
             <button  id="SavingsPlanModalExit" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
             <div id="SavingsPlanResponseMessage" style="color: red; text-align: center; /* Centro il testo */
             font-size: 14px; 
             margin-top: 10px;"></div>
             <h4 style="color: #100d30;">Insert your saving plan</h4>
-            <form id="SavingsPlanForm" method="post" class="mt-4" action="{% url 'gestionePianoRisparmio' %}" >
+            <form id="SavingsPlanForm" method="post" class="mt-4" action ="{% url 'gestionePianoRisparmio' %}" >
                 {% csrf_token %}
                
                 <div class="mb-3" id =  "tipo">
@@ -191,7 +480,8 @@
                 <div class="mb-3" id =  "tipo">
                     {{ formPiano.data_scadenza }}
                 </div>
-                <div class="mb-3" id =  "tipo">
+                <div class="mb-3" id =  "formSavingsContainer">
+                    <label for="id_tipo" style="color: #100d30; padding-bottom:10px">Choose saving accout</label>
                     {{ formPiano.conto }}
                 </div>
                             
@@ -210,6 +500,7 @@
 
 
 
+
 </section>
   
   
@@ -222,7 +513,74 @@
         const responseMessageTransaction = document.getElementById('transactionResponseMessage');
         const SavingForm = document.getElementById('SavingsPlanModal');
         const SavingsresponseMessage = document.getElementById('SavingsPlanResponseMessage');
+        
+        const spendingGoalModal = document.getElementById("SpendingGoalModal");
+        const spendingGoalModalExit = document.getElementById("SpendingGoalModalExit");
+        const openSpendingGoalBtn = document.getElementById("openSpendingGoalModal");
+        
+        console.log("Labels:", {{ labels|safe }});
+        console.log("Data:", {{ data|safe }});
+      
+        var data = {{ data|safe }}.map(Number); // Assicurati che siano numeri
+        console.log("Data Array (after map):", data); 
 
+        var ctx = document.getElementById('saldoChart').getContext('2d');
+        var saldoChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ labels|safe }},
+                datasets: [{
+                    data: data,
+                    fill: true,  // Riempi l'area sotto la curva
+                    backgroundColor: 'rgba(0, 153, 92, 0.2)', // Colore di sfondo leggero sotto la curva
+                    borderColor: '#00995c',  // Colore della linea
+                    tension: 0.3,  // Curvatura della linea
+                    borderWidth: 2 // Spessore della linea
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false // Nascondi la legenda
+                    },
+                    title: {
+                        display: true, // Mostra il titolo
+                        text: 'Total Balance', // Testo del titolo
+                        font: {
+                            size: 15, // Dimensione del font
+                            family: 'Arial', // Famiglia del font
+                        },
+                        color: '#100d30', // Colore del titolo
+                    
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false, // Nascondi le linee della griglia sull'asse X
+                        },
+                        title: {
+                            display: false, // Nascondi il titolo dell'asse X
+                        },
+                        
+                    },
+                    y: {
+                        grid: {
+                            display: true, // Mostra la griglia sull'asse Y
+                            color: 'rgba(0, 0, 0, 0.1)' // Colore delle linee di griglia
+                        },
+                        title: {
+                            display: false,
+                            text: 'Saldo Totale'
+                        }
+                    }
+                }
+            }
+        });
+    
+       
 
         const closeModal = (modal) => {
             modal.style.display = 'none';
@@ -248,6 +606,8 @@
                 if (data.success) {
                     const contiElements = document.querySelectorAll('.singolo-conto');
                     document.getElementById('formTransazioneContainer').innerHTML = data.formTransazione;
+                    document.getElementById('formSavingsContainer').innerHTML = data.formSavingPlan;
+
                     contiElements.forEach(conto => conto.remove());
 
                     data.conti.forEach(conto => {
@@ -354,7 +714,7 @@
             closeModalTransazione(); // Chiudi il modale delle transazioni
         };
 
-        // Gestisci l'invio del modulo per la transazione
+       
         TransazioneForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -370,11 +730,11 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Rimuovi gli elementi esistenti
+                    
                     const contiElements = document.querySelectorAll('.singolo-conto');
                     contiElements.forEach(conto => conto.remove());
 
-                    // Aggiungi i nuovi conti aggiornati
+                    
                     data.conti.forEach(conto => {
                         const contoDiv = document.createElement('div');
                         contoDiv.className = 'conto-box singolo-conto';
@@ -431,6 +791,347 @@
                     closeModal(document.getElementById('myModal'));
                     
                     closeModalTransazione();
+
+                    let pianiElements = document.querySelectorAll('.singolo-piano');
+                    pianiElements.forEach(piano => piano.remove());
+        
+                    // Sezione contenitore dove vuoi inserire i nuovi piani di risparmio
+                    let container = document.getElementById('pianiContainer'); // Assicurati che esista nel tuo HTML
+        
+                    // Itera attraverso i dati dei piani ricevuti
+                    data.piani_risparmio.forEach(piano => {
+                        // Crea il div principale del singolo piano
+                        const pianoDiv = document.createElement('div');
+                        pianoDiv.classList.add('singolo-piano', 'conto-box');
+                        pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
+        
+                        // Crea il contenitore del progress circle
+                        const progressDiv = document.createElement('div');
+                        progressDiv.classList.add('progress-circle');
+                        progressDiv.style = "position: relative; display: inline-block; margin-bottom: 10px;";
+        
+                        // Crea il SVG per la barra di progresso
+                        const svg = `
+                            <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
+                                <path class="circle-bg"
+                                    d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="#ddd"
+                                    stroke-width="3" />
+                                <path class="circle"
+                                    stroke-dasharray="${piano.percentuale_completamento}, 100"
+                                    d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="#00995c"
+                                    stroke-width="3"
+                                    transform="rotate(180 18 18)" />
+                            </svg>
+                        `;
+                        progressDiv.innerHTML = svg;
+        
+                        // Crea il logo al centro della barra
+                        const logoDiv = document.createElement('div');
+                        logoDiv.classList.add('logo');
+                        logoDiv.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
+                        logoDiv.innerHTML = `<i class="bi bi-safe" style="font-size: 20px;"></i>`;
+        
+                        // Aggiungi il logo e il progress SVG al div del progress
+                        progressDiv.appendChild(logoDiv);
+        
+                        // Crea il titolo del conto
+                        const contoTitle = document.createElement('h3');
+                        contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
+                        contoTitle.innerText = piano.conto.nome;
+        
+                        // Crea l'elemento per l'obbiettivo del conto
+                        const goal = document.createElement('h6');
+                        goal.style = "color: white; font-size: 14px;";
+                        goal.innerText = `Goal: ${piano.obbiettivo} €`;
+        
+                        // Crea l'elemento per la data di scadenza
+                        const scadenza = document.createElement('h6');
+                        scadenza.style = "color: white; font-size: 12px; margin-top: 10px;";
+                        scadenza.innerText = piano.data_scadenza;
+        
+                        // Assembla tutto dentro il div del piano
+                        pianoDiv.appendChild(progressDiv);
+                        pianoDiv.appendChild(contoTitle);
+                        pianoDiv.appendChild(goal);
+                        pianoDiv.appendChild(scadenza);
+        
+                        // Aggiungi il piano al contenitore
+                        container.appendChild(pianoDiv);
+                    });
+
+
+                    pianiElements = document.querySelectorAll('.piano-spesa');
+                    pianiElements.forEach(piano => piano.remove());
+                    
+                   // Controlla i dati
+                    const container2 = document.getElementById('ObbiettiviContainer');
+            
+                     // Assicurati che esista nel tuo HTML
+        
+                    data.obbiettivi_spesa.forEach(obbiettivo => {
+                        // Crea il div principale per l'obiettivo di spesa
+                        const pianoDiv = document.createElement('div');
+                        pianoDiv.classList.add('piano-spesa', 'conto-box');
+                        pianoDiv.style = "display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);";
+        
+                        // Nome della categoria target
+                        const categoriaDiv = document.createElement('div');
+                        categoriaDiv.classList.add('categoria-target');
+                        categoriaDiv.style = "flex: 1; text-align: left;";
+                        const categoriaTitle = document.createElement('h3');
+                        categoriaTitle.style = "margin: 0; font-size: 18px; color: white;";
+                        categoriaTitle.innerText = obbiettivo.categoria_target.nome; // Assicurati che questo campo esista
+                        categoriaDiv.appendChild(categoriaTitle);
+        
+                        // Barra di completamento
+                        const progressBarContainer = document.createElement('div');
+                        progressBarContainer.classList.add('progress-bar-container');
+                        progressBarContainer.style = "flex: 2; margin: 0 20px; position: relative;";
+                        const progressBarBg = document.createElement('div');
+                        progressBarBg.classList.add('progress-bar-bg');
+                        progressBarBg.style = "background-color: #ddd; border-radius: 5px; height: 20px; width: 100%;";
+                        const progressBar = document.createElement('div');
+                        progressBar.classList.add('progress-bar');
+                        progressBar.style = `width: ${obbiettivo.percentuale_completamento}%; background-color: red; height: 100%; border-radius: 5px;`; // Assicurati che questo campo esista
+                        progressBarBg.appendChild(progressBar);
+                        progressBarContainer.appendChild(progressBarBg);
+        
+                        // Data di scadenza
+                        const scadenzaDiv = document.createElement('div');
+                        scadenzaDiv.classList.add('data-scadenza');
+                        scadenzaDiv.style = "flex: 1; text-align: right;";
+                        const scadenzaTitle = document.createElement('h6');
+                        scadenzaTitle.style = "margin: 0; font-size: 14px; color: white;";
+                        scadenzaTitle.innerText = obbiettivo.data_scadenza; // Assicurati che questo campo esista
+                        scadenzaDiv.appendChild(scadenzaTitle);
+        
+                        // Assembla tutto dentro il div del piano
+                        pianoDiv.appendChild(categoriaDiv);
+                        pianoDiv.appendChild(progressBarContainer);
+                        pianoDiv.appendChild(scadenzaDiv);
+        
+                        // Aggiungi il piano al contenitore
+                        container2.appendChild(pianoDiv);
+                    });
+        
+                    transazioniElements = document.querySelectorAll('.transazione-box');
+                    transazioniElements.forEach(piano => piano.remove());
+                    
+
+                    container3 = document.getElementById('transazioniContainer');
+                    
+                    // Supponiamo che 'data.transazioni' contenga tutte le transazioni
+// e che 'transazioniOggi' contenga solo quelle fatte oggi.
+
+            const transazioniOggi = data.transazioni.filter(transazione => {
+                const oggi = new Date().toISOString().split('T')[0]; // Ottieni la data di oggi in formato YYYY-MM-DD
+                return new Date(transazione.data).toISOString().split('T')[0] === oggi;
+            });
+
+
+            if (transazioniOggi.length < 5) {
+                data.transazioni.slice(0, 5).forEach(transazione => {
+
+                    const transazioneBox = document.createElement('div');
+                    transazioneBox.className = 'transazione-box';
+                    transazioneBox.style.display = 'flex';
+                    transazioneBox.style.alignItems = 'center';
+                    transazioneBox.style.justifyContent = 'space-between';
+                    transazioneBox.style.margin = '10px';
+                    transazioneBox.style.padding = '15px';
+                    transazioneBox.style.borderRadius = '10px';
+                    transazioneBox.style.backgroundColor = '#100d30';
+                    transazioneBox.style.color = 'white';
+                    transazioneBox.style.width = 'calc(100% - 30px)';
+                    transazioneBox.style.height = '55px';
+
+                    // Creare l'icona della transazione
+                    const iconaTransazione = document.createElement('div');
+                    iconaTransazione.className = 'icona-transazione';
+                    iconaTransazione.style.marginRight = '15px';
+
+                    const iconElement = document.createElement('i');
+                    if (transazione.importo > 0) {
+                        iconElement.className = 'bi bi-plus-circle-dotted';
+                    } else {
+                        iconElement.className = 'bi bi-dash-circle-dotted';
+                    }
+                    iconElement.style.fontSize = '25px';
+                    iconElement.style.color = 'white';
+                    iconaTransazione.appendChild(iconElement);
+
+                    // Creare i dettagli della transazione
+                    const dettagliTransazione = document.createElement('div');
+                    dettagliTransazione.className = 'dettagli-transazione';
+                    dettagliTransazione.style.flex = '1';
+                    dettagliTransazione.style.textAlign = 'left';
+
+                    const categoriaH3 = document.createElement('h3');
+                    categoriaH3.style.margin = '0';
+                    categoriaH3.style.fontSize = '18px';
+                    categoriaH3.style.color = transazione.importo >= 0 ? '#00995c' : 'red';
+                    categoriaH3.textContent = transazione.tipo_transazione === 'trasferimento' ? 'Transfer' : transazione.categoria.nome;
+
+                    const contoP = document.createElement('p');
+                    contoP.style.margin = '0';
+                    contoP.style.fontSize = '14px';
+                    contoP.style.color = '#ccc';
+                    if (transazione.tipo_transazione === 'trasferimento') {
+                        contoP.textContent = `${transazione.conto.nome} -> ${transazione.conto_arrivo.nome}`;
+                    } else {
+                        contoP.textContent = transazione.conto.nome;
+                    }
+
+                    dettagliTransazione.appendChild(categoriaH3);
+                    dettagliTransazione.appendChild(contoP);
+
+                    // Creare l'importo della transazione
+                    const importoTransazione = document.createElement('div');
+                    importoTransazione.className = 'importo-transazione';
+                    importoTransazione.style.flex = '1';
+                    importoTransazione.style.textAlign = 'right';
+
+                    const importoH3 = document.createElement('h3');
+                    importoH3.style.margin = '0';
+                    importoH3.style.fontSize = '18px';
+                    importoH3.style.color = 'white';
+                    importoH3.textContent = `€ ${transazione.importo}`;
+
+                    const dataP = document.createElement('p');
+                    dataP.style.margin = '0';
+                    dataP.style.fontSize = '14px';
+                    dataP.style.color = '#ccc';
+                    dataP.textContent = transazione.data;
+
+                    importoTransazione.appendChild(importoH3);
+                    importoTransazione.appendChild(dataP);
+
+                    // Aggiungere tutti i componenti al box della transazione
+                    transazioneBox.appendChild(iconaTransazione);
+                    transazioneBox.appendChild(dettagliTransazione);
+                    transazioneBox.appendChild(importoTransazione);
+
+                    // Aggiungere il box della transazione al contenitore
+                    container3.appendChild(transazioneBox);
+                });
+            } else {
+                // Se ci sono 5 o più transazioni, itera su tutte quelle fatte oggi
+                transazioniOggi.forEach(transazione => {
+                    // Creare un elemento per ogni transazione
+                    const transazioneBox = document.createElement('div');
+                    transazioneBox.className = 'transazione-box';
+                    transazioneBox.style.display = 'flex';
+                    transazioneBox.style.alignItems = 'center';
+                    transazioneBox.style.justifyContent = 'space-between';
+                    transazioneBox.style.margin = '10px';
+                    transazioneBox.style.padding = '15px';
+                    transazioneBox.style.borderRadius = '10px';
+                    transazioneBox.style.backgroundColor = '#100d30';
+                    transazioneBox.style.color = 'white';
+                    transazioneBox.style.width = 'calc(100% - 30px)';
+                    transazioneBox.style.height = '55px';
+
+                    // Creare l'icona della transazione
+                    const iconaTransazione = document.createElement('div');
+                    iconaTransazione.className = 'icona-transazione';
+                    iconaTransazione.style.marginRight = '15px';
+
+                    const iconElement = document.createElement('i');
+                    if (transazione.importo > 0) {
+                        iconElement.className = 'bi bi-plus-circle-dotted';
+                    } else {
+                        iconElement.className = 'bi bi-dash-circle-dotted';
+                    }
+                    iconElement.style.fontSize = '25px';
+                    iconElement.style.color = 'white';
+                    iconaTransazione.appendChild(iconElement);
+
+                    // Creare i dettagli della transazione
+                    const dettagliTransazione = document.createElement('div');
+                    dettagliTransazione.className = 'dettagli-transazione';
+                    dettagliTransazione.style.flex = '1';
+                    dettagliTransazione.style.textAlign = 'left';
+
+                    const categoriaH3 = document.createElement('h3');
+                    categoriaH3.style.margin = '0';
+                    categoriaH3.style.fontSize = '18px';
+                    categoriaH3.style.color = transazione.importo >= 0 ? '#00995c' : 'red';
+                    categoriaH3.textContent = transazione.tipo_transazione === 'trasferimento' ? 'Transfer' : transazione.categoria.nome;
+
+                    const contoP = document.createElement('p');
+                    contoP.style.margin = '0';
+                    contoP.style.fontSize = '14px';
+                    contoP.style.color = '#ccc';
+                    if (transazione.tipo_transazione === 'trasferimento') {
+                        contoP.textContent = `${transazione.conto.nome} -> ${transazione.conto_arrivo.nome}`;
+                    } else {
+                        contoP.textContent = transazione.conto.nome;
+                    }
+
+                    dettagliTransazione.appendChild(categoriaH3);
+                    dettagliTransazione.appendChild(contoP);
+
+                    // Creare l'importo della transazione
+                    const importoTransazione = document.createElement('div');
+                    importoTransazione.className = 'importo-transazione';
+                    importoTransazione.style.flex = '1';
+                    importoTransazione.style.textAlign = 'right';
+
+                    const importoH3 = document.createElement('h3');
+                    importoH3.style.margin = '0';
+                    importoH3.style.fontSize = '18px';
+                    importoH3.style.color = 'white';
+                    importoH3.textContent = `€ ${transazione.importo}`;
+
+                    const dataP = document.createElement('p');
+                    dataP.style.margin = '0';
+                    dataP.style.fontSize = '14px';
+                    dataP.style.color = '#ccc';
+                    dataP.textContent = transazione.data;
+
+                    importoTransazione.appendChild(importoH3);
+                    importoTransazione.appendChild(dataP);
+
+                    // Aggiungere tutti i componenti al box della transazione
+                    transazioneBox.appendChild(iconaTransazione);
+                    transazioneBox.appendChild(dettagliTransazione);
+                    transazioneBox.appendChild(importoTransazione);
+
+                    // Aggiungere il box della transazione al contenitore
+                    container3.appendChild(transazioneBox);
+                });
+            }
+            
+            const newLabels = ['01-01', '02-01', '03-01'];  // Nuove etichette
+            const newData = [200, 300, 400];  // Nuovi saldi
+
+        
+            saldoChart.data.labels = [];  // Svuota le etichette
+            saldoChart.data.datasets[0].data = [];  // Svuota i dati del saldo
+
+        
+        saldoChart.data.labels = data.labels;  // Imposta le nuove etichette
+        saldoChart.data.datasets[0].data = data.data;  // Imposta i nuovi saldi
+
+        // Aggiorna il grafico
+        saldoChart.update();
+
+
+
+
+
+
+
+
+
                 } else {
                     let firstField = Object.keys(data.errors)[0];
                     transactionResponseMessage.textContent = data.errors[firstField][0];
@@ -492,7 +1193,7 @@
         const closeModalSavingPlan = (modal) => {
 
             modal.style.display = 'none';
-            SavingForm.reset();
+            document.getElementById('SavingsPlanForm').reset();
             SavingsresponseMessage.textContent = '';
         };
 
@@ -501,7 +1202,243 @@
             closeModalSavingPlan(modal); // Chiudi il modale corretto
         };
 
+
+        
+
+        
+
+        document.getElementById('SavingsPlanForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+        
+            const formData = new FormData(this); // Crea un oggetto FormData con i dati del form
+        
+            fetch(document.getElementById('SavingsPlanForm').action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                }
+            })
+            .then(
+                response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Rimuovi gli elementi esistenti
+                    const pianiElements = document.querySelectorAll('.singolo-piano');
+                    pianiElements.forEach(piano => piano.remove());
+        
+                    // Sezione contenitore dove vuoi inserire i nuovi piani di risparmio
+                    const container = document.getElementById('pianiContainer'); // Assicurati che esista nel tuo HTML
+        
+                    // Itera attraverso i dati dei piani ricevuti
+                    data.piani_risparmio.forEach(piano => {
+                        // Crea il div principale del singolo piano
+                        const pianoDiv = document.createElement('div');
+                        pianoDiv.classList.add('singolo-piano', 'conto-box');
+                        pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
+        
+                        // Crea il contenitore del progress circle
+                        const progressDiv = document.createElement('div');
+                        progressDiv.classList.add('progress-circle');
+                        progressDiv.style = "position: relative; display: inline-block; margin-bottom: 10px;";
+        
+                        // Crea il SVG per la barra di progresso
+                        const svg = `
+                            <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
+                                <path class="circle-bg"
+                                    d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="#ddd"
+                                    stroke-width="3" />
+                                <path class="circle"
+                                    stroke-dasharray="${piano.percentuale_completamento}, 100"
+                                    d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    fill="none"
+                                    stroke="#00995c"
+                                    stroke-width="3"
+                                    transform="rotate(180 18 18)" />
+                            </svg>
+                        `;
+                        progressDiv.innerHTML = svg;
+        
+                        // Crea il logo al centro della barra
+                        const logoDiv = document.createElement('div');
+                        logoDiv.classList.add('logo');
+                        logoDiv.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
+                        logoDiv.innerHTML = `<i class="bi bi-safe" style="font-size: 20px;"></i>`;
+        
+                        // Aggiungi il logo e il progress SVG al div del progress
+                        progressDiv.appendChild(logoDiv);
+        
+                        // Crea il titolo del conto
+                        const contoTitle = document.createElement('h3');
+                        contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
+                        contoTitle.innerText = piano.conto.nome;
+        
+                        // Crea l'elemento per l'obbiettivo del conto
+                        const goal = document.createElement('h6');
+                        goal.style = "color: white; font-size: 14px;";
+                        goal.innerText = `Goal: ${piano.obbiettivo} €`;
+        
+                        // Crea l'elemento per la data di scadenza
+                        const scadenza = document.createElement('h6');
+                        scadenza.style = "color: white; font-size: 12px; margin-top: 10px;";
+                        scadenza.innerText = piano.data_scadenza;
+        
+                        // Assembla tutto dentro il div del piano
+                        pianoDiv.appendChild(progressDiv);
+                        pianoDiv.appendChild(contoTitle);
+                        pianoDiv.appendChild(goal);
+                        pianoDiv.appendChild(scadenza);
+        
+                        // Aggiungi il piano al contenitore
+                        container.appendChild(pianoDiv);
+                    });
+                    const modal = document.getElementById('SavingsPlanModal');
+                    closeModalSavingPlan(modal);
+                }
+                else {
+                    let firstField = Object.keys(data.errors)[0]; 
+                    SavingsresponseMessage.textContent = data.errors[firstField][0]; 
+                    SavingsresponseMessage.style.color = 'red';
+                    document.getElementById('SavingsPlanForm').reset();
+                }
+            });
+        });
+        
+        
+
+        // Funzione per aprire il modal
+        function openSpendingGoalModal() {
+            spendingGoalModal.style.display = "block";
+            document.body.style.overflow = "hidden";  // Evita lo scroll della pagina quando il modal è aperto
+        }
+
+        // Funzione per chiudere il modal
+        function closeSpendingGoalModal() {
+            spendingGoalModal.style.display = "none";
+            document.body.style.overflow = "auto";  // Ripristina lo scroll della pagina
+        }
+
+        // Quando l'utente clicca sul bottone di apertura
+        if (openSpendingGoalBtn) {
+            openSpendingGoalBtn.addEventListener("click", openSpendingGoalModal);
+        }
+
+        // Quando l'utente clicca sulla 'x' per chiudere
+        if (spendingGoalModalExit) {
+            spendingGoalModalExit.addEventListener("click", closeSpendingGoalModal);
+        }
+
+        // Chiudi il modal se l'utente clicca fuori dal modal stesso
+        window.addEventListener("click", function(event) {
+            if (event.target === spendingGoalModal) {
+                closeSpendingGoalModal();
+            }
+        })
+        
+
+
+
+        document.getElementById('SpendingGoalForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Previene il comportamento predefinito del form
+            console.log("eddaje");
+            const formData = new FormData(this); // Crea un oggetto FormData con i dati del form
+        
+            fetch(document.getElementById('SpendingGoalForm').action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Indica che si tratta di una richiesta AJAX
+                }
+            })
+            .then(response => {
+                console.log('Response:', response); // Aggiungi questo log
+                return response.json();
+            })
+            .then(data => {
+                console.log(data); 
+                if (data.success) {
+                    
+                    
+                   
+                    let pianiElements = document.querySelectorAll('.piano-spesa');
+                    pianiElements.forEach(piano => piano.remove());
+                    let container = document.getElementById('ObbiettiviContainer'); // Assicurati che esista nel tuo HTML
+                    
+                    data.obbiettivi_spesa.forEach(obbiettivo => {
+                        // Crea il div principale per l'obiettivo di spesa
+                        let pianoDiv = document.createElement('div');
+                        pianoDiv.classList.add('piano-spesa', 'conto-box');
+                        pianoDiv.style = "display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);";
+        
+                        // Nome della categoria target
+                        let categoriaDiv = document.createElement('div');
+                        categoriaDiv.classList.add('categoria-target');
+                        categoriaDiv.style = "flex: 1; text-align: left;";
+                        let categoriaTitle = document.createElement('h3');
+                        categoriaTitle.style = "margin: 0; font-size: 18px; color: white;";
+                        categoriaTitle.innerText = obbiettivo.categoria_target.nome; // Assicurati che questo campo esista
+                        categoriaDiv.appendChild(categoriaTitle);
+        
+                        // Barra di completamento
+                        let progressBarContainer = document.createElement('div');
+                        progressBarContainer.classList.add('progress-bar-container');
+                        progressBarContainer.style = "flex: 2; margin: 0 20px; position: relative;";
+                        let progressBarBg = document.createElement('div');
+                        progressBarBg.classList.add('progress-bar-bg');
+                        progressBarBg.style = "background-color: #ddd; border-radius: 5px; height: 20px; width: 100%;";
+                        let progressBar = document.createElement('div');
+                        progressBar.classList.add('progress-bar');
+                        progressBar.style = `width: ${obbiettivo.percentuale_completamento}%; background-color: red; height: 100%; border-radius: 5px;`; // Assicurati che questo campo esista
+                        progressBarBg.appendChild(progressBar);
+                        progressBarContainer.appendChild(progressBarBg);
+        
+                        // Data di scadenza
+                        let scadenzaDiv = document.createElement('div');
+                        scadenzaDiv.classList.add('data-scadenza');
+                        scadenzaDiv.style = "flex: 1; text-align: right;";
+                        let scadenzaTitle = document.createElement('h6');
+                        scadenzaTitle.style = "margin: 0; font-size: 14px; color: white;";
+                        scadenzaTitle.innerText = obbiettivo.data_scadenza; // Assicurati che questo campo esista
+                        scadenzaDiv.appendChild(scadenzaTitle);
+        
+                        // Assembla tutto dentro il div del piano
+                        pianoDiv.appendChild(categoriaDiv);
+                        pianoDiv.appendChild(progressBarContainer);
+                        pianoDiv.appendChild(scadenzaDiv);
+        
+                        // Aggiungi il piano al contenitore
+                        container.appendChild(pianoDiv);
+                    });
+        
+                    let modal = document.getElementById('SpendingGoalModal');
+                    closeSpendingGoalModal(modal);
+                } else {
+                    // Gestione degli errori
+                    let firstField = Object.keys(data.errors)[0]; 
+                    SavingsresponseMessage.textContent = data.errors[firstField][0]; 
+                    SavingsresponseMessage.style.color = 'red';
+                    document.getElementById('SavingsPlanForm').reset();
+                }
+            });
+        });
+        
+        
+
+       
+  
+
+
+
+
+
     });
+    
 </script>
 
 {% endblock content %}

@@ -10,7 +10,8 @@ urlpatterns = [
     path('',dashboard_utente , name='dashboard'),  
     path('personal/', personal_section, name = 'SezionePersonale'),
     path('transaction/', transaction_section, name = 'gestioneTransazione'),
-    path('savings/', savings_section, name = 'gestionePianoRisparmio')
+    path('savings/', savings_section, name = 'gestionePianoRisparmio'),
+    path('spending/', obbiettivoSpesa_section, name = 'gestioneObbiettivoSpesa'),
 ]
 
 

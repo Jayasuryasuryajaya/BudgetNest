@@ -6,11 +6,12 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from Users.services import *
 from django import forms
-from .models import Transazione, CategoriaSpesa, SottoCategoriaSpesa, Conto, Utente, PianoDiRisparmio
+from .models import Transazione, CategoriaSpesa, SottoCategoriaSpesa, Conto, PianoDiRisparmio, ObbiettivoSpesa
 from Accounts.services import *
 from Users.services import *
 from django.db.models import Q
 from datetime import timedelta
+from Budgeting.services import *
 
 
 class NuovaTransazioneForm(forms.ModelForm):
@@ -204,5 +205,30 @@ class NuovoPianoRisparmo(forms.ModelForm):
              raise ValidationError("The amount must be positive")
         
         if data_scadenza and data_scadenza <= (timezone.now().date()  + timedelta(days=7)):
-            raise ValidationError("The due date cannot be older than one week.")
+            raise ValidationError("The due date must be at least one week from today")
         return cleaned_data
+    
+
+
+
+class ObbiettivoSpesaForm(forms.ModelForm):
+    class Meta:
+        model = ObbiettivoSpesa
+        fields = ['importo', 'categoria_target', 'tipo']
+        widgets = {
+            'importo': forms.NumberInput(attrs={
+                'placeholder': 'Enter amount',
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'categoria_target': forms.Select(attrs={'class': 'form-control'}),
+            'tipo': forms.Select(attrs={'class': 'form-control'}),
+        }
+        
+        def __init__(self, *args, utente=None, **kwargs):  
+            super().__init__(*args, **kwargs)  
+            Utente = UserService.get_utenti_by_user(utente.id)
+            self.fields['categoria_target'].choices = [(categoria.pk, str(categoria)) for categoria in BudgetingService.get_categorie_utente()]
+            self.fields['conto'].empty_label = "Select category"
+
+       

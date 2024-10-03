@@ -12,7 +12,11 @@ class CategoriaSpesa(models.Model):
     nome = models.CharField(max_length=50)
     def __str__(self):
         return self.nome
-
+    def to_dict(self):
+        return {
+            'nome': self.nome,
+         
+        }
 
 class SottoCategoriaSpesa(models.Model):
     categoria_superiore = models.ForeignKey(CategoriaSpesa, on_delete=models.CASCADE,)
@@ -25,13 +29,25 @@ class SottoCategoriaSpesa(models.Model):
         return self.categoria_superiore.nome + ' -> ' + str(self.nome);
 
 class ObbiettivoSpesa(models.Model):
+    TIPO_SCELTE = [
+        ('mensile', 'Mensile'),
+        ('trimestrale', 'Trimestrale'),
+        ('semestrale', 'Semestrale'),
+        ('annuale', 'Annuale'),
+    ]
+    
+    importo_speso = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     importo = models.DecimalField(max_digits=10, decimal_places=2)
     percentuale_completamento = models.FloatField(default=0)
     utente = models.ForeignKey(Utente, on_delete=models.CASCADE)
     categoria_target = models.ForeignKey(CategoriaSpesa, on_delete=models.CASCADE)
-    tipo = models.CharField(max_length=20)
+    tipo = models.CharField(max_length=20, choices=TIPO_SCELTE)
     data_scadenza = models.DateField()
-    data_creazione = models.DateField()
+    data_creazione = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.tipo} - {self.importo}"
+
 
 class PianoDiRisparmio(models.Model):
     durata = models.CharField(max_length=20)
@@ -39,6 +55,7 @@ class PianoDiRisparmio(models.Model):
     data_scadenza = models.DateField()
     data_creazione = models.DateField()
     conto = models.ForeignKey(Conto, on_delete=models.CASCADE)
+    percentuale_completamento = models.DecimalField(max_digits=10, decimal_places=2, default = 0)
     
 class CategoriaTransazione(models.TextChoices):
     DELEGATA = 'delegata', 'Transazione Delegata'

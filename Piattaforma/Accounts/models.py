@@ -14,7 +14,14 @@ class Conto(models.Model):
         default=TipoConto.CORRENTE,
     )
     def __str__(self):
-        return self.nome + ' ' + str(self.saldo)
+        return self.nome 
+    
+    def to_dict(self):
+        return {
+            'pk': self.pk,
+            'saldo': self.saldo,
+            'nome': self.nome,
+        }
 
 class IntestazioniConto(models.Model):
     utente = models.ForeignKey(Utente, on_delete=models.CASCADE)
@@ -25,6 +32,15 @@ class IntestazioniConto(models.Model):
 
     class Meta:
         unique_together = ('utente', 'conto')
+
+
+class SaldoTotale(models.Model):
+    utente = models.ForeignKey(Utente, on_delete=models.CASCADE)
+    saldo_totale = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    data_aggiornamento = models.DateField()
+    
+    def __str__(self):
+        return f"Profilo di {self.utente.username} nel giorno {self.data_aggiornamento}"
 
 
 
