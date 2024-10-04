@@ -28,8 +28,10 @@ class AccountService:
         # Controlla se esiste già un SaldoTotale per l'utente con la data di oggi
         data_aggiornamento = timezone.now().date()
         try:
-            SaldoTotale.objects.get(utente=utente, data_aggiornamento=data_aggiornamento)
-            print("Un saldo totale per oggi esiste già.")  # Puoi anche gestire questa situazione come preferisci
+            saldo = SaldoTotale.objects.get(utente=utente, data_aggiornamento=data_aggiornamento)
+            saldo.saldo_totale = totale
+            saldo.save()
+             # Puoi anche gestire questa situazione come preferisci
         except ObjectDoesNotExist:
             # Se non esiste, crea un nuovo oggetto SaldoTotale
             SaldoTotale.objects.create(

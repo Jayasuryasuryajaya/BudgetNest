@@ -11,6 +11,8 @@ from Budgeting.forms import *
 from django.template.loader import render_to_string
 from Budgeting.services import *
 from datetime import timedelta
+import json
+from django.http import JsonResponse
 
 
 @login_required
@@ -30,15 +32,27 @@ def personal_section(request):
     lista_piani_risparmio = BudgetingService.get_lista_SavingPlan(utente)
     lista_obbiettivi_spesa = BudgetingService.get_lista_Obbiettivi_Spesa(utente)
     lista_transazioni = BudgetingService.get_transazioni_by_utente(utente).filter(eseguita=True).order_by('-data')
-   
     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
 
     
     labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
     data = [saldo.saldo_totale for saldo in saldo_data]  # Saldi per l'asse Y
 
-    
-   
+
+    transazioni_serializzate = []
+    for transazione in lista_transazioni:
+        transazioni_serializzate.append({
+            'id': transazione.id,
+            'descrizione': transazione.descrizione if transazione.delete != None else '',
+            'importo': float(transazione.importo),  
+            'data': transazione.data.strftime('%Y-%m-%d'),  # Converte la data in stringa
+            'tipo_transazione': transazione.tipo_transazione,
+            'conto' :  (Conto.objects.get(pk = transazione.conto.pk )).to_dict(),
+            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
+            'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else 'Trasferimento',
+        })
+        
+ 
    
    
     oggi = timezone.now().date()
@@ -87,7 +101,9 @@ def personal_section(request):
                'pianiRisparmio' : lista_piani_risparmio, 'formObbiettivo' : formObbiettivoSpesa, 
                'lista_obbiettivi_spesa' : lista_obbiettivi_spesa,
                'transazioni' : lista_transazioni, 'transazioni_odierne': transazioni_odierne, 
-               'conteggio_odierne' : transazioni_odierne.count(), 'labels': labels,'data': data,}
+               'conteggio_odierne' : transazioni_odierne.count(), 'labels': labels,
+               'data': data,
+                "transazioni_serializzate": json.dumps(transazioni_serializzate),}
     return render(request, 'personal/personalHomePage.html', context)
 
 @login_required
@@ -152,6 +168,7 @@ def transaction_section(request):
                             'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
                             'conto' : transazione.conto.to_dict(),
                             'conto_arrivo' : transazione.conto_arrivo.to_dict() if transazione.tipo_transazione == 'trasferimento' else None,
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
                         }
                         for transazione in transazioni
                     ]
@@ -198,6 +215,8 @@ def transaction_section(request):
                     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
                     labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
                     data = [saldo.saldo_totale for saldo in saldo_data]
+                    
+                    print("hhhh " + str(data) + " jjj " + str(saldo_data))
                     
                     return JsonResponse({
                         'success': True,
@@ -251,6 +270,7 @@ def transaction_section(request):
                             'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
                             'conto' : transazione.conto.to_dict(),
                             'conto_arrivo' : transazione.conto_arrivo.to_dict() if transazione.tipo_transazione == 'trasferimento' else None,
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
                         }
                         for transazione in transazioni
                         ]
@@ -397,6 +417,7 @@ def transaction_section(request):
                             'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
                             'conto' : transazione.conto.to_dict(),
                             'conto_arrivo' : transazione.conto_arrivo.to_dict() if transazione.tipo_transazione == 'trasferimento' else None,
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
                         }
                         for transazione in transazioni
                     ]
@@ -499,6 +520,7 @@ def transaction_section(request):
                             'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
                             'conto' : transazione.conto.to_dict(),
                             'conto_arrivo' : transazione.conto_arrivo.to_dict() if transazione.tipo_transazione == 'trasferimento' else None,
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
                         }
                         for transazione in transazioni
                     ]
@@ -559,8 +581,6 @@ def transaction_section(request):
     context = {"conti": conti, "formTransazione": formTransazione}
     return render(request, 'personal/transactionPage.html', context)
 
-
-
 @login_required
 def savings_section(request):
     
@@ -608,65 +628,92 @@ def savings_section(request):
     context = {"conti": conti, "formPiano": formSavingPlan}
     return render(request, 'personal/personalHomePage.html', context)
 
+@login_required
+def elimina_transazione(request, id):
+    print("bella")
+    if request.method == 'POST':
+        transazione = Transazione.objects.get(pk = id)
+        conto = Conto.objects.get(pk = transazione.conto.pk)
+        conto.saldo -= transazione.importo
+        conto.save()
+        transazione.delete()  
+        utente = UserService.get_utenti_by_user(request.user.pk)
+    
+        lista_transazioni = BudgetingService.get_transazioni_by_utente(utente).filter(eseguita=True).order_by('-data')
+        transazioni_serializzate = []
+        for transazione in lista_transazioni:
+            transazioni_serializzate.append({
+                'id': transazione.id,
+                'descrizione': transazione.descrizione if transazione.delete != None else '',
+                'importo': float(transazione.importo),  
+                'data': transazione.data.strftime('%Y-%m-%d'),  # Converte la data in stringa
+                'tipo_transazione': transazione.tipo_transazione,
+                'conto_id' :  float(Conto.objects.get(pk = transazione.conto.pk ).pk),
+                'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
+                'categoria' : transazione.categoria.nome if transazione.categoria != None else 'Trasferimento',
+            })
+            
+       
+        return JsonResponse(transazioni_serializzate, safe=False)
 
 
 
 @login_required
 def obbiettivoSpesa_section(request):
-    utente = UserService.get_utenti_by_user(request.user.pk)
-    
-    if request.method == 'POST':  
-        formSpendingGoal = ObbiettivoSpesaForm(request.POST)
-        if formSpendingGoal.is_valid():
-            tipo = formSpendingGoal.cleaned_data['tipo']
+        utente = UserService.get_utenti_by_user(request.user.pk)
+        
+        if request.method == 'POST':  
+            formSpendingGoal = ObbiettivoSpesaForm(request.POST)
+            if formSpendingGoal.is_valid():
+                tipo = formSpendingGoal.cleaned_data['tipo']
 
-            # Calcola la data di scadenza in base al tipo
-            data_creazione = timezone.now().date()
+                # Calcola la data di scadenza in base al tipo
+                data_creazione = timezone.now().date()
 
-            if tipo == 'mensile':
-                data_scadenza = data_creazione + timedelta(days=30)  # Approximation for one month
-            elif tipo == 'trimestrale':
-                data_scadenza = data_creazione + timedelta(days=90)  # Approximation for three months
-            elif tipo == 'semestrale':
-                data_scadenza = data_creazione + timedelta(days=180)  # Approximation for six months
-            elif tipo == 'annuale':
-                data_scadenza = data_creazione + timedelta(days=365)  # One year
+                if tipo == 'mensile':
+                    data_scadenza = data_creazione + timedelta(days=30)  # Approximation for one month
+                elif tipo == 'trimestrale':
+                    data_scadenza = data_creazione + timedelta(days=90)  # Approximation for three months
+                elif tipo == 'semestrale':
+                    data_scadenza = data_creazione + timedelta(days=180)  # Approximation for six months
+                elif tipo == 'annuale':
+                    data_scadenza = data_creazione + timedelta(days=365)  # One year
+                else:
+                    data_scadenza = data_creazione # fallback in caso di errore
+
+                # Crea l'oggetto ObbiettivoSpesa usando i dati del form
+                ObbiettivoSpesa.objects.create(
+                    importo=formSpendingGoal.cleaned_data['importo'],
+                    percentuale_completamento=0,
+                    utente=utente,
+                    categoria_target=formSpendingGoal.cleaned_data['categoria_target'],
+                    tipo=tipo,
+                    data_creazione=data_creazione,
+                    data_scadenza=data_scadenza, 
+                    importo_speso = 0
+                )
+
+                # Ottieni la lista degli obiettivi dell'utente
+                obbiettivi_utente = BudgetingService.get_lista_Obbiettivi_Spesa(utente)
+                    
+                Obbiettivi_data = [
+                    {
+                        'id': obbiettivo.pk,
+                        'importo': obbiettivo.importo,
+                        'percentuale_completamento': obbiettivo.percentuale_completamento,
+                        'categoria_target': obbiettivo.categoria_target.to_dict(),
+                        'tipo': obbiettivo.tipo,
+                        'data_creazione': obbiettivo.data_creazione,
+                        'data_scadenza': obbiettivo.data_scadenza,
+                        'importo_speso' : obbiettivo.importo_speso
+                    }
+                    for obbiettivo in obbiettivi_utente
+                ]
+                
+                return JsonResponse({'success': True, 'obbiettivi_spesa': Obbiettivi_data})
             else:
-                data_scadenza = data_creazione # fallback in caso di errore
+                
+                return JsonResponse({'success': False, 'errors': formSpendingGoal.errors})
 
-            # Crea l'oggetto ObbiettivoSpesa usando i dati del form
-            ObbiettivoSpesa.objects.create(
-                importo=formSpendingGoal.cleaned_data['importo'],
-                percentuale_completamento=0,
-                utente=utente,
-                categoria_target=formSpendingGoal.cleaned_data['categoria_target'],
-                tipo=tipo,
-                data_creazione=data_creazione,
-                data_scadenza=data_scadenza, 
-                importo_speso = 0
-            )
-
-            # Ottieni la lista degli obiettivi dell'utente
-            obbiettivi_utente = BudgetingService.get_lista_Obbiettivi_Spesa(utente)
-                  
-            Obbiettivi_data = [
-                {
-                    'id': obbiettivo.pk,
-                    'importo': obbiettivo.importo,
-                    'percentuale_completamento': obbiettivo.percentuale_completamento,
-                    'categoria_target': obbiettivo.categoria_target.to_dict(),
-                    'tipo': obbiettivo.tipo,
-                    'data_creazione': obbiettivo.data_creazione,
-                    'data_scadenza': obbiettivo.data_scadenza,
-                    'importo_speso' : obbiettivo.importo_speso
-                }
-                for obbiettivo in obbiettivi_utente
-            ]
-            
-            return JsonResponse({'success': True, 'obbiettivi_spesa': Obbiettivi_data})
-        else:
-            
-            return JsonResponse({'success': False, 'errors': formSpendingGoal.errors})
-
-    
-    return render(request, 'personal/personalHomePage.html')
+        
+        return render(request, 'personal/personalHomePage.html')

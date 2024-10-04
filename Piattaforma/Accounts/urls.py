@@ -12,6 +12,7 @@ urlpatterns = [
     path('transaction/', transaction_section, name = 'gestioneTransazione'),
     path('savings/', savings_section, name = 'gestionePianoRisparmio'),
     path('spending/', obbiettivoSpesa_section, name = 'gestioneObbiettivoSpesa'),
+    path('elimina_transazione/<int:id>/', elimina_transazione, name='elimina_transazione'),
 ]
 
 

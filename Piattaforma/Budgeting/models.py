@@ -15,7 +15,6 @@ class CategoriaSpesa(models.Model):
     def to_dict(self):
         return {
             'nome': self.nome,
-         
         }
 
 class SottoCategoriaSpesa(models.Model):

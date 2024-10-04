@@ -19,7 +19,7 @@ class Conto(models.Model):
     def to_dict(self):
         return {
             'pk': self.pk,
-            'saldo': self.saldo,
+            'saldo': float(self.saldo),
             'nome': self.nome,
         }
 
