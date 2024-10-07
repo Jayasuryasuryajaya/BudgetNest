@@ -24,11 +24,14 @@ class BudgetingService:
         lista_piani = BudgetingService.get_lista_SavingPlan(pk)
         for piano in lista_piani :
                 piano.percentuale_completamento = (piano.conto.saldo / piano.obbiettivo   )*100
+                if(piano.percentuale_completamento > 100):
+                    piano.percentuale_completamento = 100
                 piano.save()
     
     def get_lista_Obbiettivi_Spesa(pk):
         lisa_piani_spesa = ObbiettivoSpesa.objects.filter(utente = pk)
         return lisa_piani_spesa
+    
     
     def get_lista_obbiettivi_spesa_by_categoria(pk, cat):
         lisa_piani_spesa = ObbiettivoSpesa.objects.filter(utente = pk, categoria_target = cat)
@@ -38,6 +41,25 @@ class BudgetingService:
     def get_categorie_utente():
         lista_categorie = CategoriaSpesa.objects.all()
         return lista_categorie
+    
+    
+    def ricacola_percentuale_completamento(request, id):
+        utente = UserService.get_utenti_by_user(request.user.id)
+        piano = (BudgetingService.get_lista_SavingPlan(utente)).get(pk = id)
+        piano.percentuale_completamento = (piano.conto.saldo / piano.obbiettivo )*100
+        piano.save()
+        return piano.percentuale_completamento
+    
+    
+    def ricalcola_percentuale_completamento_obbiettivoSpesa(request, id):
+        utente = UserService.get_utenti_by_user(request.user.id)
+        obbiettivo = (BudgetingService.get_lista_Obbiettivi_Spesa(utente)).get(pk = id)
+        obbiettivo.percentuale_completamento = (obbiettivo.importo_speso / obbiettivo.importo )*100
+        if(obbiettivo.percentuale_completamento > 100):
+            obbiettivo.percentuale_completamento = 100
+        obbiettivo.save()
+        return obbiettivo.percentuale_completamento
+    
     
     
     def check_future_transactions(request):

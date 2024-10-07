@@ -1784,9 +1784,12 @@ section,
   margin: 15% auto; /* Distanza dall'alto e centratura */
   padding: 20px;
   border-radius: 20px;
-  width: 40%;
+  width: 35%;
   align-items: center;
 }
+
+/* Contenuto del modale */
+
 
 /* X per chiudere */
 .close {
@@ -1832,6 +1835,10 @@ section,
 .no-scroll {
   overflow: hidden; /* Disabilita lo scroll */
 }
-
+.divider {
+  height: 1px; /* Spessore della linea */
+  background-color: #ccc; /* Colore della linea */
+  margin: 10px 0; /* Margine sopra e sotto la linea */
+}
 
 

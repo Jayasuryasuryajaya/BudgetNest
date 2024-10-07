@@ -53,8 +53,8 @@
                         margin-top: 70px; margin-left:30px; margin-right:30px; justify-content: flex-start;
                         border-radius: 15px; 
                         border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
-                        max-height: auto; padding-bottom: 10px; padding-top: 10px">
-                        <canvas id="saldoChart" width="400" height="300" style = "margin-left:20px; margin-right:20px; margin-bottom:20px;  padding:10px"  ></canvas>
+                        max-height: auto; padding-bottom: 10px; padding-top: 10px;  background-color: white;">
+                        <canvas id="saldoChart" width="400" height="300" style = "margin-left:20px; margin-right:20px; margin-bottom:20px;  padding:10px; "  ></canvas>
             </div>
         </div>
         <div id="rightDiv" style="flex: 1; margin-left: 10px; padding: 10px; border-radius: 8px; text-align: center;">
@@ -138,7 +138,7 @@
 
                         {% for piano in pianiRisparmio %}
                 
-                <div  class="singolo-piano conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
+                <div  id= "singolo_piano_{{ piano.id }}" class="singolo-piano conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
                         color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width : 29.5%">
                    
                     <div class="progress-circle" style="position: relative; display: inline-block; margin-bottom: 10px;">
@@ -192,8 +192,8 @@
                 <h1 class ".piano-spesa">Ciao</h1>
             {% else %}
                 {% for obbiettivo in lista_obbiettivi_spesa %}
-                <div class="piano-spesa conto-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);">
-                    
+                <div id="obbiettivoSpesa_{{obbiettivo.id}}" class="piano-spesa conto-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);">
+                  
                     <!-- Nome della categoria target -->
                     <div class="categoria-target" style="flex: 1; text-align: left;">
                         <h3 style="margin: 0; font-size: 18px; color: white">{{ obbiettivo.categoria_target }}</h3>
@@ -519,15 +519,22 @@
         const spendingGoalModal = document.getElementById("SpendingGoalModal");
         const spendingGoalModalExit = document.getElementById("SpendingGoalModalExit");
         const openSpendingGoalBtn = document.getElementById("openSpendingGoalModal");
-        
-        transazioni = JSON.parse('{{ transazioni_serializzate|escapejs }}');
-      
+       
+        let conti = {{ conti_json|safe }}; // Usa il filtro safe per evitare escaping
+         // Controlla se i dati sono disponibili
 
-        console.log("Labels:", {{ labels|safe }});
-        console.log("Data:", {{ data|safe }});
+        let obbiettivi_spesa = {{ obbiettivi_spesa_json | safe }};
+
+        let piani_risparmio = {{piani_risparmio_json | safe}};
+       
+        transazioni = JSON.parse('{{ transazioni_serializzate|escapejs }}');
+        
+        console.log(obbiettivi_spesa)
+
+        
       
         var data = {{ data|safe }}.map(Number); // Assicurati che siano numeri
-        console.log("Data Array (after map):", data); 
+         
 
         var ctx = document.getElementById('saldoChart').getContext('2d');
         var saldoChart = new Chart(ctx, {
@@ -559,7 +566,10 @@
                         },
                         color: '#100d30', // Colore del titolo
                     
-                    }
+                    },
+                    background: {
+                        color: 'white' // Imposta il colore di sfondo su bianco
+                    },
                 },
                 scales: {
                     x: {
@@ -585,15 +595,93 @@
             }
         });
     
-       
+        function reloadPage() {
+            location.reload(); // Ricarica la pagina corrente
+        }
+        
+        function deleteConto(contoId) {
+            const confirmDelete = confirm('Sei sicuro di voler eliminare questo conto?');
+           
+            if (confirmDelete) {
+                fetch("{% url 'elimina_conto' 0 %}".replace('0', contoId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                    },
+                    body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(risposta => {
+                    
+                    if(risposta.success)
+                   
+                    reloadPage()
+                    })
+            
+                .catch(error => console.error('Errore durante l\'eliminazione del conto:', error));
+            }
+        }
 
+        function getCSRFToken() {
+            // Cerca il token CSRF nel cookie
+            const name = 'csrftoken';
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        
+       
+        function renameConto(contoId) {
+            const newName = prompt('Inserisci il nuovo nome per il conto:');
+            
+            if (newName) {
+                fetch("{% url 'rinomina_conto' 0 'new_name' %}".replace('0', contoId).replace('new_name', encodeURIComponent(newName)), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                    },
+                    body: JSON.stringify({
+                        'new_name': newName
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        
+                        
+                        document.getElementById(`contoNome_${contoId}`).textContent = newName;
+                        
+                        closeButtonDettagliConto = document.getElementById(`closeModelDettagliConto_${contoId}`);
+                        if (closeButtonDettagliConto) {
+                        closeButtonDettagliConto.addEventListener('click', reloadPage);
+                        }
+                        alert('Il nome del conto è stato aggiornato.');
+                    } else {
+                        alert('Errore: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                });
+            } else {
+                alert('Nome del conto non valido.');
+            }
+        }
+        
         const closeModal = (modal) => {
             modal.style.display = 'none';
             contoForm.reset();
             responseMessage.textContent = '';
         };
 
-        // Gestisci l'invio del modulo per i conti
+        
         contoForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -667,6 +755,14 @@
                         modal.style.display = 'block';
                     };
 
+                    saldoChart.data.labels = [];  // Svuota le etichette
+                    saldoChart.data.datasets[0].data = [];  // Svuota i dati del saldo
+                    saldoChart.data.labels = data.labels;  // Imposta le nuove etichette
+                    saldoChart.data.datasets[0].data = data.data;  // Imposta i nuovi saldi
+                    saldoChart.update();
+                    
+                    updateTransazioni(transazioni, data.conti)
+       
                     closeModal(document.getElementById('myModal'));
 
                 } else {
@@ -691,9 +787,8 @@
             if (event.target && event.target.id.startsWith('singolo_conto_')) {
                 const contoId = event.target.id.split('_')[2];
                 const transazioniDelConto = dataset.filter(transazione => transazione.conto.pk == contoId);
-                const NomeConto = transazioniDelConto.length > 0 ? transazioniDelConto[0].nome_conto : 'Nome non disponibile';
-                console.log("proviamo:");
-                console.log(transazioniDelConto);
+                const NomeConto = (conti.filter(conto => conto.id == contoId))[0]?.nome;
+                
                 createModal(contoId, transazioniDelConto, NomeConto); // Crea e visualizza il modal per questo conto
             }
         }
@@ -712,33 +807,26 @@
                 contiContainer.removeEventListener('click', currentClickListener); 
             }
         
-            console.log("ciao")
             
-            console.log(dataset)
             currentClickListener = createClickListener(dataset);
             contiContainer.addEventListener('click', currentClickListener); // Aggiungi il nuovo listener
         }
         
-        function updateTransazioni(dataset) {
+        function updateTransazioni(dataset, newConti) {
+            conti = newConti; // Aggiorna la variabile globale conti
             addClickListener(dataset); // Aggiungi il listener dopo l'aggiornamento
         }
-        
-        // Inizializza il listener per la prima volta
-        updateTransazioni(transazioni); // Passa i dati iniziali
-        
-
-
-        
-        //chat
-        
+        updateTransazioni(transazioni, conti)
+       
         
 
 
-        function reloadPage() {
-            location.reload(); // Ricarica la pagina corrente
-        }
+        
+      
         
         
+
+
         
         
 
@@ -758,11 +846,11 @@
             <button id="closeModelDettagliConto_${contoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
                 <div class="header-row" style="display: flex; align-items: center; padding: 10px 0;">
                     <div style="flex: 1;">
-                        <span style="font-size: 18px; margin-right: 60px; font-weight: bold;">${NomeConto}</span> 
+                        <span id="contoNome_${contoId}" style="font-size: 18px; margin-right: 60px; font-weight: bold;">${NomeConto}</span> 
                     </div>
                     <div style="display: flex; align-items: center; margin-left: auto;"> 
-                        <i class="bi bi-pencil" style="font-size: 20px; margin-right: 10px; cursor: pointer;"></i> 
-                        <i class="bi bi-trash" style="font-size: 20px; cursor: pointer;"></i> 
+                        <i class="bi bi-pencil"id="editContoIcon_${contoId}" style="font-size: 20px; margin-right: 10px; cursor: pointer;"></i> 
+                        <i class="bi bi-trash" id="deleteContoIcon_${contoId}"  style="font-size: 20px; cursor: pointer;"></i>
                     </div>
                 </div>
 
@@ -782,6 +870,16 @@
                 
                 document.body.appendChild(modal);
                 
+                const deleteIcon = document.getElementById(`deleteContoIcon_${contoId}`);
+                deleteIcon.addEventListener('click', function() {
+                    deleteConto(contoId); 
+                });
+
+                const editIcon = document.getElementById(`editContoIcon_${contoId}`);
+
+                editIcon.addEventListener('click', function(){
+                    renameConto(contoId)
+                });
                 
                 closeButtonDettagliConto = document.getElementById(`closeModelDettagliConto_${contoId}`);
                 if (closeButtonDettagliConto) {
@@ -802,9 +900,7 @@
         
         function loadTransactions(contoId, transazioniDelConto, page) {
 
-            console.log("proviamo2");
-            console.log(transazioniDelConto);
-
+        
             const transactionsPerPage = 10;
             const start = (page - 1) * transactionsPerPage;
             const end = start + transactionsPerPage;
@@ -884,7 +980,7 @@
 
         function deleteTransaction(transazioneId, contoId) {
             const confirmDelete = confirm('Sei sicuro di voler eliminare questa transazione?');
-            console.log("Chiamando l'URL:", "{% url 'elimina_transazione' 0 %}".replace('0', transazioneId));
+           
         
             if (confirmDelete) {
                 fetch("{% url 'elimina_transazione' 0 %}".replace('0', transazioneId), {
@@ -911,6 +1007,7 @@
                     if (closeButtonDettagliConto) {
                     closeButtonDettagliConto.addEventListener('click', reloadPage);
                     }
+                    alert('La transazione è stata eliminata');
                     })
             
                 .catch(error => console.error('Errore durante l\'eliminazione della transazione:', error));
@@ -1036,10 +1133,9 @@
                     closeModalTransazione();
 
                     
-                    transazioniDelConto1 = data.transazioni.filter(transazione => transazione.conto === 101);
-                    console.log(transazioniDelConto1);
-                    console.log(data.transazioni)
-                    updateTransazioni(data.transazioni); 
+                    
+                    
+                    updateTransazioni(data.transazioni, data.conti); 
 
                     let pianiElements = document.querySelectorAll('.singolo-piano');
                     pianiElements.forEach(piano => piano.remove());
@@ -1047,14 +1143,16 @@
                     // Sezione contenitore dove vuoi inserire i nuovi piani di risparmio
                     let container = document.getElementById('pianiContainer'); // Assicurati che esista nel tuo HTML
                     
-                    
+                   
                    
                     data.piani_risparmio.forEach(piano => {
-                        // Crea il div principale del singolo piano
+                        
                         const pianoDiv = document.createElement('div');
                         pianoDiv.classList.add('singolo-piano', 'conto-box');
+                        pianoDiv.id=`singolo_piano_${piano.id}`;
                         pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
         
+                        console.log(pianoDiv);
                         // Crea il contenitore del progress circle
                         const progressDiv = document.createElement('div');
                         progressDiv.classList.add('progress-circle');
@@ -1095,7 +1193,7 @@
                         // Crea il titolo del conto
                         const contoTitle = document.createElement('h3');
                         contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
-                        contoTitle.innerText = piano.conto.nome;
+                        contoTitle.innerText = piano.conto;
         
                         // Crea l'elemento per l'obbiettivo del conto
                         const goal = document.createElement('h6');
@@ -1117,6 +1215,7 @@
                         container.appendChild(pianoDiv);
                     });
 
+                    updatePianiRisparmio(data.piani_risparmio);
 
                     pianiElements = document.querySelectorAll('.piano-spesa');
                     pianiElements.forEach(piano => piano.remove());
@@ -1130,6 +1229,7 @@
                         // Crea il div principale per l'obiettivo di spesa
                         const pianoDiv = document.createElement('div');
                         pianoDiv.classList.add('piano-spesa', 'conto-box');
+                        pianoDiv.id = `obbiettivoSpesa_${obbiettivo.id}`; 
                         pianoDiv.style = "display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);";
         
                         // Nome della categoria target
@@ -1171,7 +1271,8 @@
                         // Aggiungi il piano al contenitore
                         container2.appendChild(pianoDiv);
                     });
-        
+                    
+                    updateObbiettivoSpesa(data.obbiettivi_spesa);
                     transazioniElements = document.querySelectorAll('.transazione-box');
                     transazioniElements.forEach(piano => piano.remove());
                     
@@ -1273,7 +1374,12 @@
 
                     // Aggiungere il box della transazione al contenitore
                     container3.appendChild(transazioneBox);
+
+
                 });
+                
+                
+               
                 } else {
                 // Se ci sono 5 o più transazioni, itera su tutte quelle fatte oggi
                 transazioniOggi.forEach(transazione => {
@@ -1364,8 +1470,7 @@
                 });
             }
             
-            const newLabels = ['01-01', '02-01', '03-01'];  // Nuove etichette
-            const newData = [200, 300, 400];  // Nuovi saldi
+            
 
         
             saldoChart.data.labels = [];  // Svuota le etichette
@@ -1482,6 +1587,7 @@
                         // Crea il div principale del singolo piano
                         const pianoDiv = document.createElement('div');
                         pianoDiv.classList.add('singolo-piano', 'conto-box');
+                        pianoDiv.id=`singolo_piano_${piano.id}`;
                         pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
         
                         // Crea il contenitore del progress circle
@@ -1524,7 +1630,7 @@
                         // Crea il titolo del conto
                         const contoTitle = document.createElement('h3');
                         contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
-                        contoTitle.innerText = piano.conto.nome;
+                        contoTitle.innerText = piano.conto;
         
                         // Crea l'elemento per l'obbiettivo del conto
                         const goal = document.createElement('h6');
@@ -1545,6 +1651,7 @@
                         // Aggiungi il piano al contenitore
                         container.appendChild(pianoDiv);
                     });
+                    updatePianiRisparmio(data.piani_risparmio);
                     const modal = document.getElementById('SavingsPlanModal');
                     closeModalSavingPlan(modal);
                 }
@@ -1593,7 +1700,7 @@
 
         document.getElementById('SpendingGoalForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Previene il comportamento predefinito del form
-            console.log("eddaje");
+           
             const formData = new FormData(this); // Crea un oggetto FormData con i dati del form
         
             fetch(document.getElementById('SpendingGoalForm').action, {
@@ -1604,11 +1711,11 @@
                 }
             })
             .then(response => {
-                console.log('Response:', response); // Aggiungi questo log
+                
                 return response.json();
             })
             .then(data => {
-                console.log(data); 
+               
                 if (data.success) {
                     
                     
@@ -1620,9 +1727,11 @@
                     data.obbiettivi_spesa.forEach(obbiettivo => {
                         // Crea il div principale per l'obiettivo di spesa
                         let pianoDiv = document.createElement('div');
+                        pianoDiv.id = `obbiettivoSpesa_${obbiettivo.id}`; 
                         pianoDiv.classList.add('piano-spesa', 'conto-box');
                         pianoDiv.style = "display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);";
-        
+                       
+                        console.log(pianoDiv)
                         // Nome della categoria target
                         let categoriaDiv = document.createElement('div');
                         categoriaDiv.classList.add('categoria-target');
@@ -1662,7 +1771,7 @@
                         // Aggiungi il piano al contenitore
                         container.appendChild(pianoDiv);
                     });
-        
+                    updateObbiettivoSpesa(data.obbiettivi_spesa);
                     let modal = document.getElementById('SpendingGoalModal');
                     closeSpendingGoalModal(modal);
                 } else {
@@ -1674,11 +1783,515 @@
                 }
             });
         });
+
+
+        let currentClickListenerPianoRisparmio; // Variabile per tenere traccia del listener corrente
+
+
+        function handleContoClickPianoRisparmio(event, dataset) {
+            if (event.target && event.target.id.startsWith('singolo_piano_')) {
+               
+                const pianoId = event.target.id.split('_')[2];
+                const pianoOggetto = dataset.filter(piano => piano.id == pianoId);
+                createPianoDiRisparmioModal(pianoId, pianoOggetto[0]); // Crea e visualizza il modal per questo conto
+            };
+        };
+
+        function createClickListenerPianiRisparmio(dataset) {
+            return function(event) {
+                handleContoClickPianoRisparmio(event, dataset);
+            };
+        };
         
+        function addClickListenerPianiRisparmio(dataset) {
+            const pianiContainer = document.getElementById('pianiContainer');
+            
+            if (currentClickListenerPianoRisparmio) {
+                pianiContainer.removeEventListener('click', currentClickListenerPianoRisparmio); 
+            }
+        
+            
+            currentClickListenerPianoRisparmio = createClickListenerPianiRisparmio(dataset);
+            pianiContainer.addEventListener('click', currentClickListenerPianoRisparmio); // Aggiungi il nuovo listener
+        };
+        
+        function updatePianiRisparmio(dataset) {
+            addClickListenerPianiRisparmio(dataset);
+        };
+
+        updatePianiRisparmio(piani_risparmio);
+       
         
 
-       
+
+
+
+
+        
+        function deletePianoDiRisparmio(pianoId) {
+    
+                const confirmDelete = confirm('Sei sicuro di voler eliminare questo piano di risparmio?');
+               
+                if (confirmDelete) {
+                    fetch("{% url 'elimina_piano' 0 %}".replace('0', pianoId), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                        },
+                        body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(risposta => {
+                        if(risposta.success)
+                       
+                        reloadPage()
+                        })
+                
+                    .catch(error => console.error('Errore durante l\'eliminazione del conto:', error));
+                }
+            
+        };
+        
+        function editPianoDiRisparmio(pianoId, tipo) {
+            if(tipo == "scadenza"){
+            const newDate = prompt('Inserisci la nuova data di scadenza (formato YYYY-MM-DD):');
+
+           
+            if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+                    fetch("{% url 'cambia_data_scadenza' 0 'new_date' %}".replace('0', pianoId).replace('new_date', encodeURIComponent(newDate)), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            
+``
+                            
+                            document.getElementById(`ScadenzaPiano_${pianoId}`).innerHTML = `<p id="ScadenzaPiano_${pianoId}" style="margin: 0;"><strong>Data di Scadenza:</strong> ${newDate}</p>`;
+
+                            closeButtonDettagliPiano = document.getElementById(`closeModelDettagliPiano_${pianoId}`);
+                            if (closeButtonDettagliPiano) {
+                            closeButtonDettagliPiano.addEventListener('click', reloadPage);
+                            }
+                            alert('La data di scadenza è stata aggiornata con successo.');
+                        } else {
+                            alert('Errore: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                    });
+                } else {
+                    alert('Formato data non valido. Assicurati di usare il formato YYYY-MM-DD.');
+                }
+    
+              
+            } else
+            {
+                const newObbiettivo = prompt('Inserisci il nuovo obbiettivo');
+
+           
+            if (newObbiettivo) {
+                fetch("{% url 'cambia_obbiettivo_piano' 0 'new_obbiettivo' %}".replace('0', pianoId).replace('new_obbiettivo', encodeURIComponent(newObbiettivo)), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                        
+                            document.getElementById(`ObbiettivoPiano_${pianoId}`).innerHTML = `<p id = "ObbiettivoPiano_${pianoId}" style="margin: 0;"><strong>Obiettivo:</strong> €${newObbiettivo}</p>`;
+
+                            closeButtonDettagliPiano = document.getElementById(`closeModelDettagliPiano_${pianoId}`);
+
+                            document.getElementById(`PercentualePiano_${pianoId}`).innerHTML = `<p id = "PercentualePiano_${pianoId}" style="margin: 0;"><strong>Percentuale di Completamento:</strong> ${data.percentuale}%</p>`;
+
+                            if (closeButtonDettagliPiano) {
+                            closeButtonDettagliPiano.addEventListener('click', reloadPage);
+                            }
+                            alert('L `obbiettivo  è stato aggiornato con successo.');
+                        } else 
+                            alert('Errore: ' + data.message);
+                        })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                    });
+                } else {
+                    alert('Formato data non valido. Assicurati di usare il formato YYYY-MM-DD.');
+                }
+            }
+        };
+
+            
+          
+
+        
+
+        function createPianoDiRisparmioModal(pianoId, pianoOggetto) {
+
+            let modal = document.getElementById(`pianoModal_${pianoId}`);
+            if (modal) {
+                modal.remove(); // Rimuove il modal esistente dal DOM
+            }
+        
+            modal = document.createElement('div');
+            modal.id = `pianoModal_${pianoId}`;
+            modal.classList.add('modal');
+        
+            // Contenuto dinamico del modal
+            modal.innerHTML = `
+                <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto; padding: 20px;">
+    <button id="closeModelDettagliPiano_${pianoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+    
+    <div class="header-row" style="display: flex; align-items: center; padding: 10px 0; width: 65%;">
+        <div style="flex: 1;">
+            <span id="pianoNome_${pianoId}" style="font-size: 18px; font-weight: bold;">${pianoOggetto.conto}</span>
+        </div>
+        <div style="display: flex; align-items: center; margin-left: auto;">
+            <i class="bi bi-trash" id="deletePianoIcon_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
+        </div>
+    </div>
+    
+    <div class="details-section" style="padding: 10px; width: 70%;">
+        <!-- Divider -->
+        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+        <!-- Obiettivo -->
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <p id = "ObbiettivoPiano_${pianoId}" style="margin: 0;"><strong>Obiettivo:</strong> €${pianoOggetto.obbiettivo}</p>
+            <i class="bi bi-pencil" id="editObbiettivo_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+
+        <!-- Data di Scadenza -->
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <p id = "ScadenzaPiano_${pianoId}" style="margin: 0;"><strong>Data di Scadenza:</strong> ${pianoOggetto.data_scadenza}</p>
+            <i class="bi bi-pencil" id="editScadenza_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+
+        <!-- Data di Creazione -->
+        <p><strong>Data di Creazione:</strong> ${pianoOggetto.data_creazione}</p>
+
+        <!-- Divider -->
+        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+
+        <!-- Percentuale di Completamento -->
+        <p id = "PercentualePiano_${pianoId}" ><strong>Percentuale di Completamento:</strong> ${pianoOggetto.percentuale_completamento}%</p>
+    </div>
+</div>
+
+            `;
+        
+            document.body.appendChild(modal);
+        
+            // Gestione degli eventi per le icone di cancellazione e modifica
+            const deleteIcon = document.getElementById(`deletePianoIcon_${pianoId}`);
+            deleteIcon.addEventListener('click', function() {
+                deletePianoDiRisparmio(pianoId); // Funzione per eliminare il piano di risparmio
+            });
+        
+
+            const editScadenza= document.getElementById(`editScadenza_${pianoId}`);
+            editScadenza.addEventListener('click', function() {
+                editPianoDiRisparmio(pianoId,"scadenza"); // Funzione per modificare il piano di risparmio
+            });
+            
+
+            const editObbiettivo = document.getElementById(`editObbiettivo_${pianoId}`);
+            editObbiettivo.addEventListener('click', function() {
+                editPianoDiRisparmio(pianoId, "Obbiettivo"); // Funzione per modificare il piano di risparmio
+            });
+
+            const closeButtonDettagliPiano = document.getElementById(`closeModelDettagliPiano_${pianoId}`);
+            if (closeButtonDettagliPiano) {
+                closeButtonDettagliPiano.addEventListener('click', function() {
+                    modal = document.getElementById(`pianoModal_${pianoId}`);
+                    if (modal) {
+                        modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                    }
+                });
+            }
+        
+            modal.style.display = 'block'; // Mostra il modal
+        };
+        
   
+
+
+
+        let currentClickListenerObbiettivoSpesa; // Variabile per tenere traccia del listener corrente
+
+
+        function handleContoClickObbiettivoSpesa(event, dataset) {
+            if (event.target && event.target.id.startsWith('obbiettivoSpesa_')) {
+                
+                const obbiettivoId = event.target.id.split('_')[1];
+                console.log("ciao" + (obbiettivoId));
+                const ObbiettivoOggetto = dataset.filter(obbiettivo => obbiettivo.id == obbiettivoId);
+                createObbiettivoSpesaModal(obbiettivoId, ObbiettivoOggetto[0]); // Crea e visualizza il modal per questo conto
+            };
+        };
+
+        function createClickListenerObbiettivoSpesa(dataset) {
+            return function(event) {
+                handleContoClickObbiettivoSpesa(event, dataset);
+            };
+        };
+        
+        function addClickListenerObbiettivoSpesa(dataset) {
+            const obbiettiviContainer = document.getElementById('ObbiettiviContainer');
+            
+            if (currentClickListenerObbiettivoSpesa) {
+                obbiettiviContainer.removeEventListener('click', currentClickListenerObbiettivoSpesa); 
+                console.log("togli");
+            }
+        
+            
+            currentClickListenerObbiettivoSpesa = createClickListenerObbiettivoSpesa(dataset);
+            obbiettiviContainer.addEventListener('click', currentClickListenerObbiettivoSpesa); // Aggiungi il nuovo listener
+        };
+       
+        function updateObbiettivoSpesa(dataset) {
+            addClickListenerObbiettivoSpesa(dataset);
+        };
+
+        updateObbiettivoSpesa(obbiettivi_spesa);
+       
+        
+
+
+
+
+
+        
+        function deleteObbiettivoSpesa(pianoId) {
+    
+                const confirmDelete = confirm('Sei sicuro di voler eliminare questo piano di risparmio?');
+               
+                if (confirmDelete) {
+                    fetch("{% url 'elimina_obbiettivo_spesa' 0 %}".replace('0', pianoId), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                        },
+                        body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(risposta => {
+                        if(risposta.success)
+                       
+                        reloadPage()
+                        })
+                
+                    .catch(error => console.error('Errore durante l\'eliminazione del conto:', error));
+                }
+            
+        };
+        
+        function editObbiettivoSpesa(ObbiettivoId, tipo) {
+            if(tipo == "scadenza"){
+            const newDate = prompt('Inserisci la nuova data di scadenza (formato YYYY-MM-DD):');
+
+           
+            if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+                    fetch("{% url 'cambia_data_scadenza_obbiettivoSpesa' 0 'new_date' %}".replace('0', ObbiettivoId).replace('new_date', encodeURIComponent(newDate)), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            
+``
+                            
+                            document.getElementById(`ScadenzaObbiettivo_${ObbiettivoId}`).innerHTML = `<p id="ScadenzaPiano_${ObbiettivoId}" style="margin: 0;"><strong>Data di Scadenza:</strong> ${newDate}</p>`;
+
+                            closeButtonDettagliPiano = document.getElementById(`closeModalDettagliObbiettivo_${ObbiettivoId}`);
+                            if (closeButtonDettagliPiano) {
+                            closeButtonDettagliPiano.addEventListener('click', reloadPage);
+                            }
+                            alert('La data di scadenza è stata aggiornata con successo.');
+                        } else {
+                            alert('Errore: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                    });
+                } else {
+                    alert('Formato data non valido. Assicurati di usare il formato YYYY-MM-DD.');
+                }
+    
+              
+            } else
+            {
+                const newObbiettivo = prompt('Inserisci il nuovo obbiettivo');
+
+           
+            if (newObbiettivo) {
+                fetch("{% url 'cambia_obbiettivo_obbiettivoSpesa' 0 'new_obbiettivo' %}".replace('0', ObbiettivoId).replace('new_obbiettivo', encodeURIComponent(newObbiettivo)), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                       
+                            document.getElementById(`ImportoObbiettivo_${ObbiettivoId}`).innerHTML = `<p id = "ObbiettivoPiano_${ObbiettivoId}" style="margin: 0;"><strong>Obiettivo:</strong> €${newObbiettivo}</p>`;
+
+                            closeButtonDettagliPiano = document.getElementById(`closeModalDettagliObbiettivo_${ObbiettivoId}`);
+
+                            document.getElementById(`PercentualeObbiettivo_${ObbiettivoId}`).innerHTML = `<p id = "PercentualePiano_${ObbiettivoId}" style="margin: 0;"><strong>Percentuale di Completamento:</strong> ${data.percentuale}%</p>`;
+
+                            if (closeButtonDettagliPiano) {
+                            closeButtonDettagliPiano.addEventListener('click', reloadPage);
+                            }
+                            alert('L `obbiettivo  è stato aggiornato con successo.');
+                        } else 
+                            alert('Errore: ' + data.message);
+                        })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                    });
+                } else {
+                    alert('Formato data non valido. Assicurati di usare il formato YYYY-MM-DD.');
+                }
+            }
+        };
+
+        function createObbiettivoSpesaModal(obbiettivoId, obbiettivoOggetto) {
+
+            let modal = document.getElementById(`obbiettivoSpesaModal_${obbiettivoId}`);
+            if (modal) {
+                modal.remove(); // Rimuove il modal esistente dal DOM
+            }
+        
+            modal = document.createElement('div');
+            modal.id = `obbiettivoSpesaModal_${obbiettivoId}`;
+            modal.classList.add('modal');
+            
+            console.log(obbiettivoId)
+            // Contenuto dinamico del modal
+            modal.innerHTML = `
+                <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto; padding: 20px;">
+                    <button id="closeModalDettagliObbiettivo_${obbiettivoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+                    
+                    <div class="header-row" style="display: flex; align-items: center; padding: 10px 0; width: 65%;">
+                        <div style="flex: 1;">
+                            <span id="obbiettivoTipo_${obbiettivoId}" style="font-size: 18px; font-weight: bold;">${obbiettivoOggetto.categoria_target.nome}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-left: auto;">
+                            <i class="bi bi-trash" id="deleteObbiettivoIcon_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="details-section" style="padding: 10px; width: 70%;">
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+                        
+                        <!-- Importo Obbiettivo -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <p id="ImportoObbiettivo_${obbiettivoId}" style="margin: 0;"><strong> Obbiettivo:</strong> €${obbiettivoOggetto.importo}</p>
+                            <i class="bi bi-pencil" id="editImportoObbiettivo_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
+                        </div>
+        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Importo Speso -->
+                        <p id="ImportoSpeso_${obbiettivoId}"><strong>Importo Speso:</strong> €${obbiettivoOggetto.importo_speso}</p>
+                        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Data di Scadenza -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <p id="ScadenzaObbiettivo_${obbiettivoId}" style="margin: 0;"><strong>Data di Scadenza:</strong> ${obbiettivoOggetto.data_scadenza}</p>
+                            <i class="bi bi-pencil" id="editScadenzaObbiettivo_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
+                        </div>
+        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Data di Creazione -->
+                        <p><strong>Data di Creazione:</strong> ${obbiettivoOggetto.data_creazione}</p>
+        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Percentuale di Completamento -->
+                        <p id="PercentualeObbiettivo_${obbiettivoId}"><strong>Percentuale di Completamento:</strong> ${obbiettivoOggetto.percentuale_completamento}%</p>
+                    </div>
+                </div>
+            `;
+        
+            document.body.appendChild(modal);
+        
+            // Gestione degli eventi per le icone di cancellazione e modifica
+            const deleteIcon = document.getElementById(`deleteObbiettivoIcon_${obbiettivoId}`);
+            deleteIcon.addEventListener('click', function() {
+                deleteObbiettivoSpesa(obbiettivoId); // Funzione per eliminare l'obbiettivo di spesa
+            });
+        
+            const editScadenza = document.getElementById(`editScadenzaObbiettivo_${obbiettivoId}`);
+            editScadenza.addEventListener('click', function() {
+                editObbiettivoSpesa(obbiettivoId, "scadenza"); // Funzione per modificare la scadenza dell'obbiettivo
+            });
+        
+            const editImportoObbiettivo = document.getElementById(`editImportoObbiettivo_${obbiettivoId}`);
+            editImportoObbiettivo.addEventListener('click', function() {
+                editObbiettivoSpesa(obbiettivoId, "importo"); // Funzione per modificare l'importo dell'obbiettivo
+            });
+        
+            const closeButtonDettagliObbiettivo = document.getElementById(`closeModalDettagliObbiettivo_${obbiettivoId}`);
+            if (closeButtonDettagliObbiettivo) {
+                closeButtonDettagliObbiettivo.addEventListener('click', function() {
+                    modal = document.getElementById(`obbiettivoSpesaModal_${obbiettivoId}`);
+                    if (modal) {
+                        modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                    }
+                });
+            }
+        
+            modal.style.display = 'block'; // Mostra il modal
+        }
+        
+
+
 
 
 

@@ -5,7 +5,7 @@ from .services import AccountService
 from Users.services import *
 from .forms import *
 from django.http import JsonResponse
-from django.utils import timezone  # Assicurati di importare timezone
+from django.utils import timezone  
 from datetime import date
 from Budgeting.forms import *
 from django.template.loader import render_to_string
@@ -13,6 +13,7 @@ from Budgeting.services import *
 from datetime import timedelta
 import json
 from django.http import JsonResponse
+from decimal import Decimal
 
 
 @login_required
@@ -34,11 +35,36 @@ def personal_section(request):
     lista_transazioni = BudgetingService.get_transazioni_by_utente(utente).filter(eseguita=True).order_by('-data')
     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
 
-    
+
     labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
     data = [saldo.saldo_totale for saldo in saldo_data]  # Saldi per l'asse Y
 
+    conti_data = [
+                {
+                    'id': conto.id,
+                    'nome': conto.nome,
+                    'tipo': conto.tipo,
+                    'saldo': float(conto.saldo),
+                }
+                for conto in conti
+        ]
 
+    piani_risparmio_data = []
+    piani_risparmio_data = [
+        {
+            'id' : piano.id,
+            'durata' : piano.durata,
+            'obbiettivo' : float(piano.obbiettivo),
+            'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'),  
+            'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+            'conto' : piano.conto.nome,
+            'percentuale_completamento' : float(piano.percentuale_completamento),
+            
+        }
+        for piano in lista_piani_risparmio
+        
+    ]
+    
     transazioni_serializzate = []
     for transazione in lista_transazioni:
         transazioni_serializzate.append({
@@ -52,7 +78,18 @@ def personal_section(request):
             'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else 'Trasferimento',
         })
         
- 
+    obbiettivi_spesa_data = []
+    for obbiettivo in lista_obbiettivi_spesa:
+        obbiettivi_spesa_data.append({
+            'id' : obbiettivo.id,
+            'importo_speso' : float(obbiettivo.importo_speso),
+            'importo' : float(obbiettivo.importo),
+            'percentuale_completamento' : round(float(obbiettivo.percentuale_completamento)),
+            'categoria_target' : obbiettivo.categoria_target.to_dict(),
+            'tipo' : str(obbiettivo.tipo),
+            'data_scadenza' : obbiettivo.data_scadenza.strftime('%Y-%m-%d'),
+            'data_creazione' : obbiettivo.data_creazione.strftime('%Y-%m-%d'),
+        })
    
    
     oggi = timezone.now().date()
@@ -91,6 +128,12 @@ def personal_section(request):
             formSavingPlan = NuovoPianoRisparmo(utente=request.user)
             formSavingPlan_html = render_to_string ('personal/conto_risparmio.html', {'formPiano' : formSavingPlan})
             
+            AccountService.calcola_saldo_totale(utente)
+
+            saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
+            labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
+            data = [saldo.saldo_totale for saldo in saldo_data]
+            
             return JsonResponse({'success': True, 'conti': conti_data, 'formTransazione': formTransazione_html, 
                                  'formSavingPlan' : formSavingPlan_html,'labels': labels,'data': data,})
         else:
@@ -102,19 +145,21 @@ def personal_section(request):
                'lista_obbiettivi_spesa' : lista_obbiettivi_spesa,
                'transazioni' : lista_transazioni, 'transazioni_odierne': transazioni_odierne, 
                'conteggio_odierne' : transazioni_odierne.count(), 'labels': labels,
-               'data': data,
-                "transazioni_serializzate": json.dumps(transazioni_serializzate),}
+               'data': data, 'conti_json' : json.dumps(conti_data),
+                "transazioni_serializzate": json.dumps(transazioni_serializzate),
+                'piani_risparmio_json':   piani_risparmio_data,
+                'obbiettivi_spesa_json' : obbiettivi_spesa_data}
     return render(request, 'personal/personalHomePage.html', context)
 
 @login_required
 def transaction_section(request):
    
     if request.method == 'POST':
-        print("Ricevuta una richiesta POST.")
+     
         utente = UserService.get_utenti_by_user(request.user.pk)
         formTransazione = NuovaTransazioneForm(request.POST, utente=request.user) 
         
-        print(formTransazione)
+       
         if formTransazione.is_valid():
             conto = formTransazione.cleaned_data['conto']
             categoria = formTransazione.cleaned_data['categoria']
@@ -178,13 +223,14 @@ def transaction_section(request):
                         
                     piani = BudgetingService.get_lista_SavingPlan(utente)
                     piani_data = [
-                        {
-                            'id' : piano.pk,
-                            'obbiettivo': piano.obbiettivo,
-                            'percentuale_completamento': piano.percentuale_completamento,
-                            'data_scadenza': piano.data_scadenza,
-                            'conto': piano.conto.to_dict(),
-                        }
+                    {
+                        'id' : piano.id,
+                        'obbiettivo': float(piano.obbiettivo),
+                        'percentuale_completamento': float(piano.percentuale_completamento),
+                        'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                        'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                        'conto': piano.conto.nome,
+                     }
                         for piano in piani
                     ]
                     
@@ -192,6 +238,8 @@ def transaction_section(request):
                         for obbiettivo in obbiettivi_spesa_riguardanti:
                             obbiettivo.importo_speso += (-importo)
                             obbiettivo.percentuale_completamento = (obbiettivo.importo_speso/ obbiettivo.importo) * 100
+                            if(obbiettivo.percentuale_completamento > 100):
+                                obbiettivo.percentuale_completamento = 100
                             obbiettivo.save()
                     obbiettivi_utente = BudgetingService.get_lista_Obbiettivi_Spesa(utente)
                   
@@ -216,7 +264,7 @@ def transaction_section(request):
                     labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
                     data = [saldo.saldo_totale for saldo in saldo_data]
                     
-                    print("hhhh " + str(data) + " jjj " + str(saldo_data))
+                    
                     
                     return JsonResponse({
                         'success': True,
@@ -278,14 +326,16 @@ def transaction_section(request):
                         if(conto.tipo == 'risparmio'):
                             BudgetingService.ricalcola_lista_piani_risparmio(utente)
                         
+                        
                         piani = BudgetingService.get_lista_SavingPlan(utente)
                         piani_data = [
-                        {
-                                'id' : piano.pk,
-                                'obbiettivo': piano.obbiettivo,
-                                'percentuale_completamento': piano.percentuale_completamento,
-                                'data_scadenza': piano.data_scadenza,
-                                'conto': piano.conto.to_dict(),
+                            {
+                                'id' : piano.id,
+                                'obbiettivo': float(piano.obbiettivo),
+                                'percentuale_completamento': float(piano.percentuale_completamento),
+                                'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                                'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                                'conto': piano.conto.nome,
                             }
                             for piano in piani
                         ]
@@ -378,6 +428,8 @@ def transaction_section(request):
                          for obbiettivo in obbiettivi_spesa_riguardanti:
                             obbiettivo.importo_speso += (-importo)
                             obbiettivo.percentuale_completamento = (obbiettivo.importo_speso/ obbiettivo.importo) * 100
+                            if(obbiettivo.percentuale_completamento > 100):
+                                obbiettivo.percentuale_completamento = 100
                             obbiettivo.save()
                     else:
                         Transazione.objects.create(
@@ -404,6 +456,7 @@ def transaction_section(request):
                         }
                         for conto in conti
                     ]
+                    
 
                     transazioni = Transazione.objects.filter(eseguita=True).order_by('-data')
                     transazioni_data = [
@@ -425,18 +478,20 @@ def transaction_section(request):
                     if(conto.tipo == 'risparmio'):
                         BudgetingService.ricalcola_lista_piani_risparmio(utente)
                         
+                    
                     piani = BudgetingService.get_lista_SavingPlan(utente)
                     piani_data = [
                         {
-                            'id' : piano.pk,
-                            'obbiettivo': piano.obbiettivo,
-                            'percentuale_completamento': piano.percentuale_completamento,
-                            'data_scadenza': piano.data_scadenza,
-                            'conto': piano.conto.to_dict(),
+                            'id' : piano.id,
+                            'obbiettivo': float(piano.obbiettivo),
+                            'percentuale_completamento': float(piano.percentuale_completamento),
+                            'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                            'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                            'conto': piano.conto.nome,
                         }
                         for piano in piani
                     ]
-                    
+                            
                     obbiettivi_utente = BudgetingService.get_lista_Obbiettivi_Spesa(utente)
                   
                     Obbiettivi_data = [
@@ -528,14 +583,17 @@ def transaction_section(request):
                     if(conto.tipo == 'risparmio'):
                         BudgetingService.ricalcola_lista_piani_risparmio(utente)
                         
+                    
+                    
                     piani = BudgetingService.get_lista_SavingPlan(utente)
                     piani_data = [
                         {
-                            'id' : piano.pk,
-                            'obbiettivo': piano.obbiettivo,
-                            'percentuale_completamento': piano.percentuale_completamento,
-                            'data_scadenza': piano.data_scadenza,
-                            'conto': piano.conto.to_dict(),
+                            'id' : piano.id,
+                            'obbiettivo': float(piano.obbiettivo),
+                            'percentuale_completamento': float(piano.percentuale_completamento),
+                            'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                            'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                            'conto': piano.conto.nome,
                         }
                         for piano in piani
                     ]
@@ -573,7 +631,7 @@ def transaction_section(request):
             return JsonResponse({'success': False, 'errors': formTransazione.errors}, status=400)
 
    
-    print("Ricevuta una richiesta GET.")
+    
     utente = UserService.get_utenti_by_user(request.user.id)
     conti = AccountService.get_conti_utente(utente.pk)
 
@@ -610,16 +668,20 @@ def savings_section(request):
             piani = BudgetingService.get_lista_SavingPlan(utente)
             piani_data = [
                 {
-                    'id' : piano.pk,
-                    'obbiettivo': piano.obbiettivo,
-                    'percentuale_completamento': piano.percentuale_completamento,
-                    'data_scadenza': piano.data_scadenza,
-                    'conto': piano.conto.to_dict(),
+                    'id' : piano.id,
+                    'obbiettivo': float(piano.obbiettivo),
+                    'percentuale_completamento': float(piano.percentuale_completamento),
+                    'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                    'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                    'conto': piano.conto.nome,
                 }
                 for piano in piani
             ]
             
-           
+        
+       
+        
+    
             
             return JsonResponse({'success': True, "piani_risparmio" : piani_data })
         else:
@@ -630,7 +692,6 @@ def savings_section(request):
 
 @login_required
 def elimina_transazione(request, id):
-    print("bella")
     if request.method == 'POST':
         transazione = Transazione.objects.get(pk = id)
         conto = Conto.objects.get(pk = transazione.conto.pk)
@@ -717,3 +778,239 @@ def obbiettivoSpesa_section(request):
 
         
         return render(request, 'personal/personalHomePage.html')
+
+
+
+@login_required
+def elimina_conto(request, id):
+    if request.method == 'POST':
+        try:
+            conto = Conto.objects.get(pk=id)
+            conto.delete()
+            
+            persone_intestate = IntestazioniConto.objects.filter(conto=id)
+            persone_intestate.delete()  # Usa il metodo delete() su un queryset, più efficiente
+            
+            response_data = {
+                'success': True,
+                'message': 'Conto eliminato con successo.'
+            }
+        except Conto.DoesNotExist:
+            response_data = {
+                'success': False,
+                'message': 'Il conto non esiste.'
+            }
+        
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False, 'message': 'Metodo non permesso.'}, status=405)
+
+
+
+@login_required
+def rename_conto(request, id, new_name):
+    if request.method == 'POST':
+        try:
+            utente = UserService.get_utenti_by_user(request.user.id)
+            
+            conti_utente = AccountService.get_conti_utente(utente)
+            
+            if any(conto.nome == new_name for conto in conti_utente):
+                return JsonResponse({
+                    'success': False,
+                    'message': "Hai già un conto con questo nome",
+                })
+                
+            conto = Conto.objects.get(pk=id)
+            conto.nome = new_name
+            conto.save()
+            
+            response_data = {
+                'success': True,
+            }
+            
+        except Conto.DoesNotExist:
+            response_data = {
+                'success': False,
+            }
+        
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False}, status=405)
+
+
+
+@login_required
+def cambia_obbiettivo_view(request, id, new_obbiettivo):
+    if request.method == 'POST':
+        try:
+            
+            utente = UserService.get_utenti_by_user(request.user.id)
+            
+            
+           
+            
+            piano = (BudgetingService.get_lista_SavingPlan(utente)).get(pk = id)
+         
+        
+            # Modifica l'obbiettivo
+            piano.obbiettivo = Decimal(new_obbiettivo)
+            piano.save()
+        
+            percentuale = BudgetingService.ricacola_percentuale_completamento(request,id)
+
+            percentuale_troncata = round(percentuale, 2)
+            
+            response_data = {
+                'success': True,
+                'percentuale': percentuale_troncata,
+            }
+        except ObjectDoesNotExist:  # Cattura l'eccezione corretta
+            response_data = {
+                'success': False,
+                'error': 'Piano di risparmio non trovato'
+            }
+        except Exception as e:
+            response_data = {
+                'success': False,
+                'error': str(e)
+            }
+
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False}, status=405)
+
+
+@login_required
+def cambia_data_scadenza_view(request, id, new_date):
+    if request.method == 'POST':
+        try:
+            utente = UserService.get_utenti_by_user(request.user.id)
+            
+            piano = (BudgetingService.get_lista_SavingPlan(utente)).get(pk = id)
+            
+            piano.data_scadenza = new_date
+            
+            piano.save()
+            
+            
+            response_data = {
+                'success': True,
+            }
+            
+        except piano.DoesNotExist:
+            response_data = {
+                'success': False,
+            }
+        
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False}, status=405)
+
+
+
+
+
+@login_required
+def elimina_piano_view(request, id):
+    if request.method == 'POST':
+        try:
+            piano = PianoDiRisparmio.objects.get(pk=id)
+            piano.delete()
+            
+            response_data = {
+                'success': True,
+                'message': 'Piano eliminato con successo.'
+            }
+        except Conto.DoesNotExist:
+            response_data = {
+                'success': False,
+                'message': 'Il piano non esiste.'
+            }
+        
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False, 'message': 'Metodo non permesso.'}, status=405)
+
+@login_required
+def cambia_obbiettivo_obbiettivoSpesa_view(request, id, new_obbiettivo):
+    if request.method == 'POST':
+        try:   
+            utente = UserService.get_utenti_by_user(request.user.id)
+            print(utente)
+            obbiettivo = (BudgetingService.get_lista_Obbiettivi_Spesa(utente)).get(pk = id)
+            print(obbiettivo)
+            obbiettivo.importo = Decimal(new_obbiettivo)
+            obbiettivo.save()
+        
+            
+            percentuale = BudgetingService.ricalcola_percentuale_completamento_obbiettivoSpesa(request,id)
+            print(percentuale)
+            percentuale_troncata = round(percentuale, 2)
+            
+            response_data = {
+                'success': True,
+                'percentuale': percentuale_troncata,
+            }
+        except ObjectDoesNotExist:  # Cattura l'eccezione corretta
+            response_data = {
+                'success': False,
+                'error': 'Obbiettivo non trovato'
+            }
+        except Exception as e:
+            response_data = {
+                'success': False,
+                'error': str(e)
+            }
+
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False}, status=405)
+
+@login_required
+def cambia_data_scadenza_obbiettivoSpesa_view(request, id, new_date):
+    if request.method == 'POST':
+        try:
+            utente = UserService.get_utenti_by_user(request.user.id)
+            
+            obbiettivo = (BudgetingService.get_lista_Obbiettivi_Spesa(utente)).get(pk = id)
+            
+            obbiettivo.data_scadenza = new_date
+            
+            obbiettivo.save()
+            
+            
+            response_data = {
+                'success': True,
+            }
+            
+        except obbiettivo.DoesNotExist:
+            response_data = {
+                'success': False,
+            }
+        
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False}, status=405)
+
+
+@login_required
+def elimina_obbiettivo_view(request, id):
+    if request.method == 'POST':
+        try:
+            obbiettivo = ObbiettivoSpesa.objects.get(pk=id)
+            obbiettivo.delete()
+            
+            response_data = {
+                'success': True,
+                'message': 'Obbiettivo eliminato con successo.'
+            }
+        except Conto.DoesNotExist:
+            response_data = {
+                'success': False,
+                'message': 'L obbiettivo non esiste.'
+            }
+        
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False, 'message': 'Metodo non permesso.'}, status=405)
