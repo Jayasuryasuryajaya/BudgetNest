@@ -36,17 +36,46 @@ class NuovoConto(ModelForm):
 
 
     def clean_nome(self):
-        nome = self.cleaned_data.get("nome").lower()
+        nome = self.cleaned_data.get("nome")
         if self.request:
             conti = AccountService.get_conti_utente(UserService.get_utenti_by_user(self.request.user.pk))
             if any(conto.nome.lower() == nome for conto in conti):
                 raise ValidationError("This account name is already taken.")
         
         return nome
-        
-    
-    
 
+
+class NuovoContoFamiglia(ModelForm):
+    saldo = forms.DecimalField(
+            widget=forms.NumberInput(attrs={
+                'placeholder': 'Enter start amount', 
+                'min': '0',  
+                'step': '0.01' ,
+                'class': 'form-control',
+            })
+        )
+
+    class Meta:
+        model = Conto
+        fields = ["nome", "saldo"]
+        widgets = {
+            'nome': forms.TextInput(attrs={'placeholder': 'Enter bank name', 
+                                           'class': 'form-control',
+                                           }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None) 
+        super(NuovoContoFamiglia, self).__init__(*args, **kwargs)
+
+
+    def clean_nome(self):
+        nome = self.cleaned_data.get("nome")
+        if self.request:
+            conti = AccountService.get_conti_utente(UserService.get_utenti_by_user(self.request.user.pk))
+            if any(conto.nome.lower() == nome for conto in conti):
+                raise ValidationError("This account name is already taken.")
+        return nome
        
     
     

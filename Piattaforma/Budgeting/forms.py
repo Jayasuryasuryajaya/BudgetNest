@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from Users.services import *
 from django import forms
-from .models import Transazione, CategoriaSpesa, SottoCategoriaSpesa, Conto, PianoDiRisparmio, ObbiettivoSpesa
+from .models import Transazione, CategoriaSpesa, SottoCategoriaSpesa, Conto, PianoDiRisparmio, ObbiettivoSpesa, TipoRinnovo
 from Accounts.services import *
 from Users.services import *
 from django.db.models import Q
@@ -102,7 +102,9 @@ class NuovaTransazioneForm(forms.ModelForm):
         # Imposta il queryset per 'sotto_categoria' usando l'utente
         self.fields['sotto_categoria'].queryset = SottoCategoriaSpesa.objects.filter(Q(utente=Utente.pk) | Q(personalizzata=False))
         self.fields['sotto_categoria'].empty_label = "Select sub-category"
-
+        
+        
+        
    
     def clean(self):
         cleaned_data = super().clean()
@@ -112,6 +114,8 @@ class NuovaTransazioneForm(forms.ModelForm):
         data = cleaned_data.get('data')
         categoria = cleaned_data.get('categoria')
         sotto_categoria = cleaned_data.get('sotto_categoria')
+        
+        tipo_rinnovo = cleaned_data.get('tipo_rinnovo')
         
         # 1. If the transaction type is not investment, do not allow operations on an investment account
         if tipo_transazione and conto:
@@ -145,8 +149,14 @@ class NuovaTransazioneForm(forms.ModelForm):
         if cleaned_data.get('conto') == cleaned_data.get('conto_arrivo') and tipo_transazione == "trasferimento":
             raise ValidationError("The selected accounts cannot be the same.")
 
+        if tipo_transazione == 'periodica' and not tipo_rinnovo:
+         raise ValidationError("A periodic transaction must have a renewal type.")
+        
         if cleaned_data.get('importo') <= 0 and tipo_transazione == "trasferimento":
             raise ValidationError("The amount must be positive")
+        
+        if tipo_transazione == "trasferimento" and importo <= 0:
+            raise ValidationError("The transfer amount must be positive.")
         
         return cleaned_data
 
@@ -209,6 +219,57 @@ class NuovoPianoRisparmo(forms.ModelForm):
         return cleaned_data
     
 
+class NuovoPianoRisparmoFamiglia(forms.ModelForm):
+    class Meta:
+        model = PianoDiRisparmio
+        fields = [
+            'obbiettivo',
+            'data_scadenza',
+            'conto',
+        ]
+        widgets = {
+            'obbiettivo': forms.NumberInput(attrs={
+                'placeholder': 'Enter amount',
+                'class': 'form-control',
+                'step': '0.01',
+            }),
+            'data_scadenza': forms.DateInput(attrs={
+                'placeholder': 'Select date',
+                'class': 'form-control',
+                'type': 'date',
+            }),
+            'conto': forms.Select(attrs={'class': 'form-control'}),
+            
+        }
+  
+    
+    def __init__(self, *args, famiglia = None, **kwargs):  
+        super().__init__(*args, **kwargs)  
+    
+       
+        conti_filtrati = AccountService.get_family_accounts(famiglia) 
+               
+
+        self.fields['conto'].choices = [(conto.pk, str(conto)) for conto in conti_filtrati]
+        self.fields['conto'].empty_label = "Select account"
+        
+      
+
+   
+    def clean(self):
+        cleaned_data = super().clean()
+
+        obbiettivo = cleaned_data.get('obbiettivo')
+        data_scadenza = cleaned_data.get('data_scadenza')
+        
+        
+        if(obbiettivo <= 0):
+             raise ValidationError("The amount must be positive")
+        
+        if data_scadenza and data_scadenza <= (timezone.now().date()  + timedelta(days=7)):
+            raise ValidationError("The due date must be at least one week from today")
+        return cleaned_data
+    
 
 
 class ObbiettivoSpesaForm(forms.ModelForm):
@@ -225,10 +286,14 @@ class ObbiettivoSpesaForm(forms.ModelForm):
             'tipo': forms.Select(attrs={'class': 'form-control'}),
         }
         
-        def __init__(self, *args, utente=None, **kwargs):  
+    def __init__(self, *args, utente=None, **kwargs):  
             super().__init__(*args, **kwargs)  
-            Utente = UserService.get_utenti_by_user(utente.id)
             self.fields['categoria_target'].choices = [(categoria.pk, str(categoria)) for categoria in BudgetingService.get_categorie_utente()]
-            self.fields['conto'].empty_label = "Select category"
+            self.fields['tipo'].choices = ObbiettivoSpesa.TIPO_SCELTE
 
-       
+    def clean(self):
+        cleaned_data = super().clean()
+        obbiettivo = cleaned_data.get('importo')
+        if(obbiettivo <= 0):
+             raise ValidationError("The amount must be positive")
+        

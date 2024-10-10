@@ -2,9 +2,10 @@ from django.db import models
 from Users.models import Utente 
 
 class TipoConto(models.TextChoices):
-    CORRENTE = 'corrente', 'Conto Corrente'
-    INVESTIMENTO = 'investimento', 'Conto di Investimento'
-    RISPARMIO = 'risparmio', 'Conto di Risparmio'
+    CORRENTE = 'corrente', 'Checking Account'
+    INVESTIMENTO = 'investimento', 'Investment Account'
+    RISPARMIO = 'risparmio', 'Savings Account'
+    CASH = 'contante', 'Cash'
 class Conto(models.Model):
     nome = models.CharField(max_length=10)
     saldo = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -13,14 +14,18 @@ class Conto(models.Model):
         choices=TipoConto.choices,
         default=TipoConto.CORRENTE,
     )
+    condiviso = models.BooleanField(default=False)
     def __str__(self):
         return self.nome 
+    
     
     def to_dict(self):
         return {
             'pk': self.pk,
             'saldo': float(self.saldo),
             'nome': self.nome,
+            'condiviso': self.condiviso, 
+            'tipo' : self.tipo,
         }
 
 class IntestazioniConto(models.Model):

@@ -9,12 +9,12 @@ from django.contrib.auth.models import User
 
 class NuovoUtente(ModelForm):
     data_di_nascita = forms.DateField(
-        label="Date of birth", 
         widget=forms.DateInput(
             attrs={
                 'type': 'date',
                 'max': timezone.now().date().isoformat(),
-            
+                'class': 'form-control',
+                'type': 'date',
             }
         )
     )
@@ -24,14 +24,17 @@ class NuovoUtente(ModelForm):
         fields = ["username", "email", "password", "nome", "cognome", "data_di_nascita", 
                   "indirizzo", "telefono", "sesso"]
         widgets = {
-            'password': forms.PasswordInput(attrs={'placeholder': 'Choose a password (min. 8)'}),
-            'username': forms.TextInput(attrs={'placeholder': 'Choose a username'}),
-            'email': forms.EmailInput(attrs={'placeholder': 'Enter your email'}),
-            'nome': forms.TextInput(attrs={'placeholder': 'Enter your name'}),
-            'cognome': forms.TextInput(attrs={'placeholder': 'Enter your surname'}),
-            'telefono': forms.TextInput(attrs={'placeholder': 'Enter your phone number'}),
-            'indirizzo': forms.TextInput(attrs={'placeholder': 'Enter your address'}),
+            'password': forms.PasswordInput(attrs={'placeholder': 'Choose a password (min. 8)', 'class': 'form-control'}), 
+            'username': forms.TextInput(attrs={'placeholder': 'Choose a username',  'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Enter your email', 'class': 'form-control'}),
+            'nome': forms.TextInput(attrs={'placeholder': 'Enter your name' , 'class': 'form-control'}),
+            'cognome': forms.TextInput(attrs={'placeholder': 'Enter your surname' , 'class': 'form-control'}),
+            'telefono': forms.TextInput(attrs={'placeholder': 'Enter your phone number' , 'class': 'form-control'}),
+            'indirizzo': forms.TextInput(attrs={'placeholder': 'Enter your address' , 'class': 'form-control'}),
+            'sesso': forms.Select(attrs={'class': 'form-control'}),
             
+                
+          
         }
 
         

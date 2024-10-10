@@ -3,64 +3,46 @@
 {% block content %}
   <section id="dashboard" class="sections personal d-flex align-items-start flex-column" style="min-height: 130vh; position: relative;">
 
-    <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
-     style="align-items: center; 
-            margin-top: 60px; margin-left:30px; margin-right:30px; justify-content: flex-start;
-            border-radius: 15px; background-color: white; 
-            border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
-             /* Altezza massima ridotta */
-            max-width: auto; padding-bottom: 5px; padding-top: 5px;">
-    {% if not conti %}
-    <div id="conto_esempio" class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
-    color: white; background-color: #100d30; text-align: left; height: auto;">
-        <i class="bi bi-bank"></i>
-        <h4 style="margin-top: 5px; color: white;">Example Account </h4>
-        <h6 style="color: white;">Balance: 0.00 €</h6>
-    </div>
-    {% endif %}
-
-    {% for conto in conti %}
-    <div id="singolo_conto_{{ conto.id }}" class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
-        color: white; background-color: #100d30; text-align: left; height: auto;">
-        
-        {% if conto.tipo == 'corrente' %}
+    <!--Sezione conti + form conti-->
+    <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="align-items: center; margin-top: 60px; margin-left:30px; margin-right:30px; justify-content: flex-start; border-radius: 15px; background-color: white; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); max-width: auto; padding-bottom: 5px; padding-top: 5px;">
+        {% if not conti %}
+        <div id="conto_esempio" class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: left; height: auto;">
             <i class="bi bi-bank"></i>
-        {% elif conto.tipo == 'investimento' %}
-            <i class="bi bi-bar-chart"></i>
-        {% elif conto.tipo == 'risparmio' %}
-            <i class="bi bi-safe"></i>
+            <h4 style="margin-top: 5px; color: white;">Account Example</h4>
+            <h6 style="color: white;">Balance: 0.00 €</h6>
+        </div>
         {% endif %}
 
-        <h3 style="margin-top:5px; color: white; font-size: 18px;">{{ conto.nome }}</h3> <!-- Dimensione del testo ridotta -->
-        <h6 style="color: white; font-size: 14px;">Balance: {{ conto.saldo }} €</h6> <!-- Dimensione del testo ridotta -->
+        {% for conto in conti %}
+            <div id="singolo_conto_{{ conto.id }}" class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: left; height: auto;">
+            {% if conto.tipo == 'corrente' %}
+                <i class="bi bi-bank"></i>
+            {% elif conto.tipo == 'investimento' %}
+                <i class="bi bi-bar-chart"></i>
+            {% elif conto.tipo == 'risparmio' %}
+                <i class="bi bi-safe"></i>
+            {% elif conto.tipo == 'contante' %}
+                <i class="bi bi-cash-coin"></i>
+            {% endif %}
+                <h3 style="margin-top:5px; color: white; font-size: 18px;">{{ conto.nome }}</h3> 
+            <h6 style="color: white; font-size: 14px;">Balance: {{ conto.saldo }} €</h6>
+            </div>
+        {% endfor %}
+
+        <div id="openModalBtn" class="singolo-conto conto-box" style="border-radius: 50%; background-color: #00995c; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; margin-right: 15px; margin-left: 15px;">  
+        <i class="bi bi-plus" style="color: white; font-size: 20px;"></i> 
+        </div>
     </div>
-    {% endfor %}
-    
-    
 
-    <div id="openModalBtn" class="singolo-conto conto-box" style="border-radius: 50%; background-color: #00995c; 
-    width: 40px; height: 40px; 
-    display: flex; align-items: center; justify-content: center; margin-right: 15px; margin-left: 15px;">  
-        <i class="bi bi-plus" style="color: white; font-size: 20px;"></i> <!-- Dimensione icona ridotta -->
-    </div>
-</div>
-
-
-<div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;">
+    <!--Sezione grafico + 3 tasti-->
+    <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;">
         <div id="leftDiv" style="flex: 4; margin-right: 30px; padding: 10px; border-radius: 8px; text-align: center;">
-            <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
-                 style="align-items: center; 
-                        margin-top: 70px; margin-left:30px; margin-right:30px; justify-content: flex-start;
-                        border-radius: 15px; 
-                        border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
-                        max-height: auto; padding-bottom: 10px; padding-top: 10px;  background-color: white;">
-                        <canvas id="saldoChart" width="400" height="300" style = "margin-left:20px; margin-right:20px; margin-bottom:20px;  padding:10px; "  ></canvas>
+            <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="align-items: center; margin-top: 70px; margin-left:30px; margin-right:30px; justify-content: flex-start;border-radius: 15px; border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); max-height: auto; padding-bottom: 10px; padding-top: 10px;  background-color: white;">
+                <canvas id="saldoChart" width="400" height="300" style = "margin-left:20px; margin-right:20px; margin-bottom:20px;  padding:10px; "  ></canvas>
             </div>
         </div>
         <div id="rightDiv" style="flex: 1; margin-left: 10px; padding: 10px; border-radius: 8px; text-align: center;">
-            <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
-                 style="border-radius: 15px; background-color: white; padding: 10px;">
-        
+            <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="border-radius: 15px; background-color: white; padding: 10px;">
                 <div class="d-flex flex-column" style="align-items: center; width: 100%;">
                     <button id= "newTransactionBtn" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #00995c; color: white; cursor: pointer;  width: 90%;">
                         New transaction
@@ -72,437 +54,311 @@
                         New savings plan
                     </button>
                 </div>
-        
             </div>
         </div>
     </div>
 
-
-
-<div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;">
+    <!-- Sezione piani risparmio + obbiettivi di spesa + transasioni-->
+    <div style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;">
         <div id="leftDiv" style="flex: 4; margin-right: 30px; padding: 10px; border-radius: 8px; text-align: center;">
-            <div id="pianiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
-                 style="align-items: center; 
-                        margin-top: 70px; margin-left:30px; margin-right:30px; justify-content: flex-start;
-                        border-radius: 15px; background-color: white; 
-                        border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); 
-                        max-height: auto; max-width: auto; padding-bottom: 10px; padding-top: 10px">
-
-
-                        {% if not conti %}
-
-                        <div  class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
-                        color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width : 25%">
-                   
-                    <div class="progress-circle" style="position: relative; display: inline-block; margin-bottom: 10px;">
-                        <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
-                            <path class="circle-bg"
-                                d="M18 2.0845
-                                    a 15.9155 15.9155 0 0 1 0 31.831
-                                    a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="#ddd"
-                                stroke-width="3" />
-                            <path class="circle"
-                                stroke-dasharray=" 70, 100" 
-                                d="M18 2.0845
-                                    a 15.9155 15.9155 0 0 1 0 31.831
-                                    a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="#00995c"
-                                stroke-width="3"
-                                transform="rotate(180 18 18)"/>
-                        </svg>
-                        <!-- Logo posizionato al centro della barra curva -->
-                        <div class="logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+            <div id="pianiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="align-items: center; margin-top: 70px; margin-left:30px; margin-right:30px; justify-content: flex-start; border-radius: 15px; background-color: white; border: 1px solid #00000; box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1); max-height: auto; max-width: auto; padding-bottom: 10px; padding-top: 10px">
+                {% if not pianiRisparmio %}
+                    <div id= "singolo_piano_esempio"  class="singolo-piano conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width : 25%"> 
+                        <div class="progress-circle" style="position: relative; display: inline-block; margin-bottom: 10px;">
+                            <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ddd" stroke-width="3" />
+                                <path class="circle" stroke-dasharray=" 70, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#00995c" stroke-width="3" transform="rotate(180 18 18)"/>
+                            </svg>
+                        
+                            <div class="logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                                 <i class="bi bi-safe" style="font-size: 20px;"></i>
-                            
-                        </div>
-                    </div>
-                
-                   
-                    <h3 style="margin-top: 5px; color: white; font-size: 18px;">Saving account</h3>
-                
-                    <!-- Saldo del conto -->
-                    <h6 style="color: white; font-size: 14px;">Goal: XXXX €</h6>
-                    <h6 style="color: white; font-size: 12px;  margin-top: 10px;"> Due date </h6>
-                  
-
-                    
-                
-                </div>
-
-
-
-                        {% endif %}
-
-                        {% for piano in pianiRisparmio %}
-                
-                <div  id= "singolo_piano_{{ piano.id }}" class="singolo-piano conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; 
-                        color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width : 29.5%">
-                   
-                    <div class="progress-circle" style="position: relative; display: inline-block; margin-bottom: 10px;">
-                        <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
-                            <path class="circle-bg"
-                                d="M18 2.0845
-                                    a 15.9155 15.9155 0 0 1 0 31.831
-                                    a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="#ddd"
-                                stroke-width="3" />
-                            <path class="circle"
-                                stroke-dasharray=" {{piano.percentuale_completamento }}, 100" 
-                                d="M18 2.0845
-                                    a 15.9155 15.9155 0 0 1 0 31.831
-                                    a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="#00995c"
-                                stroke-width="3"
-                                transform="rotate(180 18 18)"/>
-                        </svg>
-                        <!-- Logo posizionato al centro della barra curva -->
-                        <div class="logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                <i class="bi bi-safe" style="font-size: 20px;"></i>
-                            
-                        </div>
-                    </div>
-                
-                   
-                    <h3 style="margin-top: 5px; color: white; font-size: 18px;">{{ piano.conto }}</h3>
-                
-                    <!-- Saldo del conto -->
-                    <h6 style="color: white; font-size: 14px;">Goal: {{ piano.obbiettivo }} €</h6>
-                    <h6 style="color: white; font-size: 12px;  margin-top: 10px;"> {{ piano.data_scadenza }} €</h6>
-                  
-
-                    
-                
-                </div>
-                
-                {% endfor %}
-            </div>
-          
-    </div>
-
-    <div id="rightDiv" style="flex: 4; margin-left: 10px; padding: 10px; border-radius: 8px; text-align: center;">
-        <div id="ObbiettiviContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
-             style="border-radius: 15px; background-color: white; padding: 10px;">
-    
-            {% if not lista_obbiettivi_spesa %} 
-                <h1 class ".piano-spesa">Ciao</h1>
-            {% else %}
-                {% for obbiettivo in lista_obbiettivi_spesa %}
-                <div id="obbiettivoSpesa_{{obbiettivo.id}}" class="piano-spesa conto-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);">
-                  
-                    <!-- Nome della categoria target -->
-                    <div class="categoria-target" style="flex: 1; text-align: left;">
-                        <h3 style="margin: 0; font-size: 18px; color: white">{{ obbiettivo.categoria_target }}</h3>
-                    </div>
-                    
-                    <!-- Barra di completamento (centrata) -->
-                    <div class="progress-bar-container" style="flex: 2; margin: 0 20px; position: relative;">
-                        <div class="progress-bar-bg" style="background-color: #ddd; border-radius: 5px; height: 20px; width: 100%;">
-                            <div class="progress-bar" style="width: {{ obbiettivo.percentuale_completamento }}%; background-color: red; height: 100%; border-radius: 5px;">
                             </div>
                         </div>
-                        <!-- Percentuale completamento sopra la barra -->
+                        <h4 style="margin-top: 5px; color: white; font-size: 18px;">Saving Plan Example</h3>
+                        <h6 style="color: white; font-size: 14px;">Goal: XXXX €</h6>
+                        <h6 style="color: white; font-size: 12px;  margin-top: 10px;">Due date :  YYYY-MM-DD</h6>
                     </div>
-                    
-                    <!-- Data di scadenza -->
-                    <div class="data-scadenza" style="flex: 1;  text-align: right; ">
-                        <h6 style="margin: 0; font-size: 14px; color: white;">{{ obbiettivo.data_scadenza }}</h6>
-                    </div>
-                </div>
-                {% endfor %}
-            {% endif %}
-        </div>
-        
-
-
-        <div id="transazioniContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" 
-             style="border-radius: 15px;margin-left: auto; margin-right: auto; background-color: white; padding: 10px; margin-top: 50px; width: 70%">
-
-    
-             {% if not transazioni %}
-             <h1 class="transazione-box">Nessuna transazione disponibile</h1>
-         {% else %}
-
-
-         {% if conteggio_odierne < 5 %}
-         {% for t in transazioni|slice:":5" %}
-             
-         <div class="transazione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
-           
-                
-            <div class="icona-transazione" style="margin-right: 15px;">
-               {% if t.importo > 0 %}
-                <i class="bi bi-plus-circle-dotted" style="font-size: 25 px; color: white;"></i>
-                {% else %}
-                <i class="bi bi-dash-circle-dotted" style="font-size: 25 px; color: white;"></i>
                 {% endif %}
-            </div>
-            
 
-            
-            <div class="dettagli-transazione" style="flex: 1; text-align: left;">
-
-               {% if t.tipo_transazione == 'trasferimento' %}
-                       <h3 style="margin: 0; font-size: 18px; color: #00995c;">Transfer</h3>
-                       <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
-               {% else %}
-                       {% if t.importo >= 0 %}
-                       <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }}</h3>
-                       {% else %}
-                           <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }}</h3>
-                       {% endif %}
-                       <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
-               {% endif %}
-              
-           </div>
-           
-
-            
-            <div class="importo-transazione" style="flex: 1; text-align: right;">
-                <h3 style="margin: 0; font-size: 18px; color: white;">€ {{ t.importo }}</h3>
-                <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.data }}</p>
-            </div>
-            
-        </div>
-        {% endfor %}
-         
-     {% else %}
-         {% for t in transazioni_odierne %}
-
-            
-         <div class="transazione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
-           
-                
-            <div class="icona-transazione" style="margin-right: 15px;">
-               {% if t.importo > 0 %}
-                <i class="bi bi-plus-circle-dotted" style="font-size: 25 px; color: white;"></i>
-                {% else %}
-                <i class="bi bi-dash-circle-dotted" style="font-size: 25 px; color: white;"></i>
-                {% endif %}
-            </div>
-            
-
-            
-            <div class="dettagli-transazione" style="flex: 1; text-align: left;">
-
-               {% if t.tipo_transazione == 'trasferimento' %}
-                       <h3 style="margin: 0; font-size: 18px; color: #00995c;">Transfer</h3>
-                       <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
-               {% else %}
-                       {% if t.importo >= 0 %}
-                       <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }}</h3>
-                       {% else %}
-                           <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }}</h3>
-                       {% endif %}
-                       <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
-               {% endif %}
-              
-           </div>
-           
-
-            
-            <div class="importo-transazione" style="flex: 1; text-align: right;">
-                <h3 style="margin: 0; font-size: 18px; color: white;">€ {{ t.importo }}</h3>
-                <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.data }}</p>
-            </div>
-            
-        </div>
-        {% endfor %} 
-        
-     {% endif %}
-     
-
-            
-
-            
-         {% endif %}
-         
-        </div>
-       
-
-
-
-    </div>
-
-    
-</div>
-    
-
-
-
-
-
-
-
-       <!-- Modale nuovo conto-->
-<div id="myModal" class="modal">
-    
-    <div class="modal-content">
-      <button class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
-    <div id="responseMessage" style="color: red;"></div>
-
-      <h4 class = "color:#100d30 ">Insert your bank account</h4>
-      <form id="contoForm" method="post" action="{% url 'SezionePersonale' %}" class="mt-4">
-
-        {% csrf_token %}
-        <div class="mb-3">
-          {{ form.nome }}
-        </div>
-        <div class="mb-4">
-          {{ form.saldo }}
-        </div>
-        <div class="mb-4">
-          {{ form.tipo }}
-        </div><div style="display: flex; justify-content: center;">
-          <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; 
-                  border-radius: 20px;  border: 1px solid #d3d3d3;">Create</button>
-        </div>
-        <input type="hidden" name="next" value="{{ next }}">
-      </form>
-    </div>
-  </div>
-</div>  
-</div>
- 
-    <!-- Modale per la nuova transazione -->
-<div id="transactionModal" class="modal">
-    <div class="modal-content" id = "transactionFormDiv">
-        <button  id="closeModelTransaction" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
-        <div id="transactionResponseMessage" style="color: red; text-align: center; /* Centro il testo */
-    
-    font-size: 14px; 
-    margin-top: 10px;"></div>
-        <h4 style="color: #100d30;">Insert your transaction</h4>
-        <form id="transactionForm" method="post" class="mt-4" action = "{% url "gestioneTransazione" %}">
-            {% csrf_token %}
-           
-            <div class="mb-3" id =  "tipo">
-                {{ formTransazione.tipo_transazione }}
-            </div>
-            <div id= "formTransazioneContainer"class="mb-4">
-                {{ formTransazione.conto}}
-            </div>
-            <div class="mb-4">
-                {{ formTransazione.importo }}
-            </div>
-            <div class="mb-4">
-                {{ formTransazione.data}}
-            </div>
-            <div class="mb-4">
-                {{ formTransazione.descrizione}}
-            </div>
-                        
-
-            
-            <div class="mb-4 singola periodica delegata futura"  style="display:block;">
-                {{ formTransazione.categoria}}
-            </div>
-            <div class="mb-4 singola periodica delegata futura "  style="display:block;">
-                {{ formTransazione.sotto_categoria}}
-            </div>
-            <div class="mb-4 periodica" style="display:none;">
-                {{ formTransazione.tipo_rinnovo}}
-            </div>
-            <div class="mb-4 investimento"  style="display:none;">
-                {{ formTransazione.ticker}}
-            </div>
-            <div class="mb-4 investimento"  style="display:none;">
-                {{ formTransazione.numero_azioni}}
-            </div>
-            <div class="mb-4 investimento"  style="display:none;">
-                {{ formTransazione.prezzo_ordine}}
-            </div>
-            <div class="mb-4 investimento"  style="display:none;">
-                {{ formTransazione.borsa}}
-            </div>
-            <div class="mb-4 investimento"  style="display:none;">
-                {{ formTransazione.valuta}}
-            </div>
-            <div class="mb-4 trasferimento"  style="display:none;">
-                {{ formTransazione.conto_arrivo}}
-            </div>
-
-            <div style="display: flex; justify-content: center;">
-                <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; 
-                        border-radius: 20px; border: 1px solid #d3d3d3; ">Create</button>
-            </div>
-            <input type="hidden" name="next" value="{{ next }}">
-        </form>
-    </div>
-</div>
-
-<!-- Modale per l obbiettivo di spesa-->
-<div id="SpendingGoalModal" class="modal">
-    <div class="modal-content" >
-        <button id="SpendingGoalModalExit" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
-        <div id="SpendingGoalResponseMessage" style="color: red; text-align: center; font-size: 14px; margin-top: 10px;"></div>
-        <h4 style="color: #100d30;">Insert your spending goal</h4>
-        <form id="SpendingGoalForm" method="post" class="mt-4" action="{% url 'gestioneObbiettivoSpesa' %}">
-            {% csrf_token %}
-            
-            <div class="mb-3" id="formSpendingGoalContainer">
-                {{ formObbiettivo.importo }}
-            </div>
-            <label for="id_categoria_target" style="color: #100d30;padding-bottom:10px">Category Target</label>
-            <div class="mb-3">
-                {{ formObbiettivo.categoria_target }}
-            </div>
-            <div class="mb-3">
-                <label for="id_tipo" style="color: #100d30; padding-bottom:10px">Duration</label>
-                {{ formObbiettivo.tipo }}
-            </div>
-
-
-            <div style="display: flex; justify-content: center;">
-                <button type="submit" style="background: #00995c; color: white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3;">Create</button>
-            </div>
-            <input type="hidden" name="next" value="{{ next }}">
-        </form>
-    </div>
-</div>
-
- <!-- Modale per il piano risparmio-->
-<div id="SavingsPlanModal" class="modal">
-        <div class="modal-content" id = "SavingFormDiv">
-            <button  id="SavingsPlanModalExit" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
-            <div id="SavingsPlanResponseMessage" style="color: red; text-align: center; /* Centro il testo */
-            font-size: 14px; 
-            margin-top: 10px;"></div>
-            <h4 style="color: #100d30;">Insert your saving plan</h4>
-            <form id="SavingsPlanForm" method="post" class="mt-4" action ="{% url 'gestionePianoRisparmio' %}" >
-                {% csrf_token %}
-               
-                <div class="mb-3" id =  "tipo">
-                    {{ formPiano.obbiettivo }}
-                </div>
-                <div class="mb-3" id =  "tipo">
-                    {{ formPiano.data_scadenza }}
-                </div>
-                <div class="mb-3" id =  "formSavingsContainer">
-                    <label for="id_tipo" style="color: #100d30; padding-bottom:10px">Choose saving accout</label>
-                    {{ formPiano.conto }}
-                </div>
+                {% for piano in pianiRisparmio %}
+                    <div  id= "singolo_piano_{{ piano.id }}" class="singolo-piano conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width : 29.5%">
+                        <div class="progress-circle" style="position: relative; display: inline-block; margin-bottom: 10px;">
+                            <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ddd" stroke-width="3" />
+                                <path class="circle"  stroke-dasharray=" {{piano.percentuale_completamento }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#00995c" stroke-width="3" transform="rotate(180 18 18)"/>
+                            </svg>
                             
+                            <div class="logo" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                <i class="bi bi-safe" style="font-size: 20px;"></i>
+                            </div>
+                        </div>
+                    
+                        <h3 style="margin-top: 5px; color: white; font-size: 18px;">{{ piano.conto }}</h3>
+                        <h6 style="color: white; font-size: 14px;">Goal: {{ piano.obbiettivo }} €</h6>
+                        <h6 style="color: white; font-size: 12px;  margin-top: 10px;"> {{ piano.data_scadenza }} €</h6>
+                     </div>
                 
+                {% endfor %}
+            </div>    
+        </div>
+
+        <div id="rightDiv" style="flex: 4; margin-left: 10px; padding: 10px; border-radius: 8px; text-align: center;">
+            <div id="ObbiettiviContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="border-radius: 15px; background-color: white; padding: 10px;">
+                {% if not lista_obbiettivi_spesa %} 
+                    <div id="obbiettivoSpesa_esempio" class="piano-spesa conto-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);">
+                        <div class="categoria-target" style="flex: 1; text-align: left;">
+                            <h4 style="margin: 0; font-size: 18px; color: white">Spending Goal Example</h3>
+                        </div>
+                        <div class="progress-bar-container" style="flex: 2; margin: 0 20px; position: relative;">
+                            <div class="progress-bar-bg" style="background-color: #ddd; border-radius: 5px; height: 20px; width: 100%;">
+                                <div class="progress-bar" style="width: {{ 50 }}%; background-color: red; height: 100%; border-radius: 5px;">
+                                </div>
+                            </div>  
+                        </div>
+                        <div class="data-scadenza" style="flex: 1;  text-align: right; ">
+                            <h6 style="margin: 0; font-size: 14px; color: white;">Due Date:  YYYY-MM-DD</h6>
+                        </div>
+                    </div>
+                {% else %}
+                    {% for obbiettivo in lista_obbiettivi_spesa %}
+                        <div id="obbiettivoSpesa_{{obbiettivo.id}}" class="piano-spesa conto-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);">
+                            <div class="categoria-target" style="flex: 1; text-align: left;">
+                                <h3 style="margin: 0; font-size: 18px; color: white">{{ obbiettivo.categoria_target }}</h3>
+                            </div>
+                             <div class="progress-bar-container" style="flex: 2; margin: 0 20px; position: relative;">
+                                <div class="progress-bar-bg" style="background-color: #ddd; border-radius: 5px; height: 20px; width: 100%;">
+                                    <div class="progress-bar" style="width: {{ obbiettivo.percentuale_completamento }}%; background-color: red; height: 100%; border-radius: 5px;">
+                                    </div>
+                                </div>
+                             </div>
+                            <div class="data-scadenza" style="flex: 1;  text-align: right; ">
+                                <h6 style="margin: 0; font-size: 14px; color: white;">{{ obbiettivo.data_scadenza }}</h6>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div id="transazioniContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="border-radius: 15px;margin-left: auto; margin-right: auto; background-color: white; padding: 10px; margin-top: 50px; width: 70%">
+                {% if not transazioni %}
+                    <div class="transazione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
+                        <div class="icona-transazione" style="margin-right: 15px;">
+                            <i class="bi bi-dash-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                        </div>
+                        <div class="dettagli-transazione" style="flex: 1; text-align: left;">
+                             <h4 style="margin: 0; font-size: 18px; color: red;">Transaction Example</h4>
+                            <p style="margin: 0; font-size: 14px; color: #ccc;">Account : X</p>
+                        </div>
+                    </div>
+                {% else %}
+                    {% if conteggio_odierne < 5 %}
+                        {% for t in transazioni|slice:":5" %}
+                            <div class="transazione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
+                                <div class="icona-transazione" style="margin-right: 15px;">
+                                    {% if t.importo > 0 %}
+                                        <i class="bi bi-plus-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                                    {% else %}
+                                        <i class="bi bi-dash-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="dettagli-transazione" style="flex: 1; text-align: left;">
+                                    {% if t.tipo_transazione == 'trasferimento' %}
+                                        <h3 style="margin: 0; font-size: 18px; color: #00995c;">Transfer</h3>
+                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
+                                    {% else %}
+                                        {% if t.importo >= 0 %}
+                                        <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
+                                        {% else %}
+                                            <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
+                                        {% endif %}
+                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="importo-transazione" style="flex: 1; text-align: right;">
+                                    <h3 style="margin: 0; font-size: 18px; color: white;">€ {{ t.importo }}</h3>
+                                    <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.data }}</p>
+                                </div>    
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        {% for t in transazioni_odierne %}
+                            <div class="transazione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
+                                <div class="icona-transazione" style="margin-right: 15px;">
+                                    {% if t.importo > 0 %}
+                                        <i class="bi bi-plus-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                                    {% else %}
+                                        <i class="bi bi-dash-circle-dotted" style="font-size: 25 px; color: white;"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="dettagli-transazione" style="flex: 1; text-align: left;">
+                                    {% if t.tipo_transazione == 'trasferimento' %}
+                                        <h3 style="margin: 0; font-size: 18px; color: #00995c;">Transfer</h3>
+                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
+                                    {% else %}
+                                        {% if t.importo >= 0 %}
+                                            <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
+                                        {% else %}
+                                            <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
+                                        {% endif %}
+                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
+                                    {% endif %}
+                                </div>
+                                 <div class="importo-transazione" style="flex: 1; text-align: right;">
+                                    <h3 style="margin: 0; font-size: 18px; color: white;">€ {{ t.importo }}</h3>
+                                    <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.data }}</p>
+                                </div>
+                            </div>
+                        {% endfor %} 
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
     
+    <!-- Modale per il nuovo conto-->
+    <div id="myModal" class="modal">   
+        <div class="modal-content">
+            <button class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
+            <div id="responseMessage" style="color: red;"></div>
+            <h4 class = "color:#100d30 ">Insert your bank account</h4>
+            <form id="contoForm" method="post" action="{% url 'SezionePersonale' %}" class="mt-4">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.nome }}
+                </div>
+                <div class="mb-4">
+                    {{ form.saldo }}
+                </div>
+                <div class="mb-4">
+                    {{ form.tipo }}
+                </div>
                 <div style="display: flex; justify-content: center;">
-                    <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; 
-                            border-radius: 20px; border: 1px solid #d3d3d3; ">Create</button>
+                    <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; border-radius: 20px;  border: 1px solid #d3d3d3;">Create</button>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modale per la nuova transazione -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content" id = "transactionFormDiv">
+            <button  id="closeModelTransaction" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+            <div id="transactionResponseMessage" style="color: red; text-align: center; /* Centro il testo */ font-size: 14px; margin-top: 10px;"></div>
+            <h4 style="color: #100d30;">Insert your transaction</h4>
+            <form id="transactionForm" method="post" class="mt-4" action = "{% url "gestioneTransazione" %}">
+                {% csrf_token %}
+                <div class="mb-3" id =  "tipo">
+                    {{ formTransazione.tipo_transazione }}
+                </div>
+                <div id= "formTransazioneContainer"class="mb-4">
+                    {{ formTransazione.conto}}
+                </div>
+                <div class="mb-4">
+                    {{ formTransazione.importo }}
+                </div>
+                <div class="mb-4">
+                    {{ formTransazione.data}}
+                </div>
+                <div class="mb-4">
+                    {{ formTransazione.descrizione}}
+                </div>
+                <div class="mb-4 singola periodica delegata futura"  style="display:block;">
+                    {{ formTransazione.categoria}}
+                </div>
+                <div class="mb-4 singola periodica delegata futura "  style="display:block;">
+                    {{ formTransazione.sotto_categoria}}
+                </div>
+                <div class="mb-4 periodica" style="display:none;">
+                    {{ formTransazione.tipo_rinnovo}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.ticker}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.numero_azioni}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.prezzo_ordine}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.borsa}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.valuta}}
+                </div>
+                <div id= "formTransazioneContoArrivo" class="mb-4 trasferimento"  style="display:none;">
+                    {{ formTransazione.conto_arrivo}}
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3; ">Create</button>
                 </div>
                 <input type="hidden" name="next" value="{{ next }}">
             </form>
         </div>
     </div>
 
+    <!-- Modale per il nuov obbiettivo di spesa-->
+    <div id="SpendingGoalModal" class="modal">
+        <div class="modal-content" >
+            <button id="SpendingGoalModalExit" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+            <div id="SpendingGoalResponseMessage" style="color: red; text-align: center; font-size: 14px; margin-top: 10px;"></div>
+            <h4 style="color: #100d30;">Insert your spending goal</h4>
+            <form id="SpendingGoalForm" method="post" class="mt-4" action="{% url 'gestioneObbiettivoSpesa' %}">
+                {% csrf_token %}
+                <div class="mb-3" id="formSpendingGoalContainer">
+                    {{ formObbiettivo.importo }}
+                </div>
+                <label for="id_categoria_target" style="color: #100d30;padding-bottom:10px">Category Target</label>
+                <div class="mb-3">
+                    {{ formObbiettivo.categoria_target }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_tipo" style="color: #100d30; padding-bottom:10px">Duration</label>
+                    {{ formObbiettivo.tipo }}
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <button type="submit" style="background: #00995c; color: white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3;">Create</button>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale per il piano risparmio-->
+    <div id="SavingsPlanModal" class="modal">
+            <div class="modal-content" id = "SavingFormDiv">
+                <button  id="SavingsPlanModalExit" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+                <div id="SavingsPlanResponseMessage" style="color: red; text-align: center; /* Centro il testo */font-size: 14px; margin-top: 10px;"></div>
+                <h4 style="color: #100d30;">Insert your saving plan</h4>
+                <form id="SavingsPlanForm" method="post" class="mt-4" action ="{% url 'gestionePianoRisparmio' %}" >
+                    {% csrf_token %}
+                
+                    <div class="mb-3" id =  "tipo">
+                        {{ formPiano.obbiettivo }}
+                    </div>
+                    <div class="mb-3" id =  "tipo">
+                        {{ formPiano.data_scadenza }}
+                    </div>
+                    <div class="mb-3" id =  "formSavingsContainer">
+                        <label for="id_tipo" style="color: #100d30; padding-bottom:10px">Choose saving accout</label>
+                        {{ formPiano.conto }}
+                    </div>
+                                
+                    <div style="display: flex; justify-content: center;">
+                        <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3; ">Create</button>
+                    </div>
+                    <input type="hidden" name="next" value="{{ next }}">
+                </form>
+            </div>
+        </div>
 
 
 
 
 
+
+
+    
 </section>
   
   
@@ -513,15 +369,16 @@
         const contiContainer = document.getElementById('contiContainer');
         const TransazioneForm = document.getElementById('transactionForm');
         const responseMessageTransaction = document.getElementById('transactionResponseMessage');
+        const responseMessageGoalSpending = document.getElementById('SpendingGoalResponseMessage');
         const SavingForm = document.getElementById('SavingsPlanModal');
         const SavingsresponseMessage = document.getElementById('SavingsPlanResponseMessage');
         
+      
         const spendingGoalModal = document.getElementById("SpendingGoalModal");
         const spendingGoalModalExit = document.getElementById("SpendingGoalModalExit");
         const openSpendingGoalBtn = document.getElementById("openSpendingGoalModal");
        
-        let conti = {{ conti_json|safe }}; // Usa il filtro safe per evitare escaping
-         // Controlla se i dati sono disponibili
+        let conti = {{ conti_json|safe }}; 
 
         let obbiettivi_spesa = {{ obbiettivi_spesa_json | safe }};
 
@@ -533,7 +390,7 @@
 
         
       
-        var data = {{ data|safe }}.map(Number); // Assicurati che siano numeri
+        var data = {{ data|safe }}.map(Number);  
          
 
         var ctx = document.getElementById('saldoChart').getContext('2d');
@@ -543,11 +400,11 @@
                 labels: {{ labels|safe }},
                 datasets: [{
                     data: data,
-                    fill: true,  // Riempi l'area sotto la curva
-                    backgroundColor: 'rgba(0, 153, 92, 0.2)', // Colore di sfondo leggero sotto la curva
-                    borderColor: '#00995c',  // Colore della linea
-                    tension: 0.3,  // Curvatura della linea
-                    borderWidth: 2 // Spessore della linea
+                    fill: true, 
+                    backgroundColor: 'rgba(0, 153, 92, 0.2)', 
+                    borderColor: '#00995c', 
+                    tension: 0.3,  
+                    borderWidth: 2 
                 }]
             },
             options: {
@@ -555,36 +412,36 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false // Nascondi la legenda
+                        display: false 
                     },
                     title: {
-                        display: true, // Mostra il titolo
-                        text: 'Total Balance', // Testo del titolo
+                        display: true, 
+                        text: 'Total Balance',
                         font: {
-                            size: 15, // Dimensione del font
-                            family: 'Arial', // Famiglia del font
+                            size: 15, 
+                            family: 'Arial', 
                         },
-                        color: '#100d30', // Colore del titolo
+                        color: '#100d30', 
                     
                     },
                     background: {
-                        color: 'white' // Imposta il colore di sfondo su bianco
+                        color: 'white' 
                     },
                 },
                 scales: {
                     x: {
                         grid: {
-                            display: false, // Nascondi le linee della griglia sull'asse X
+                            display: false, 
                         },
                         title: {
-                            display: false, // Nascondi il titolo dell'asse X
+                            display: false,
                         },
                         
                     },
                     y: {
                         grid: {
-                            display: true, // Mostra la griglia sull'asse Y
-                            color: 'rgba(0, 0, 0, 0.1)' // Colore delle linee di griglia
+                            display: true, 
+                            color: 'rgba(0, 0, 0, 0.1)'
                         },
                         title: {
                             display: false,
@@ -596,20 +453,20 @@
         });
     
         function reloadPage() {
-            location.reload(); // Ricarica la pagina corrente
+            location.reload(); 
         }
         
         function deleteConto(contoId) {
-            const confirmDelete = confirm('Sei sicuro di voler eliminare questo conto?');
+            const confirmDelete = confirm('Are you sure you want to delete this account?');
            
             if (confirmDelete) {
                 fetch("{% url 'elimina_conto' 0 %}".replace('0', contoId), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                        'X-CSRFToken': '{{ csrf_token }}', 
                     },
-                    body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                    body: JSON.stringify({})  
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -629,7 +486,7 @@
         }
 
         function getCSRFToken() {
-            // Cerca il token CSRF nel cookie
+           
             const name = 'csrftoken';
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
@@ -638,8 +495,8 @@
         
        
         function renameConto(contoId) {
-            const newName = prompt('Inserisci il nuovo nome per il conto:');
-            
+            const newName = prompt('Enter the new goal:');
+           
             if (newName) {
                 fetch("{% url 'rinomina_conto' 0 'new_name' %}".replace('0', contoId).replace('new_name', encodeURIComponent(newName)), {
                     method: 'POST',
@@ -662,16 +519,16 @@
                         if (closeButtonDettagliConto) {
                         closeButtonDettagliConto.addEventListener('click', reloadPage);
                         }
-                        alert('Il nome del conto è stato aggiornato.');
+                        alert('The account name has been updated.');
                     } else {
-                        alert('Errore: ' + data.message);
+                        alert('Error: ' + data.message);
                     }
                 })
                 .catch(error => {
-                    console.error('Errore:', error);
+                    console.error('Error:', error);
                 });
             } else {
-                alert('Nome del conto non valido.');
+                alert('Account name is not valid.');
             }
         }
         
@@ -697,8 +554,10 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    
                     const contiElements = document.querySelectorAll('.singolo-conto');
                     document.getElementById('formTransazioneContainer').innerHTML = data.formTransazione;
+                    document.getElementById('formTransazioneContoArrivo').innerHTML = data.formContoArrivo;
                     document.getElementById('formSavingsContainer').innerHTML = data.formSavingPlan;
                     contiElements.forEach(conto => conto.remove());
                     data.conti.forEach(conto => {
@@ -720,6 +579,8 @@
                             iconHtml = '<i class="bi bi-bar-chart"></i>';
                         } else if (conto.tipo === 'risparmio') {
                             iconHtml = '<i class="bi bi-safe"></i>';
+                        } else if (conto.tipo === 'contante') {
+                            iconHtml = '<i class="bi bi-cash-coin"></i>';
                         }
 
                         contoDiv.innerHTML = `${iconHtml}
@@ -728,7 +589,7 @@
                         contiContainer.appendChild(contoDiv);
                     });
 
-                    // Per il bottone
+                   
                     const addButton = document.createElement('div');
                     addButton.id = 'openModalBtn';
                     addButton.className = 'conto-box singolo-conto';
@@ -861,8 +722,8 @@
                             </div>
                             <!-- Paginazione -->
                             <div class="pagination" style="display: flex; justify-content: center; margin-top: 30px;">
-                                <button id="prevPage_${contoId}" class="pagination-btn" style="margin-right: 10px; background: #100d30; color:White">&laquo; Precedente</button>
-                                <button id="nextPage_${contoId}" class="pagination-btn" style= "background: #100d30; color:White" >Successivo &raquo;</button>
+                                <button id="prevPage_${contoId}" class="pagination-btn" style="margin-right: 10px; background: #100d30; color:White; border-radius: 5px;">&laquo; Previous</button>
+                                <button id="nextPage_${contoId}" class="pagination-btn" style= "background: #100d30; color:White; border-radius: 5px;" >Next &raquo;</button>
                             </div>
                         </div>
                     </div>
@@ -920,15 +781,29 @@
 
                 if (transazione.categoria) {
                     if (transazione.tipo === 'trasferimento') {
-                        // Se è un trasferimento, utilizza transazione.categoria
-                        transactionText.textContent = `Categoria: ${transazione.categoria} | Importo: ${transazione.importo} | Data: ${transazione.data}`;
+                        transactionText.textContent = `Category: ${transazione.categoria} | Amount: ${transazione.importo} | Date: ${transazione.data}`;
                     } else {
-                        if (transazione.descrizione != ''){
-                        transactionText.textContent = `Categoria: ${transazione.categoria.nome} | Importo: ${transazione.importo} | Data: ${transazione.data} | Descrizione: ${transazione.descrizione}`;
-                        } else {
-                        transactionText.textContent = `Categoria: ${transazione.categoria.nome} | Importo: ${transazione.importo} | Data: ${transazione.data} `;}
-                        transactionText.style.padding = '5px 0'; // Padding per il testo
-                        transactionItem.appendChild(transactionText);
+
+                        if(transazione.sottocategoria)
+                        {
+                            if (transazione.descrizione != ''){
+                                transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
+                                } else {
+                                transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} `;}
+                                transactionText.style.padding = '5px 0'; // Padding per il testo
+                                transactionItem.appendChild(transactionText);
+                        }
+                        else
+                        {
+                            if (transazione.descrizione != ''){
+                                transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
+                                } else {
+                                transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} `;}
+                                transactionText.style.padding = '5px 0'; // Padding per il testo
+                                transactionItem.appendChild(transactionText);
+                        }
+
+                       
                     }
                 } else {
                     
@@ -936,24 +811,27 @@
                 
                 if (transazione.tipo === 'trasferimento') {
                     // Se è un trasferimento, utilizza transazione.categoria
-                    transactionText.textContent = `Categoria: null | Importo: ${transazione.importo} | Data: ${transazione.data}`;
+                    transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data}`;
                 } else {
                     if (transazione.descrizione != ''){
-                    transactionText.textContent = `Categoria: null | Importo: ${transazione.importo} | Data: ${transazione.data} | Descrizione: ${transazione.descrizione}`;
+                    transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
                     } else {
-                    transactionText.textContent = `Categoria: null | Importo: ${transazione.importo} | Data: ${transazione.data} `;}
+                    transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} `;}
                     transactionText.style.padding = '5px 0'; // Padding per il testo
                     transactionItem.appendChild(transactionText);
                 }
             }
-                // Icona cliccabile
-                const editIcon = document.createElement('i');
-                editIcon.className = 'bi bi-trash'; 
-                editIcon.style.paddingLeft = '10px'
-                editIcon.style.cursor = 'pointer'; // Mostra il cursore come puntatore
-                editIcon.onclick = () => deleteTransaction(transazione.id, contoId);
-            
-                transactionItem.appendChild(editIcon);
+           
+                if(transazione.utente.pk == {{utente.pk}}) {
+                    editIcon = document.createElement('i');
+                    editIcon.className = 'bi bi-trash'; 
+                    editIcon.style.paddingLeft = '10px'
+                    editIcon.style.cursor = 'pointer'; // Mostra il cursore come puntatore
+                    editIcon.onclick = () => deleteTransaction(transazione.id, contoId);
+                
+                    transactionItem.appendChild(editIcon);
+                }
+                
             
                 // Aggiungi la transazione alla lista
                 transactionList.appendChild(transactionItem);
@@ -964,7 +842,7 @@
                 transactionList.appendChild(divider);
             });
             
-            // Gestione pagine
+            // Gestione paginea
             document.getElementById(`prevPage_${contoId}`).onclick = function() {
                 if (page > 1) {
                     loadTransactions(contoId, transazioniDelConto, page - 1);
@@ -979,7 +857,7 @@
         
 
         function deleteTransaction(transazioneId, contoId) {
-            const confirmDelete = confirm('Sei sicuro di voler eliminare questa transazione?');
+            const confirmDelete = confirm('Are you sure you want to delete this transaction?');
            
         
             if (confirmDelete) {
@@ -1007,13 +885,13 @@
                     if (closeButtonDettagliConto) {
                     closeButtonDettagliConto.addEventListener('click', reloadPage);
                     }
-                    alert('La transazione è stata eliminata');
+                    alert('The transaction has been deleted.');
                     })
             
                 .catch(error => console.error('Errore durante l\'eliminazione della transazione:', error));
             }
         }
-        
+       
        
 
         document.getElementById('newTransactionBtn').onclick = function() {
@@ -1069,7 +947,6 @@
                     const contiElements = document.querySelectorAll('.singolo-conto');
                     contiElements.forEach(conto => conto.remove());
                     
-                    
                     data.conti.forEach(conto => {
                         const contoDiv = document.createElement('div');
                         contoDiv.className = 'conto-box singolo-conto';
@@ -1090,6 +967,8 @@
                             iconHtml = '<i class="bi bi-bar-chart"></i>';
                         } else if (conto.tipo === 'risparmio') {
                             iconHtml = '<i class="bi bi-safe"></i>';
+                        } else if (conto.tipo === 'contante') {
+                            iconHtml = '<i class="bi bi-cash-coin"></i>';
                         }
 
                         contoDiv.innerHTML = `${iconHtml}
@@ -1097,8 +976,6 @@
                             <h6 style="color: white; font-size: 14px;">Saldo: ${conto.saldo} €</h6>`;
                         contiContainer.appendChild(contoDiv);
                         
-                       
-                       
                     });
 
                     // Per il bottone
@@ -1217,15 +1094,18 @@
 
                     updatePianiRisparmio(data.piani_risparmio);
 
+                    if (data.obbiettivi_spesa.length !== 0) {
                     pianiElements = document.querySelectorAll('.piano-spesa');
                     pianiElements.forEach(piano => piano.remove());
+                    }
                     
-                   // Controlla i dati
-                    const container2 = document.getElementById('ObbiettiviContainer');
+                  
+                    let container2 = document.getElementById('ObbiettiviContainer');
             
-                     // Assicurati che esista nel tuo HTML
+                    
         
                     data.obbiettivi_spesa.forEach(obbiettivo => {
+                        
                         // Crea il div principale per l'obiettivo di spesa
                         const pianoDiv = document.createElement('div');
                         pianoDiv.classList.add('piano-spesa', 'conto-box');
@@ -1272,15 +1152,18 @@
                         container2.appendChild(pianoDiv);
                     });
                     
-                    updateObbiettivoSpesa(data.obbiettivi_spesa);
+
+                    if (data.obbiettivi_spesa.length !== 0) {
+                        updateObbiettivoSpesa(data.obbiettivi_spesa);
+                    }
+
                     transazioniElements = document.querySelectorAll('.transazione-box');
                     transazioniElements.forEach(piano => piano.remove());
                     
 
                     container3 = document.getElementById('transazioniContainer');
                     
-                    // Supponiamo che 'data.transazioni' contenga tutte le transazioni
-// e che 'transazioniOggi' contenga solo quelle fatte oggi.
+                    
 
                     const transazioniOggi = data.transazioni.filter(transazione => {
                         const oggi = new Date().toISOString().split('T')[0]; // Ottieni la data di oggi in formato YYYY-MM-DD
@@ -1330,9 +1213,8 @@
                     categoriaH3.style.fontSize = '18px';
                     categoriaH3.style.color = transazione.importo >= 0 ? '#00995c' : 'red';
                     categoriaH3.textContent = transazione.tipo_transazione === 'trasferimento' ? 'Transfer' 
-                         : transazione.categoria ? transazione.categoria.nome 
+                         : transazione.categoria ? `${transazione.categoria.nome} | ${transazione.sottocategoria ? transazione.sottocategoria.nome : ''}` 
                          : 'N/D';
-
                     const contoP = document.createElement('p');
                     contoP.style.margin = '0';
                     contoP.style.fontSize = '14px';
@@ -1423,9 +1305,8 @@
                     categoriaH3.style.fontSize = '18px';
                     categoriaH3.style.color = transazione.importo >= 0 ? '#00995c' : 'red';
                     categoriaH3.textContent = transazione.tipo_transazione === 'trasferimento' ? 'Transfer' 
-                         : transazione.categoria ? transazione.categoria.nome 
+                         : transazione.categoria ? `${transazione.categoria.nome} | ${transazione.sottocategoria ? transazione.sottocategoria.nome : ''}` 
                          : 'N/D';
-
                     const contoP = document.createElement('p');
                     contoP.style.margin = '0';
                     contoP.style.fontSize = '14px';
@@ -1675,6 +1556,8 @@
         // Funzione per chiudere il modal
         function closeSpendingGoalModal() {
             spendingGoalModal.style.display = "none";
+            responseMessageGoalSpending.textContent = "";
+            document.getElementById('SpendingGoalForm').reset();
             document.body.style.overflow = "auto";  // Ripristina lo scroll della pagina
         }
 
@@ -1775,11 +1658,12 @@
                     let modal = document.getElementById('SpendingGoalModal');
                     closeSpendingGoalModal(modal);
                 } else {
-                    // Gestione degli errori
-                    let firstField = Object.keys(data.errors)[0]; 
-                    SavingsresponseMessage.textContent = data.errors[firstField][0]; 
-                    SavingsresponseMessage.style.color = 'red';
-                    document.getElementById('SavingsPlanForm').reset();
+                
+                    let firstField = Object.keys(data.errors)[0];
+                    responseMessageGoalSpending.textContent = data.errors[firstField][0];
+                    responseMessageGoalSpending.style.color = 'red';
+                    document.getElementById('SpendingGoalForm').reset();
+                   
                 }
             });
         });
@@ -1819,6 +1703,7 @@
             addClickListenerPianiRisparmio(dataset);
         };
 
+        
         updatePianiRisparmio(piani_risparmio);
        
         
@@ -1830,7 +1715,7 @@
         
         function deletePianoDiRisparmio(pianoId) {
     
-                const confirmDelete = confirm('Sei sicuro di voler eliminare questo piano di risparmio?');
+                const confirmDelete = confirm('Are you sure you want to delete this saving plan?');
                
                 if (confirmDelete) {
                     fetch("{% url 'elimina_piano' 0 %}".replace('0', pianoId), {
@@ -1860,10 +1745,17 @@
         
         function editPianoDiRisparmio(pianoId, tipo) {
             if(tipo == "scadenza"){
-            const newDate = prompt('Inserisci la nuova data di scadenza (formato YYYY-MM-DD):');
+            const newDate = prompt('Enter the new due date (format YYYY-MM-DD):');
 
-           
             if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+                const today = new Date();
+                const newDateObj = new Date(newDate);
+                const oneWeekFromToday = new Date();
+                oneWeekFromToday.setDate(today.getDate() + 7);
+    
+                if (newDateObj <= oneWeekFromToday) {
+                    alert("The due date must be at least one week from today.");
+                } else {
                     fetch("{% url 'cambia_data_scadenza' 0 'new_date' %}".replace('0', pianoId).replace('new_date', encodeURIComponent(newDate)), {
                         method: 'POST',
                         headers: {
@@ -1876,33 +1768,40 @@
                     .then(data => {
                         if (data.success) {
                             
-``
+
                             
-                            document.getElementById(`ScadenzaPiano_${pianoId}`).innerHTML = `<p id="ScadenzaPiano_${pianoId}" style="margin: 0;"><strong>Data di Scadenza:</strong> ${newDate}</p>`;
+                            document.getElementById(`ScadenzaPiano_${pianoId}`).innerHTML = `<p id="ScadenzaPiano_${pianoId}" style="margin: 0;"><strong>Due date:</strong> ${newDate}</p>`;
 
                             closeButtonDettagliPiano = document.getElementById(`closeModelDettagliPiano_${pianoId}`);
                             if (closeButtonDettagliPiano) {
                             closeButtonDettagliPiano.addEventListener('click', reloadPage);
                             }
-                            alert('La data di scadenza è stata aggiornata con successo.');
+                            alert('The due date has been successfully updated.');
                         } else {
-                            alert('Errore: ' + data.message);
+                            alert('Error: ' + data.message);
                         }
                     })
-                    .catch(error => {
-                        console.error('Errore:', error);
+                
+                .catch(error => {
+                        console.error('Error:', error);
                     });
-                } else {
-                    alert('Formato data non valido. Assicurati di usare il formato YYYY-MM-DD.');
                 }
+             } 
+             else {
+                alert('Invalid date format. Please make sure to use the YYYY-MM-DD format.');
+            }
+            
     
               
             } else
             {
-                const newObbiettivo = prompt('Inserisci il nuovo obbiettivo');
+                const newObbiettivo = prompt('Enter the new goal:');
 
            
             if (newObbiettivo) {
+                if ( newObbiettivo <= 0) {
+                    alert("The amount must be positive");
+                } else {
                 fetch("{% url 'cambia_obbiettivo_piano' 0 'new_obbiettivo' %}".replace('0', pianoId).replace('new_obbiettivo', encodeURIComponent(newObbiettivo)), {
                         method: 'POST',
                         headers: {
@@ -1915,25 +1814,24 @@
                     .then(data => {
                         if (data.success) {
                         
-                            document.getElementById(`ObbiettivoPiano_${pianoId}`).innerHTML = `<p id = "ObbiettivoPiano_${pianoId}" style="margin: 0;"><strong>Obiettivo:</strong> €${newObbiettivo}</p>`;
+                            document.getElementById(`ObbiettivoPiano_${pianoId}`).innerHTML = `<p id = "ObbiettivoPiano_${pianoId}" style="margin: 0;"><strong>Goal:</strong> €${newObbiettivo}</p>`;
 
                             closeButtonDettagliPiano = document.getElementById(`closeModelDettagliPiano_${pianoId}`);
 
-                            document.getElementById(`PercentualePiano_${pianoId}`).innerHTML = `<p id = "PercentualePiano_${pianoId}" style="margin: 0;"><strong>Percentuale di Completamento:</strong> ${data.percentuale}%</p>`;
+                            document.getElementById(`PercentualePiano_${pianoId}`).innerHTML = `<p id = "PercentualePiano_${pianoId}" style="margin: 0;"><strong>Completion percentage:</strong> ${data.percentuale}%</p>`;
 
                             if (closeButtonDettagliPiano) {
                             closeButtonDettagliPiano.addEventListener('click', reloadPage);
                             }
-                            alert('L `obbiettivo  è stato aggiornato con successo.');
+                            alert('The goal has been successfully updated.');
                         } else 
-                            alert('Errore: ' + data.message);
+                            alert('Error: ' + data.message);
                         })
                     .catch(error => {
-                        console.error('Errore:', error);
-                    });
-                } else {
-                    alert('Formato data non valido. Assicurati di usare il formato YYYY-MM-DD.');
-                }
+                        console.error('Error:', error);
+                    })
+                };
+                } 
             }
         };
 
@@ -1956,349 +1854,360 @@
             // Contenuto dinamico del modal
             modal.innerHTML = `
                 <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto; padding: 20px;">
-    <button id="closeModelDettagliPiano_${pianoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
-    
-    <div class="header-row" style="display: flex; align-items: center; padding: 10px 0; width: 65%;">
-        <div style="flex: 1;">
-            <span id="pianoNome_${pianoId}" style="font-size: 18px; font-weight: bold;">${pianoOggetto.conto}</span>
+        <button id="closeModelDettagliPiano_${pianoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+        
+        <div class="header-row" style="display: flex; align-items: center; padding: 10px 0; width: 65%;">
+            <div style="flex: 1;">
+                <span id="pianoNome_${pianoId}" style="font-size: 18px; font-weight: bold;">${pianoOggetto.conto}</span>
+            </div>
+            <div style="display: flex; align-items: center; margin-left: auto;">
+                <i class="bi bi-trash" id="deletePianoIcon_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
+            </div>
         </div>
-        <div style="display: flex; align-items: center; margin-left: auto;">
-            <i class="bi bi-trash" id="deletePianoIcon_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
+        
+        <div class="details-section" style="padding: 10px; width: 70%;">
+            <!-- Divider -->
+            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+            
+            <!-- Obiettivo -->
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <p id = "ObbiettivoPiano_${pianoId}" style="margin: 0;"><strong>Goal:</strong> €${pianoOggetto.obbiettivo}</p>
+                <i class="bi bi-pencil" id="editObbiettivo_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
+            </div>
+
+            <!-- Divider -->
+            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+
+            <!-- Data di Scadenza -->
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <p id = "ScadenzaPiano_${pianoId}" style="margin: 0;"><strong>Due date:</strong> ${pianoOggetto.data_scadenza}</p>
+                <i class="bi bi-pencil" id="editScadenza_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
+            </div>
+
+            <!-- Divider -->
+            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+
+            <!-- Data di Creazione -->
+            <p><strong>Creation date:</strong> ${pianoOggetto.data_creazione}</p>
+
+            <!-- Divider -->
+            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+
+            <!-- Percentuale di Completamento -->
+            <p id = "PercentualePiano_${pianoId}" ><strong>Completion percentage:</strong> ${pianoOggetto.percentuale_completamento}%</p>
         </div>
     </div>
-    
-    <div class="details-section" style="padding: 10px; width: 70%;">
-        <!-- Divider -->
-        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-        
-        <!-- Obiettivo -->
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <p id = "ObbiettivoPiano_${pianoId}" style="margin: 0;"><strong>Obiettivo:</strong> €${pianoOggetto.obbiettivo}</p>
-            <i class="bi bi-pencil" id="editObbiettivo_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
-        </div>
 
-        <!-- Divider -->
-        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-
-        <!-- Data di Scadenza -->
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <p id = "ScadenzaPiano_${pianoId}" style="margin: 0;"><strong>Data di Scadenza:</strong> ${pianoOggetto.data_scadenza}</p>
-            <i class="bi bi-pencil" id="editScadenza_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
-        </div>
-
-        <!-- Divider -->
-        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-
-        <!-- Data di Creazione -->
-        <p><strong>Data di Creazione:</strong> ${pianoOggetto.data_creazione}</p>
-
-        <!-- Divider -->
-        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-
-        <!-- Percentuale di Completamento -->
-        <p id = "PercentualePiano_${pianoId}" ><strong>Percentuale di Completamento:</strong> ${pianoOggetto.percentuale_completamento}%</p>
-    </div>
-</div>
-
-            `;
-        
-            document.body.appendChild(modal);
-        
-            // Gestione degli eventi per le icone di cancellazione e modifica
-            const deleteIcon = document.getElementById(`deletePianoIcon_${pianoId}`);
-            deleteIcon.addEventListener('click', function() {
-                deletePianoDiRisparmio(pianoId); // Funzione per eliminare il piano di risparmio
-            });
-        
-
-            const editScadenza= document.getElementById(`editScadenza_${pianoId}`);
-            editScadenza.addEventListener('click', function() {
-                editPianoDiRisparmio(pianoId,"scadenza"); // Funzione per modificare il piano di risparmio
-            });
+                `;
             
-
-            const editObbiettivo = document.getElementById(`editObbiettivo_${pianoId}`);
-            editObbiettivo.addEventListener('click', function() {
-                editPianoDiRisparmio(pianoId, "Obbiettivo"); // Funzione per modificare il piano di risparmio
-            });
-
-            const closeButtonDettagliPiano = document.getElementById(`closeModelDettagliPiano_${pianoId}`);
-            if (closeButtonDettagliPiano) {
-                closeButtonDettagliPiano.addEventListener('click', function() {
-                    modal = document.getElementById(`pianoModal_${pianoId}`);
-                    if (modal) {
-                        modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
-                    }
+                document.body.appendChild(modal);
+            
+                // Gestione degli eventi per le icone di cancellazione e modifica
+                const deleteIcon = document.getElementById(`deletePianoIcon_${pianoId}`);
+                deleteIcon.addEventListener('click', function() {
+                    deletePianoDiRisparmio(pianoId); // Funzione per eliminare il piano di risparmio
                 });
-            }
-        
-            modal.style.display = 'block'; // Mostra il modal
-        };
-        
-  
+            
 
-
-
-        let currentClickListenerObbiettivoSpesa; // Variabile per tenere traccia del listener corrente
-
-
-        function handleContoClickObbiettivoSpesa(event, dataset) {
-            if (event.target && event.target.id.startsWith('obbiettivoSpesa_')) {
+                const editScadenza= document.getElementById(`editScadenza_${pianoId}`);
+                editScadenza.addEventListener('click', function() {
+                    editPianoDiRisparmio(pianoId,"scadenza"); // Funzione per modificare il piano di risparmio
+                });
                 
-                const obbiettivoId = event.target.id.split('_')[1];
-                console.log("ciao" + (obbiettivoId));
-                const ObbiettivoOggetto = dataset.filter(obbiettivo => obbiettivo.id == obbiettivoId);
-                createObbiettivoSpesaModal(obbiettivoId, ObbiettivoOggetto[0]); // Crea e visualizza il modal per questo conto
-            };
-        };
 
-        function createClickListenerObbiettivoSpesa(dataset) {
-            return function(event) {
-                handleContoClickObbiettivoSpesa(event, dataset);
-            };
-        };
-        
-        function addClickListenerObbiettivoSpesa(dataset) {
-            const obbiettiviContainer = document.getElementById('ObbiettiviContainer');
-            
-            if (currentClickListenerObbiettivoSpesa) {
-                obbiettiviContainer.removeEventListener('click', currentClickListenerObbiettivoSpesa); 
-                console.log("togli");
-            }
-        
-            
-            currentClickListenerObbiettivoSpesa = createClickListenerObbiettivoSpesa(dataset);
-            obbiettiviContainer.addEventListener('click', currentClickListenerObbiettivoSpesa); // Aggiungi il nuovo listener
-        };
-       
-        function updateObbiettivoSpesa(dataset) {
-            addClickListenerObbiettivoSpesa(dataset);
-        };
+                const editObbiettivo = document.getElementById(`editObbiettivo_${pianoId}`);
+                editObbiettivo.addEventListener('click', function() {
+                    editPianoDiRisparmio(pianoId, "Obbiettivo"); // Funzione per modificare il piano di risparmio
+                });
 
-        updateObbiettivoSpesa(obbiettivi_spesa);
-       
-        
-
-
-
-
-
-        
-        function deleteObbiettivoSpesa(pianoId) {
-    
-                const confirmDelete = confirm('Sei sicuro di voler eliminare questo piano di risparmio?');
-               
-                if (confirmDelete) {
-                    fetch("{% url 'elimina_obbiettivo_spesa' 0 %}".replace('0', pianoId), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
-                        },
-                        body: JSON.stringify({})  // Invia un body vuoto (opzionale)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                const closeButtonDettagliPiano = document.getElementById(`closeModelDettagliPiano_${pianoId}`);
+                if (closeButtonDettagliPiano) {
+                    closeButtonDettagliPiano.addEventListener('click', function() {
+                        modal = document.getElementById(`pianoModal_${pianoId}`);
+                        if (modal) {
+                            modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
                         }
-                        return response.json();
-                    })
-                    .then(risposta => {
-                        if(risposta.success)
-                       
-                        reloadPage()
-                        })
-                
-                    .catch(error => console.error('Errore durante l\'eliminazione del conto:', error));
+                    });
                 }
             
-        };
-        
-        function editObbiettivoSpesa(ObbiettivoId, tipo) {
-            if(tipo == "scadenza"){
-            const newDate = prompt('Inserisci la nuova data di scadenza (formato YYYY-MM-DD):');
-
-           
-            if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
-                    fetch("{% url 'cambia_data_scadenza_obbiettivoSpesa' 0 'new_date' %}".replace('0', ObbiettivoId).replace('new_date', encodeURIComponent(newDate)), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
-                        },
-                        body: JSON.stringify({})
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            
-``
-                            
-                            document.getElementById(`ScadenzaObbiettivo_${ObbiettivoId}`).innerHTML = `<p id="ScadenzaPiano_${ObbiettivoId}" style="margin: 0;"><strong>Data di Scadenza:</strong> ${newDate}</p>`;
-
-                            closeButtonDettagliPiano = document.getElementById(`closeModalDettagliObbiettivo_${ObbiettivoId}`);
-                            if (closeButtonDettagliPiano) {
-                            closeButtonDettagliPiano.addEventListener('click', reloadPage);
-                            }
-                            alert('La data di scadenza è stata aggiornata con successo.');
-                        } else {
-                            alert('Errore: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Errore:', error);
-                    });
-                } else {
-                    alert('Formato data non valido. Assicurati di usare il formato YYYY-MM-DD.');
-                }
+                modal.style.display = 'block'; // Mostra il modal
+            };
+            
     
-              
-            } else
-            {
-                const newObbiettivo = prompt('Inserisci il nuovo obbiettivo');
 
-           
-            if (newObbiettivo) {
-                fetch("{% url 'cambia_obbiettivo_obbiettivoSpesa' 0 'new_obbiettivo' %}".replace('0', ObbiettivoId).replace('new_obbiettivo', encodeURIComponent(newObbiettivo)), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
-                        },
-                        body: JSON.stringify({})
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                       
-                            document.getElementById(`ImportoObbiettivo_${ObbiettivoId}`).innerHTML = `<p id = "ObbiettivoPiano_${ObbiettivoId}" style="margin: 0;"><strong>Obiettivo:</strong> €${newObbiettivo}</p>`;
 
-                            closeButtonDettagliPiano = document.getElementById(`closeModalDettagliObbiettivo_${ObbiettivoId}`);
 
-                            document.getElementById(`PercentualeObbiettivo_${ObbiettivoId}`).innerHTML = `<p id = "PercentualePiano_${ObbiettivoId}" style="margin: 0;"><strong>Percentuale di Completamento:</strong> ${data.percentuale}%</p>`;
+            let currentClickListenerObbiettivoSpesa; // Variabile per tenere traccia del listener corrente
 
-                            if (closeButtonDettagliPiano) {
-                            closeButtonDettagliPiano.addEventListener('click', reloadPage);
-                            }
-                            alert('L `obbiettivo  è stato aggiornato con successo.');
-                        } else 
-                            alert('Errore: ' + data.message);
-                        })
-                    .catch(error => {
-                        console.error('Errore:', error);
-                    });
-                } else {
-                    alert('Formato data non valido. Assicurati di usare il formato YYYY-MM-DD.');
-                }
-            }
-        };
 
-        function createObbiettivoSpesaModal(obbiettivoId, obbiettivoOggetto) {
-
-            let modal = document.getElementById(`obbiettivoSpesaModal_${obbiettivoId}`);
-            if (modal) {
-                modal.remove(); // Rimuove il modal esistente dal DOM
-            }
-        
-            modal = document.createElement('div');
-            modal.id = `obbiettivoSpesaModal_${obbiettivoId}`;
-            modal.classList.add('modal');
-            
-            console.log(obbiettivoId)
-            // Contenuto dinamico del modal
-            modal.innerHTML = `
-                <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto; padding: 20px;">
-                    <button id="closeModalDettagliObbiettivo_${obbiettivoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+            function handleContoClickObbiettivoSpesa(event, dataset) {
+                if (event.target && event.target.id.startsWith('obbiettivoSpesa_')) {
                     
-                    <div class="header-row" style="display: flex; align-items: center; padding: 10px 0; width: 65%;">
-                        <div style="flex: 1;">
-                            <span id="obbiettivoTipo_${obbiettivoId}" style="font-size: 18px; font-weight: bold;">${obbiettivoOggetto.categoria_target.nome}</span>
+                    const obbiettivoId = event.target.id.split('_')[1];
+                    console.log("ciao" + (obbiettivoId));
+                    const ObbiettivoOggetto = dataset.filter(obbiettivo => obbiettivo.id == obbiettivoId);
+                    createObbiettivoSpesaModal(obbiettivoId, ObbiettivoOggetto[0]); // Crea e visualizza il modal per questo conto
+                };
+            };
+
+            function createClickListenerObbiettivoSpesa(dataset) {
+                return function(event) {
+                    handleContoClickObbiettivoSpesa(event, dataset);
+                };
+            };
+            
+            function addClickListenerObbiettivoSpesa(dataset) {
+
+                const obbiettiviContainer = document.getElementById('ObbiettiviContainer');
+                
+                if (currentClickListenerObbiettivoSpesa) {
+                    obbiettiviContainer.removeEventListener('click', currentClickListenerObbiettivoSpesa); 
+                }
+            
+                
+                currentClickListenerObbiettivoSpesa = createClickListenerObbiettivoSpesa(dataset);
+                obbiettiviContainer.addEventListener('click', currentClickListenerObbiettivoSpesa); // Aggiungi il nuovo listener
+            };
+        
+            function updateObbiettivoSpesa(dataset) {
+                addClickListenerObbiettivoSpesa(dataset);
+            };
+
+            updateObbiettivoSpesa(obbiettivi_spesa);
+        
+            
+
+
+
+
+
+            
+            function deleteObbiettivoSpesa(pianoId) {
+        
+                    const confirmDelete = confirm('Are you sure you want to delete this spending goal?');
+                
+                    if (confirmDelete) {
+                        fetch("{% url 'elimina_obbiettivo_spesa' 0 %}".replace('0', pianoId), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                            },
+                            body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(risposta => {
+                            if(risposta.success)
+                        
+                            reloadPage()
+                            })
+                    
+                        .catch(error => console.error('Errore durante l\'eliminazione del conto:', error));
+                    }
+                
+            };
+            
+            function editObbiettivoSpesa(ObbiettivoId, tipo) {
+                if(tipo == "scadenza"){
+                const newDate = prompt('Enter the new due date (format YYYY-MM-DD):');
+
+                if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+                    const today = new Date();
+                    const newDateObj = new Date(newDate);
+                    
+                
+        
+                    if (newDateObj <= today) {
+                        alert("The due date must be at least tomorrow.");
+                    } else {
+                        fetch("{% url 'cambia_data_scadenza_obbiettivoSpesa' 0 'new_date' %}".replace('0', ObbiettivoId).replace('new_date', encodeURIComponent(newDate)), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                            },
+                            body: JSON.stringify({})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                
+                                
+                                document.getElementById(`ScadenzaObbiettivo_${ObbiettivoId}`).innerHTML = `<p id="ScadenzaPiano_${ObbiettivoId}" style="margin: 0;"><strong>Due date:</strong> ${newDate}</p>`;
+
+                                closeButtonDettagliPiano = document.getElementById(`closeModalDettagliObbiettivo_${ObbiettivoId}`);
+                                if (closeButtonDettagliPiano) {
+                                closeButtonDettagliPiano.addEventListener('click', reloadPage);
+                                }
+                                alert('The due date has been successfully updated.');
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    }
+                    } else {
+                        alert('Invalid date format. Please make sure to use the YYYY-MM-DD format.');
+                    }
+                    
+                
+                } else
+                {
+                    const newObbiettivo = prompt('Enter the new goal:');
+
+            
+                if (newObbiettivo) {
+                    if ( newObbiettivo <= 0) {
+                        alert("The amount must be positive");
+                    } else {
+                    fetch("{% url 'cambia_obbiettivo_obbiettivoSpesa' 0 'new_obbiettivo' %}".replace('0', ObbiettivoId).replace('new_obbiettivo', encodeURIComponent(newObbiettivo)), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                            },
+                            body: JSON.stringify({})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                        
+                                document.getElementById(`ImportoObbiettivo_${ObbiettivoId}`).innerHTML = `<p id = "ObbiettivoPiano_${ObbiettivoId}" style="margin: 0;"><strong>Goal:</strong> €${newObbiettivo}</p>`;
+
+                                closeButtonDettagliPiano = document.getElementById(`closeModalDettagliObbiettivo_${ObbiettivoId}`);
+
+                                document.getElementById(`PercentualeObbiettivo_${ObbiettivoId}`).innerHTML = `<p id = "PercentualePiano_${ObbiettivoId}" style="margin: 0;"><strong>Completion percentage:</strong> ${data.percentuale}%</p>`;
+
+                                if (closeButtonDettagliPiano) {
+                                closeButtonDettagliPiano.addEventListener('click', reloadPage);
+                                }
+                                alert('The goal date has been successfully updated.');
+                            } else 
+                                alert: ('error' + data.message);
+                            })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    }
+                    } else {
+                        alert('Invalid date format. Please make sure to use the YYYY-MM-DD format.');
+                    }
+                    
+                }
+            };
+
+            function createObbiettivoSpesaModal(obbiettivoId, obbiettivoOggetto) {
+
+                let modal = document.getElementById(`obbiettivoSpesaModal_${obbiettivoId}`);
+                if (modal) {
+                    modal.remove(); // Rimuove il modal esistente dal DOM
+                }
+            
+                modal = document.createElement('div');
+                modal.id = `obbiettivoSpesaModal_${obbiettivoId}`;
+                modal.classList.add('modal');
+                
+                console.log(obbiettivoId)
+                // Contenuto dinamico del modal
+                modal.innerHTML = `
+                    <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto; padding: 20px;">
+                        <button id="closeModalDettagliObbiettivo_${obbiettivoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+                        
+                        <div class="header-row" style="display: flex; align-items: center; padding: 10px 0; width: 65%;">
+                            <div style="flex: 1;">
+                                <span id="obbiettivoTipo_${obbiettivoId}" style="font-size: 18px; font-weight: bold;">${obbiettivoOggetto.categoria_target.nome}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-left: auto;">
+                                <i class="bi bi-trash" id="deleteObbiettivoIcon_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
+                            </div>
                         </div>
-                        <div style="display: flex; align-items: center; margin-left: auto;">
-                            <i class="bi bi-trash" id="deleteObbiettivoIcon_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
+                        
+                        <div class="details-section" style="padding: 10px; width: 70%;">
+                            <!-- Divider -->
+                            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+                            
+                            <!-- Importo Obbiettivo -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <p id="ImportoObbiettivo_${obbiettivoId}" style="margin: 0;"><strong> Goal:</strong> €${obbiettivoOggetto.importo}</p>
+                                <i class="bi bi-pencil" id="editImportoObbiettivo_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
+                            </div>
+            
+                            <!-- Divider -->
+                            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+            
+                            <!-- Importo Speso -->
+                            <p id="ImportoSpeso_${obbiettivoId}"><strong>Amount:</strong> €${obbiettivoOggetto.importo_speso}</p>
+                            
+                            <!-- Divider -->
+                            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+            
+                            <!-- Data di Scadenza -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <p id="ScadenzaObbiettivo_${obbiettivoId}" style="margin: 0;"><strong>Due date:</strong> ${obbiettivoOggetto.data_scadenza}</p>
+                                <i class="bi bi-pencil" id="editScadenzaObbiettivo_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
+                            </div>
+            
+                            <!-- Divider -->
+                            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+            
+                            <!-- Data di Creazione -->
+                            <p><strong>Creation date:</strong> ${obbiettivoOggetto.data_creazione}</p>
+            
+                            <!-- Divider -->
+                            <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+            
+                            <!-- Percentuale di Completamento -->
+                            <p id="PercentualeObbiettivo_${obbiettivoId}"><strong>Completion percentage:</strong> ${obbiettivoOggetto.percentuale_completamento}%</p>
                         </div>
                     </div>
-                    
-                    <div class="details-section" style="padding: 10px; width: 70%;">
-                        <!-- Divider -->
-                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-                        
-                        <!-- Importo Obbiettivo -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                            <p id="ImportoObbiettivo_${obbiettivoId}" style="margin: 0;"><strong> Obbiettivo:</strong> €${obbiettivoOggetto.importo}</p>
-                            <i class="bi bi-pencil" id="editImportoObbiettivo_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
-                        </div>
-        
-                        <!-- Divider -->
-                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-        
-                        <!-- Importo Speso -->
-                        <p id="ImportoSpeso_${obbiettivoId}"><strong>Importo Speso:</strong> €${obbiettivoOggetto.importo_speso}</p>
-                        
-                        <!-- Divider -->
-                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-        
-                        <!-- Data di Scadenza -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                            <p id="ScadenzaObbiettivo_${obbiettivoId}" style="margin: 0;"><strong>Data di Scadenza:</strong> ${obbiettivoOggetto.data_scadenza}</p>
-                            <i class="bi bi-pencil" id="editScadenzaObbiettivo_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
-                        </div>
-        
-                        <!-- Divider -->
-                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-        
-                        <!-- Data di Creazione -->
-                        <p><strong>Data di Creazione:</strong> ${obbiettivoOggetto.data_creazione}</p>
-        
-                        <!-- Divider -->
-                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-        
-                        <!-- Percentuale di Completamento -->
-                        <p id="PercentualeObbiettivo_${obbiettivoId}"><strong>Percentuale di Completamento:</strong> ${obbiettivoOggetto.percentuale_completamento}%</p>
-                    </div>
-                </div>
-            `;
-        
-            document.body.appendChild(modal);
-        
-            // Gestione degli eventi per le icone di cancellazione e modifica
-            const deleteIcon = document.getElementById(`deleteObbiettivoIcon_${obbiettivoId}`);
-            deleteIcon.addEventListener('click', function() {
-                deleteObbiettivoSpesa(obbiettivoId); // Funzione per eliminare l'obbiettivo di spesa
-            });
-        
-            const editScadenza = document.getElementById(`editScadenzaObbiettivo_${obbiettivoId}`);
-            editScadenza.addEventListener('click', function() {
-                editObbiettivoSpesa(obbiettivoId, "scadenza"); // Funzione per modificare la scadenza dell'obbiettivo
-            });
-        
-            const editImportoObbiettivo = document.getElementById(`editImportoObbiettivo_${obbiettivoId}`);
-            editImportoObbiettivo.addEventListener('click', function() {
-                editObbiettivoSpesa(obbiettivoId, "importo"); // Funzione per modificare l'importo dell'obbiettivo
-            });
-        
-            const closeButtonDettagliObbiettivo = document.getElementById(`closeModalDettagliObbiettivo_${obbiettivoId}`);
-            if (closeButtonDettagliObbiettivo) {
-                closeButtonDettagliObbiettivo.addEventListener('click', function() {
-                    modal = document.getElementById(`obbiettivoSpesaModal_${obbiettivoId}`);
-                    if (modal) {
-                        modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
-                    }
+                `;
+            
+                document.body.appendChild(modal);
+            
+                // Gestione degli eventi per le icone di cancellazione e modifica
+                const deleteIcon = document.getElementById(`deleteObbiettivoIcon_${obbiettivoId}`);
+                deleteIcon.addEventListener('click', function() {
+                    deleteObbiettivoSpesa(obbiettivoId); // Funzione per eliminare l'obbiettivo di spesa
                 });
+            
+                const editScadenza = document.getElementById(`editScadenzaObbiettivo_${obbiettivoId}`);
+                editScadenza.addEventListener('click', function() {
+                    editObbiettivoSpesa(obbiettivoId, "scadenza"); // Funzione per modificare la scadenza dell'obbiettivo
+                });
+            
+                const editImportoObbiettivo = document.getElementById(`editImportoObbiettivo_${obbiettivoId}`);
+                editImportoObbiettivo.addEventListener('click', function() {
+                    editObbiettivoSpesa(obbiettivoId, "importo"); // Funzione per modificare l'importo dell'obbiettivo
+                });
+            
+                const closeButtonDettagliObbiettivo = document.getElementById(`closeModalDettagliObbiettivo_${obbiettivoId}`);
+                if (closeButtonDettagliObbiettivo) {
+                    closeButtonDettagliObbiettivo.addEventListener('click', function() {
+                        modal = document.getElementById(`obbiettivoSpesaModal_${obbiettivoId}`);
+                        if (modal) {
+                            modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                        }
+                    });
+                }
+            
+                modal.style.display = 'block'; // Mostra il modal
             }
+            
+
+
+
+
+
+
+        });
         
-            modal.style.display = 'block'; // Mostra il modal
-        }
-        
-
-
-
-
-
-
-
-    });
-    
 </script>
 
 {% endblock content %}

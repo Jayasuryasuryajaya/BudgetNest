@@ -1,7 +1,8 @@
+from Users.models import Utente
 from .models import Conto, IntestazioniConto, SaldoTotale
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.db.models import Count
 class AccountService:
     def get_conti(primary_key):
         return Conto.objects.get(pk=primary_key)
@@ -17,8 +18,31 @@ class AccountService:
                 lista_conti.append(conto)
         return lista_conti
     
-    
+    def get_family_members(famiglia):
+        family_members = Utente.objects.filter(famiglia=famiglia)
+        return family_members
 
+    
+    def get_family_accounts(famiglia):
+      
+        family_members = Utente.objects.filter(famiglia=famiglia)
+       
+        accounts = IntestazioniConto.objects.filter(utente__in=family_members)
+
+        
+        accounts_grouped = accounts.values('conto').annotate(num_utenti=Count('utente'))
+        
+        
+        # Filtra solo i conti che hanno intestazioni per tutti i membri della famiglia
+        accounts_with_all_members = accounts_grouped.filter(num_utenti=len(family_members))
+       
+        
+        
+        final_accounts = Conto.objects.filter(pk__in=accounts_with_all_members.values('conto')).distinct()
+   
+        return list(final_accounts)
+    
+  
 
     def calcola_saldo_totale(utente):
     

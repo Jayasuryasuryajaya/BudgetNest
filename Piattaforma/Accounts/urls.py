@@ -21,6 +21,13 @@ urlpatterns = [
     path('cambia_obbiettivo_obbiettivoSpesaa/<int:id>/<str:new_obbiettivo>/', cambia_obbiettivo_obbiettivoSpesa_view, name='cambia_obbiettivo_obbiettivoSpesa'),
     path('rinomina_data_scadenza_obbiettivoSpesa/<int:id>/<str:new_date>/',cambia_data_scadenza_obbiettivoSpesa_view, name= 'cambia_data_scadenza_obbiettivoSpesa'),
     path('elimina_obbiettivo/<int:id>/', elimina_obbiettivo_view, name='elimina_obbiettivo_spesa'),
+    path('dashboard_family/', dashboard_family, name='dashboard_famiglia'),
+    path('create_family/<str:nome_famiglia>/', crea_famiglia, name='crea_famiglia'),
+    path('join_family/<str:codice>/', unisciti_famiglia, name='join_famiglia'),
+    path('select_family/', family_switch, name='select_famiglia'),
+    path('famiglia_selezionata/<int:id>/', accedi_famiglia, name='accesso_famiglia'),
+    path('createAccountFam/<int:id>/', crea_account_famiglia, name='createAccountFamily'),
+    path('createSavingsFam/<int:id>/', savings_section_famiglia, name='createSavingFamily'),
 ]
 
 

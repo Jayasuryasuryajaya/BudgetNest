@@ -1,0 +1,124 @@
+{% extends "registration/base.html" %}
+
+{% block content %}
+
+<section id="dashboard" class="sections section dark-background d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
+  <div class="container text-center">
+    <div class="row gy-4 justify-content-center">
+          
+      <!-- Primo Rettangolo: Crea una Famiglia -->
+      <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-right" data-aos-delay="200">
+        <div class="section-box p-4">
+          <i class="bi bi-house-add"></i>
+          <h3>Create a Family</h3>
+          <p>Start your family journey by creating a new family group.</p>
+          <a href="#" class="btn-get-started" onclick="promptForFamilyName()">Go to section</a>
+         
+        </div>
+      </div>
+      
+      <!-- Secondo Rettangolo: Entra in una Famiglia -->
+      <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-down" data-aos-delay="300">
+        <div class="section-box p-4">
+          <i class="bi bi-person-plus"></i>
+          <h3>Join a Family</h3>
+          <p>Become a member of an existing family group with ease.</p>
+          <a href="#1" class="btn-get-started" onclick = "promptForFamilyCode()">Go to section</a>
+        </div>
+      </div>
+      
+      {% if numero_famiglie != 0 %}
+      <!-- Terzo Rettangolo: Accedi alle tue Famiglie -->
+      <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-left" data-aos-delay="400">
+        <div class="section-box p-4">
+          <i class="bi bi-people"></i>
+          <h3>Access Your Families</h3>
+          <p>View and manage all the families you belong to, making it easy to stay connected and involved</p>
+          <a href="{% url 'select_famiglia' %}" class="btn-get-started">Go to section</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+
+<script>
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Check if this cookie string begins with the desired name
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    function promptForFamilyName() {
+       
+        const familyName = prompt("Please enter the name of the family:");
+    
+      
+        if (familyName) {
+            fetch(`/dashboard/create_family/${encodeURIComponent(familyName)}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('You have created the family');
+                    location.reload();  
+                } else {
+                    alert('Failed to create family. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    }
+
+    function promptForFamilyCode() {
+       
+        const familyName = prompt("Please enter the code of the family:");
+    
+      
+        if (familyName) {
+            fetch(`/dashboard/join_family/${encodeURIComponent(familyName)}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('You have joined in the family');
+                    location.reload(); 
+                } else {
+                    alert('Failed to join family. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    }
+  
+   
+    </script>
+
+{% endblock content %}

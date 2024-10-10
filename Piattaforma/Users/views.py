@@ -53,7 +53,7 @@ def registration(request):
                 telefono=form.cleaned_data['telefono'],
                 sesso=form.cleaned_data['sesso'],
                 monete_account=0,
-                famiglia= None,
+               
                 data_registrazione=timezone.now()
             )
            

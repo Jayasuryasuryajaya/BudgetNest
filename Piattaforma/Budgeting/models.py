@@ -26,13 +26,18 @@ class SottoCategoriaSpesa(models.Model):
     
     def __str__(self):
         return self.categoria_superiore.nome + ' -> ' + str(self.nome);
+    
+    def to_dict(self):
+        return {
+            'nome': self.nome,
+        }
 
 class ObbiettivoSpesa(models.Model):
     TIPO_SCELTE = [
-        ('mensile', 'Mensile'),
-        ('trimestrale', 'Trimestrale'),
-        ('semestrale', 'Semestrale'),
-        ('annuale', 'Annuale'),
+        ('mensile', 'Monthly'),
+        ('trimestrale', 'Quarterly'),
+        ('semestrale', 'Semi-Annually'),
+        ('annuale', 'Annually'),
     ]
     
     importo_speso = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -56,20 +61,21 @@ class PianoDiRisparmio(models.Model):
     conto = models.ForeignKey(Conto, on_delete=models.CASCADE)
     percentuale_completamento = models.DecimalField(max_digits=10, decimal_places=2, default = 0)
     
+
 class CategoriaTransazione(models.TextChoices):
-    DELEGATA = 'delegata', 'Transazione Delegata'
-    SINGOLA = 'singola', 'Transazione Singola'
-    PERIODICA = 'periodica', 'Transazione Periodica'
-    FUTURA = 'futura', 'Transazione Futura'
-    TRASFERIMENTO = 'trasferimento', 'Trasferimento tra Conti'
-    INVESTIMENTO = 'investimento', 'Transazione di Investimento'
-    
+    DELEGATA = 'delegata', 'Delegated Transaction'
+    SINGOLA = 'singola', 'Single Transaction'
+    PERIODICA = 'periodica', 'Recurring Transaction'
+    FUTURA = 'futura', 'Future Transaction'
+    TRASFERIMENTO = 'trasferimento', 'Account Transfer'
+    INVESTIMENTO = 'investimento', 'Investment Transaction'
+
 class TipoRinnovo(models.TextChoices):
-    SETTIMANALE = 'settimanale', 'Rinnovo Settimanale'
-    MENSILE = 'mensile', 'Rinnovo Mensile'
-    SEMESTRALE = 'semestrale', 'Rinnovo Semestrale'
-    NESSUNO = 'nessuno' , 'Nessun Rinnovo'
-    
+    SETTIMANALE = 'settimanale', 'Weekly Renewal'
+    MENSILE = 'mensile', 'Monthly Renewal'
+    SEMESTRALE = 'semestrale', 'Semi-Annual Renewal'
+
+
     
 class Transazione(models.Model):
     importo = models.DecimalField(max_digits=10, decimal_places=2)
@@ -97,7 +103,7 @@ class Transazione(models.Model):
     tipo_rinnovo = models.CharField(
         max_length=20,
         choices=TipoRinnovo.choices,
-        default=TipoRinnovo.NESSUNO,
+        default= None,
         null=True,
         blank=True
     )
