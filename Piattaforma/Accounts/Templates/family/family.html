@@ -110,13 +110,68 @@
                     <button id="newSavingPlan" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
                         New savings plan
                     </button>
-                    <button   id= "openSpendingGoalModal" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
+                    <button   id= "newChallenge" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
                         New challenge
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+
+    <div id="sfidaContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="border-radius: 15px;margin-left: auto; margin-right: auto; background-color: white; padding: 10px; margin-top: 50px; width: 70%">
+                {% if not challenge %}
+                    <div class="challenge-row" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
+                        <div class="icona-challenge" style="margin-right: 15px;">
+                            <i class="bi bi-dash-circle-dotted" style="font-size: 25px; color: white;"></i>
+                        </div>
+                        <div class="dettagli-challenge" style="flex: 1; text-align: left;">
+                            <h4 style="margin: 0; font-size: 18px; color: red;">Challenge Example</h4>
+                            <p style="margin: 0; font-size: 14px; color: #ccc;">Sfidante: X | Sfidato: Y</p>
+                        </div>
+                    </div>
+                {% else %}
+                    {% for sfida in challenge %}
+                        <div id= "singola_sfida_{{ sfida.id }}" class="challenge-row" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
+                            <!-- Sfidante a sinistra -->
+                            <div class="sfidante" style="flex: 1; text-align: left;">
+                                <h3 style="margin: 0; font-size: 18px; color: {% if sfida.importo_sfidante <= sfida.importo_sfidato %}#00995c{% else %}red{% endif %};">{{ sfida.sfidante }}</h3>
+                                <p style="margin: 0; font-size: 14px; color: #ccc;">Spesa: €{{ sfida.importo_sfidante }}</p>
+                            </div>
+        
+                        <!-- Barra della sfida centrale -->
+            <div class="challenge-bar"  style="display: flex; height: 30px; width: 70%; border: 1px solid #d3d3d3; background-color: #f0f0f0; border-radius: 5px; overflow: hidden; position: relative;">
+            {% if sfida.importo_sfidante < sfida.importo_sfidato %}
+                <div class="bar" style="height: 100%; background-color: #00995c; width: {{ sfida.percentuale_sfidante }}%;"></div>
+                <div class="bar" style="height: 100%; background-color: red; width: {{ sfida.percentuale_sfidato }}%;"></div>
+            {% else %}
+                {% if sfida.importo_sfidante == sfida.importo_sfidato %}
+                    <div class="bar" style="height: 100%; background-color: #00995c; width: {{ sfida.percentuale_sfidante }}%;"></div>
+                    <div class="bar" style="height: 100%; background-color: #00995c; width: {{ sfida.percentuale_sfidato }}%;"></div>
+                {% else %}
+                    <div class="bar" style="height: 100%; background-color: red; width: {{ sfida.percentuale_sfidante }}%;"></div>
+                    <div class="bar" style="height: 100%; background-color: #00995c; width: {{ sfida.percentuale_sfidato }}%;"></div>
+                {% endif %}
+            {% endif %}
+
+            <!-- Testo della categoria al centro -->
+            <span style="position: absolute; left: 50%; transform: translateX(-50%); color: #333; font-weight: bold;">
+                {{ sfida.categoria_target }} <!-- Assicurati che 'categoria' sia il campo corretto -->
+            </span>
+        </div>
+                   
+                        
+                    <!-- Sfidato a destra -->
+                    <div class="sfidato" style="flex: 1; text-align: right;">
+                        <h3 style="margin: 0; font-size: 18px; color: {% if sfida.importo_sfidato <= sfida.importo_sfidante %}#00995c{% else %}red{% endif %};">{{ sfida.sfidato }}</h3>
+                        <p style="margin: 0; font-size: 14px; color: #ccc;">Spesa: €{{ sfida.importo_sfidato }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    
+
 
      <!-- Modale per il piano risparmio-->
      <div id="SavingsPlanModal" class="modal">
@@ -146,6 +201,92 @@
         </div>
     </div>
 
+    <!-- Modale per la nuova transazione -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content" id = "transactionFormDiv">
+            <button  id="closeModelTransaction" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+            <div id="transactionResponseMessage" style="color: red; text-align: center; /* Centro il testo */ font-size: 14px; margin-top: 10px;"></div>
+            <h4 style="color: #100d30;">Insert your transaction</h4>
+            <form id="transactionForm" method="post" class="mt-4" >
+                {% csrf_token %}
+                <div class="mb-3" id ="tipoTra">
+                    {{ formTransazione.tipo_transazione }}
+                </div>
+                <div id= "formTransazioneContainer"class="mb-4">
+                    {{ formTransazione.conto}}
+                </div>
+                <div class="mb-4">
+                    {{ formTransazione.importo }}
+                </div>
+                <div class="mb-4">
+                    {{ formTransazione.data}}
+                </div>
+                <div class="mb-4">
+                    {{ formTransazione.descrizione}}
+                </div>
+                <div class="mb-4 singola periodica delegata futura"  style="display:block;">
+                    {{ formTransazione.categoria}}
+                </div>
+                <div class="mb-4 singola periodica delegata futura "  style="display:block;">
+                    {{ formTransazione.sotto_categoria}}
+                </div>
+                <div class="mb-4 periodica" style="display:none;">
+                    {{ formTransazione.tipo_rinnovo}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.ticker}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.numero_azioni}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.prezzo_ordine}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.borsa}}
+                </div>
+                <div class="mb-4 investimento"  style="display:none;">
+                    {{ formTransazione.valuta}}
+                </div>
+                <div id= "formTransazioneContoArrivo" class="mb-4 trasferimento"  style="display:none;">
+                    {{ formTransazione.conto_arrivo}}
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3; ">Create</button>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+        </div>
+    </div>
+
+    <!-- Modale per la nuova sfida -->
+    <div id="challengeModal" class="modal">
+        <div class="modal-content">
+            <button id = "closeModelChallenge" class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
+            <div id="responseMessageChallenge" style="color: red;"></div>
+            <h4 style="color: #100d30;">Insert your family challenge</h4>
+            <form id="sfidaFamigliareForm" method="post"  class="mt-4">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ formSfida.sfidato }}
+                </div>
+                <div class="mb-4">
+                    {{ formSfida.descrizione }}
+                </div>
+                <div class="mb-4">
+                    {{ formSfida.categoria_target }}
+                </div>
+                <div class="mb-4" >
+                <label  style="color: #100d30;padding-bottom:10px">Due date: </label>
+                    {{ formSfida.data_scadenza }}
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <button type="submit" style="background: #00995c; color: white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3;">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </section>
 
 <script>
@@ -157,13 +298,17 @@
         const contiContainer = document.getElementById('contiContainer');
         const SavingForm = document.getElementById('SavingsPlanModal');
         const SavingsresponseMessage = document.getElementById('SavingsPlanResponseMessage');
+        const responseMessageTransaction = document.getElementById('transactionResponseMessage');
+        const TransazioneForm = document.getElementById('transactionForm');
+        const ChallengeForm  = document.getElementById('sfidaFamigliareForm');
+        const respondeMessaggeChallenge = document.getElementById('responseMessageChallenge');
         let currentClickListenerConto;
         let currentClickListenerPianoRisparmio; 
-
-        
+        let currentClickListenerSfida
         transazioni = JSON.parse('{{ transazioni_serializzate|escapejs }}');
         let conti = {{ conti_json|safe }}; 
         let piani_risparmio = {{piani_risparmio_json | safe}};
+        let challenge_json = {{challenge_json | safe}};
     
         function reloadPage() {
             location.reload(); 
@@ -350,14 +495,14 @@
                 const NomeConto = (conti.filter(conto => conto.id == contoId))[0]?.nome;
                 createModalConto(contoId, transazioniDelConto, NomeConto); // Crea e visualizza il modal per questo conto
             }
-        }
+        };
         
         function createClickListenerConto(dataset) {
             
             return function(event) {
                 handleContoClick(event, dataset);
             };
-        }
+        };
         
         function addClickListener(dataset) {
            
@@ -371,18 +516,17 @@
             
             currentClickListenerConto = createClickListenerConto(dataset);
             contiContainer.addEventListener('click', currentClickListenerConto); // Aggiungi il nuovo listener
-        }
+        };
         
 
         function updateTransazioni(dataset, newConti) {
             
             conti = newConti; 
             addClickListener(dataset);
-        }
+        };
 
-        updateTransazioni(transazioni, conti)
-       
-        
+        updateTransazioni(transazioni, conti);
+    
     
         function createModalConto(contoId, transazioniDelConto, NomeConto) {
             let modal = document.getElementById(`contoModal_${contoId}`);
@@ -450,7 +594,7 @@
             
             
             modal.style.display = 'block';
-        }
+        };
         
         function loadTransactions(contoId, transazioniDelConto, page) {
             const transactionsPerPage = 10;
@@ -467,8 +611,51 @@
                 transactionItem.style.justifyContent = 'space-between'; // Spazia gli elementi
                 transactionItem.style.alignItems = 'center'; // Centra verticalmente
             
-               
+              
                 const transactionText = document.createElement('span');
+                
+                if(transazione.utente.pk != {{utente.pk}}) {
+                    if (transazione.categoria) {
+                        if (transazione.tipo === 'trasferimento') {
+                            transactionText.textContent = `Category: ${transazione.categoria} | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;
+                        } else {
+                            if(transazione.sottocategoria)
+                            {
+                                if (transazione.descrizione != ''){
+                                    transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
+                                    } else {
+                                    transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
+                                    transactionText.style.padding = '5px 0'; // Padding per il testo
+                                    transactionItem.appendChild(transactionText);
+                            }
+                            else
+                            {
+                                if (transazione.descrizione != ''){
+                                    transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
+                                    } else {
+                                    transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
+                                    transactionText.style.padding = '5px 0'; // Padding per il testo
+                                    transactionItem.appendChild(transactionText);
+                            }
+    
+                           
+                        }
+                    } else {
+                    if (transazione.tipo === 'trasferimento') {
+                        // Se è un trasferimento, utilizza transazione.categoria
+                        transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;
+                    } else {
+                        if (transazione.descrizione != ''){
+                        transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
+                        } else {
+                        transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
+                        transactionText.style.padding = '5px 0'; // Padding per il testo
+                        transactionItem.appendChild(transactionText);
+                    }
+                }
+                }
+                else
+                {
 
                 if (transazione.categoria) {
                     if (transazione.tipo === 'trasferimento') {
@@ -496,10 +683,8 @@
 
                        
                     }
-                } else {
-                    
-                
-                
+                } 
+                else {
                 if (transazione.tipo === 'trasferimento') {
                     // Se è un trasferimento, utilizza transazione.categoria
                     transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data}`;
@@ -512,37 +697,41 @@
                     transactionItem.appendChild(transactionText);
                 }
             }
-            if(transazione.utente.pk == {{utente.pk}}) {
-                editIcon = document.createElement('i');
-                editIcon.className = 'bi bi-trash'; 
-                editIcon.style.paddingLeft = '10px'
-                editIcon.style.cursor = 'pointer'; // Mostra il cursore come puntatore
-                editIcon.onclick = () => deleteTransaction(transazione.id, contoId);
-            
-                transactionItem.appendChild(editIcon);
             }
-            
-                // Aggiungi la transazione alla lista
-                transactionList.appendChild(transactionItem);
-            
-                // Aggiungi una linea divisiva
-                const divider = document.createElement('hr');
-                divider.style.margin = '5px 0'; // Spaziatura attorno alla linea divisiva
-                transactionList.appendChild(divider);
-            });
-            
-            // Gestione pagine
-            document.getElementById(`prevPage_${contoId}`).onclick = function() {
-                if (page > 1) {
-                    loadTransactions(contoId, transazioniDelConto, page - 1);
+
+
+
+            if(transazione.utente.pk == {{utente.pk}}) {
+                    editIcon = document.createElement('i');
+                    editIcon.className = 'bi bi-trash'; 
+                    editIcon.style.paddingLeft = '10px'
+                    editIcon.style.cursor = 'pointer'; // Mostra il cursore come puntatore
+                    editIcon.onclick = () => deleteTransaction(transazione.id, contoId);
+                
+                    transactionItem.appendChild(editIcon);
                 }
-            };
-            document.getElementById(`nextPage_${contoId}`).onclick = function() {
-                if (end < transazioniDelConto.length) {
-                    loadTransactions(contoId, transazioniDelConto, page + 1);
-                }
-            };
-        }
+                
+                    // Aggiungi la transazione alla lista
+                    transactionList.appendChild(transactionItem);
+                
+                    // Aggiungi una linea divisiva
+                    const divider = document.createElement('hr');
+                    divider.style.margin = '5px 0'; // Spaziatura attorno alla linea divisiva
+                    transactionList.appendChild(divider);
+                });
+                
+                // Gestione pagine
+                document.getElementById(`prevPage_${contoId}`).onclick = function() {
+                    if (page > 1) {
+                        loadTransactions(contoId, transazioniDelConto, page - 1);
+                    }
+                };
+                document.getElementById(`nextPage_${contoId}`).onclick = function() {
+                    if (end < transazioniDelConto.length) {
+                        loadTransactions(contoId, transazioniDelConto, page + 1);
+                    }
+                };
+        };
         
         function deleteConto(contoId) {
             const confirmDelete = confirm('Are you sure you want to delete this account?');
@@ -571,15 +760,8 @@
             
                 .catch(error => console.error('Errore durante l\'eliminazione del conto:', error));
             }
-        }
+        };
 
-
-      
-
-
-        
-       
-        
         function deletePianoDiRisparmio(pianoId) {
     
                 const confirmDelete = confirm('Are you sure you want to delete this saving plan?');
@@ -699,7 +881,7 @@
                     })
                 };
                 } 
-            }
+                }
         };
 
             
@@ -795,37 +977,594 @@
             
                 modal.style.display = 'block'; // Mostra il modal
         };
-            
-    
-       
-       
 
-
-       
-
-
-    document.getElementById('newSavingPlan').onclick = function() {
-            const modal = document.getElementById('SavingsPlanModal');
-            responseMessage.textContent = '';
-            modal.style.display = 'block';
+        document.getElementById('newSavingPlan').onclick = function() {
+                const modal = document.getElementById('SavingsPlanModal');
+                responseMessage.textContent = '';
+                modal.style.display = 'block';
         };
 
 
         const closeModalSavingPlan = (modal) => {
-            modal.style.display = 'none';
-            document.getElementById('SavingsPlanForm').reset();
-            SavingsresponseMessage.textContent = '';
+                modal.style.display = 'none';
+                document.getElementById('SavingsPlanForm').reset();
+                SavingsresponseMessage.textContent = '';
         };
 
         document.getElementById('SavingsPlanModalExit').onclick = function() {
-            const modal = document.getElementById('SavingsPlanModal');
-            closeModalSavingPlan(modal); // Chiudi il modale corretto
+                const modal = document.getElementById('SavingsPlanModal');
+                closeModalSavingPlan(modal); // Chiudi il modale corretto
         };
 
         document.getElementById('SavingsPlanForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData1 = new FormData(this);
+                const url1 = "{% url 'createSavingFamily' 0 %}".replace('0', famiglia_id);
+                
+                fetch(url1, {
+                    method: 'POST',
+                    body: formData1,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                    }
+                })
+                .then(
+                    response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Rimuovi gli elementi esistenti
+                        const pianiElements = document.querySelectorAll('.singolo-piano');
+                        pianiElements.forEach(piano => piano.remove());
+            
+                        // Sezione contenitore dove vuoi inserire i nuovi piani di risparmio
+                        const container = document.getElementById('pianiContainer'); // Assicurati che esista nel tuo HTML
+            
+                        // Itera attraverso i dati dei piani ricevuti
+                        data.piani_risparmio.forEach(piano => {
+                            // Crea il div principale del singolo piano
+                            const pianoDiv = document.createElement('div');
+                            pianoDiv.classList.add('singolo-piano', 'conto-box');
+                            pianoDiv.id=`singolo_piano_${piano.id}`;
+                            pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
+            
+                            // Crea il contenitore del progress circle
+                            const progressDiv = document.createElement('div');
+                            progressDiv.classList.add('progress-circle');
+                            progressDiv.style = "position: relative; display: inline-block; margin-bottom: 10px;";
+            
+                            // Crea il SVG per la barra di progresso
+                            const svg = `
+                                <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
+                                    <path class="circle-bg"
+                                        d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="#ddd"
+                                        stroke-width="3" />
+                                    <path class="circle"
+                                        stroke-dasharray="${piano.percentuale_completamento}, 100"
+                                        d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="#00995c"
+                                        stroke-width="3"
+                                        transform="rotate(180 18 18)" />
+                                </svg>
+                            `;
+                            progressDiv.innerHTML = svg;
+            
+                            // Crea il logo al centro della barra
+                            const logoDiv = document.createElement('div');
+                            logoDiv.classList.add('logo');
+                            logoDiv.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
+                            logoDiv.innerHTML = `<i class="bi bi-safe" style="font-size: 20px;"></i>`;
+            
+                            // Aggiungi il logo e il progress SVG al div del progress
+                            progressDiv.appendChild(logoDiv);
+            
+                            // Crea il titolo del conto
+                            const contoTitle = document.createElement('h3');
+                            contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
+                            contoTitle.innerText = piano.conto;
+            
+                            // Crea l'elemento per l'obbiettivo del conto
+                            const goal = document.createElement('h6');
+                            goal.style = "color: white; font-size: 14px;";
+                            goal.innerText = `Goal: ${piano.obbiettivo} €`;
+            
+                            // Crea l'elemento per la data di scadenza
+                            const scadenza = document.createElement('h6');
+                            scadenza.style = "color: white; font-size: 12px; margin-top: 10px;";
+                            scadenza.innerText = piano.data_scadenza;
+            
+                            // Assembla tutto dentro il div del piano
+                            pianoDiv.appendChild(progressDiv);
+                            pianoDiv.appendChild(contoTitle);
+                            pianoDiv.appendChild(goal);
+                            pianoDiv.appendChild(scadenza);
+            
+                            // Aggiungi il piano al contenitore
+                            container.appendChild(pianoDiv);
+                        });
+                    
+                        updatePianiRisparmio(data.piani_risparmio);
+                        const modal = document.getElementById('SavingsPlanModal');
+                        closeModalSavingPlan(modal);
+                    }
+                    else {
+                        let firstField = Object.keys(data.errors)[0]; 
+                        SavingsresponseMessage.textContent = data.errors[firstField][0]; 
+                        SavingsresponseMessage.style.color = 'red';
+                        document.getElementById('SavingsPlanForm').reset();
+                    }
+                });
+        });
+
+        function handleContoClickPianoRisparmio(event, dataset) {
+                if (event.target && event.target.id.startsWith('singolo_piano_')) {
+                
+                    const pianoId = event.target.id.split('_')[2];
+                    const pianoOggetto = dataset.filter(piano => piano.id == pianoId);
+                    createPianoDiRisparmioModal(pianoId, pianoOggetto[0]); // Crea e visualizza il modal per questo conto
+                };
+        };
+
+        function createClickListenerPianiRisparmio(dataset) {
+                return function(event) {
+                    handleContoClickPianoRisparmio(event, dataset);
+                };
+        };
+            
+        function addClickListenerPianiRisparmio(dataset) {
+                const pianiContainer = document.getElementById('pianiContainer');
+                
+                if (currentClickListenerPianoRisparmio) {
+                    pianiContainer.removeEventListener('click', currentClickListenerPianoRisparmio); 
+                }
+            
+                
+                currentClickListenerPianoRisparmio = createClickListenerPianiRisparmio(dataset);
+                pianiContainer.addEventListener('click', currentClickListenerPianoRisparmio); // Aggiungi il nuovo listener
+        };
+            
+        function updatePianiRisparmio(dataset) {
+                addClickListenerPianiRisparmio(dataset);
+        };
+
+        updatePianiRisparmio(piani_risparmio);
+            
+            
+        function deleteTransaction(transazioneId, contoId) {
+                const confirmDelete = confirm('Are you sure you want to delete this transaction?');
+            
+            
+                if (confirmDelete) {
+                    fetch("{% url 'elimina_transazione' 0 %}".replace('0', transazioneId), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                        },
+                        body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(transazioniAggiornate => {
+                    
+                        const transazioniFIltrate = transazioniAggiornate.filter(transazione => transazione.conto_id == contoId);
+                        const transactionList = document.getElementById(`transactionList_${contoId}`);
+                        transactionList.innerHTML = ''; // Pulisce la lista esistente
+                        loadTransactions(contoId, transazioniFIltrate, 1 );
+                        closeButtonDettagliConto = document.getElementById(`closeModelDettagliConto_${contoId}`);
+                        if (closeButtonDettagliConto) {
+                        closeButtonDettagliConto.addEventListener('click', reloadPage);
+                        }
+                        alert('The transaction has been deleted.');
+                        })
+                
+                    .catch(error => console.error('Errore durante l\'eliminazione della transazione:', error));
+                }
+        };
+
+        document.getElementById('newTransactionBtn').onclick = function() {
+                const modal = document.getElementById('transactionModal');
+                responseMessageTransaction.textContent = '';
+                modal.style.display = 'block';
+        };
+
+        const closeModalTransazione = () => {
+                const modal = document.getElementById('transactionModal');
+                document.querySelectorAll('.periodica, .investimento, .futura, .delegata, .trasferimento').forEach(function(field) {
+                    field.style.display = 'none'; // Nasconde tutti i campi di transazione
+                });
+                document.querySelectorAll('.singola').forEach(function(field) {
+                    field.style.display = 'block'; // Nasconde tutti i campi di transazione
+                });
+                modal.style.display = 'none';
+                responseMessageTransaction.textContent = '';
+                TransazioneForm.reset();
+        };
+
+        document.getElementById('closeModelTransaction').onclick = function() {
+                closeModalTransazione(); 
+        };
+            
+        TransazioneForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(TransazioneForm);
+                const url = "{% url 'createtransactionFamily' 0 %}".replace('0', famiglia_id);
+            
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        
+                        const contiElements = document.querySelectorAll('.singolo-conto');
+                        contiElements.forEach(conto => conto.remove());
+                        
+                        data.conti.forEach(conto => {
+                            const contoDiv = document.createElement('div');
+                            contoDiv.className = 'conto-box singolo-conto';
+                            contoDiv.id = `singolo_conto_${conto.id}`;
+                            contoDiv.style.margin = '10px'; 
+                            contoDiv.style.padding = '15px'; 
+                            contoDiv.style.borderRadius = '10px';
+                            contoDiv.style.color = 'white';
+                            contoDiv.style.backgroundColor = '#100d30';
+                            contoDiv.style.textAlign = 'left';
+                            contoDiv.style.maxHeight = '100px'; 
+
+
+                            let iconHtml = '';
+                            if (conto.tipo === 'corrente') {
+                                iconHtml = '<i class="bi bi-bank"></i>';
+                            } else if (conto.tipo === 'investimento') {
+                                iconHtml = '<i class="bi bi-bar-chart"></i>';
+                            } else if (conto.tipo === 'risparmio') {
+                                iconHtml = '<i class="bi bi-safe"></i>';
+                            } else if (conto.tipo === 'contante') {
+                                iconHtml = '<i class="bi bi-cash-coin"></i>';
+                            }
+
+                            contoDiv.innerHTML = `${iconHtml}
+                                <h3 style="margin-top:5px; color: white; font-size: 18px;">${conto.nome}</h3>
+                                <h6 style="color: white; font-size: 14px;">Saldo: ${conto.saldo} €</h6>`;
+                            contiContainer.appendChild(contoDiv);
+                            
+                        });
+
+                        // Per il bottone
+                        const addButton = document.createElement('div');
+                        addButton.id = 'openModalBtn';
+                        addButton.className = 'conto-box singolo-conto';
+                        addButton.style.borderRadius = '50%';
+                        addButton.style.backgroundColor = '#00995c';
+                        addButton.style.width = '40px';
+                        addButton.style.height = '40px'; 
+                        addButton.style.display = 'flex';
+                        addButton.style.alignItems = 'center';
+                        addButton.style.justifyContent = 'center';
+                        addButton.style.marginRight = '15px'; 
+                        addButton.style.marginLeft = '15px'; 
+
+                        const addButtonIcon = document.createElement('i');
+                        addButtonIcon.className = 'bi bi-plus';
+                        addButtonIcon.style.color = 'white';
+                        addButtonIcon.style.fontSize = '20px'; 
+
+                        addButton.appendChild(addButtonIcon); 
+                        contiContainer.appendChild(addButton);
+
+                        addButton.onclick = function() {
+                            const modal = document.getElementById('myModal');
+                            modal.style.display = 'block';
+                        };
+
+                        closeModal(document.getElementById('myModal'));
+                        
+                        closeModalTransazione();
+
+                        
+                        
+                        
+                        updateTransazioni(data.transazioni, data.conti); 
+
+                        let pianiElements = document.querySelectorAll('.singolo-piano');
+                        pianiElements.forEach(piano => piano.remove());
+            
+                        // Sezione contenitore dove vuoi inserire i nuovi piani di risparmio
+                        let container = document.getElementById('pianiContainer'); // Assicurati che esista nel tuo HTML
+                        
+                    
+                    
+                        data.piani_risparmio.forEach(piano => {
+                            
+                            const pianoDiv = document.createElement('div');
+                            pianoDiv.classList.add('singolo-piano', 'conto-box');
+                            pianoDiv.id=`singolo_piano_${piano.id}`;
+                            pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
+            
+                            console.log(pianoDiv);
+                            // Crea il contenitore del progress circle
+                            const progressDiv = document.createElement('div');
+                            progressDiv.classList.add('progress-circle');
+                            progressDiv.style = "position: relative; display: inline-block; margin-bottom: 10px;";
+            
+                            // Crea il SVG per la barra di progresso
+                            const svg = `
+                                <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
+                                    <path class="circle-bg"
+                                        d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="#ddd"
+                                        stroke-width="3" />
+                                    <path class="circle"
+                                        stroke-dasharray="${piano.percentuale_completamento}, 100"
+                                        d="M18 2.0845
+                                            a 15.9155 15.9155 0 0 1 0 31.831
+                                            a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="#00995c"
+                                        stroke-width="3"
+                                        transform="rotate(180 18 18)" />
+                                </svg>
+                            `;
+                            progressDiv.innerHTML = svg;
+            
+                            // Crea il logo al centro della barra
+                            const logoDiv = document.createElement('div');
+                            logoDiv.classList.add('logo');
+                            logoDiv.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
+                            logoDiv.innerHTML = `<i class="bi bi-safe" style="font-size: 20px;"></i>`;
+            
+                            // Aggiungi il logo e il progress SVG al div del progress
+                            progressDiv.appendChild(logoDiv);
+            
+                            // Crea il titolo del conto
+                            const contoTitle = document.createElement('h3');
+                            contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
+                            contoTitle.innerText = piano.conto;
+            
+                            // Crea l'elemento per l'obbiettivo del conto
+                            const goal = document.createElement('h6');
+                            goal.style = "color: white; font-size: 14px;";
+                            goal.innerText = `Goal: ${piano.obbiettivo} €`;
+            
+                            // Crea l'elemento per la data di scadenza
+                            const scadenza = document.createElement('h6');
+                            scadenza.style = "color: white; font-size: 12px; margin-top: 10px;";
+                            scadenza.innerText = piano.data_scadenza;
+            
+                            // Assembla tutto dentro il div del piano
+                            pianoDiv.appendChild(progressDiv);
+                            pianoDiv.appendChild(contoTitle);
+                            pianoDiv.appendChild(goal);
+                            pianoDiv.appendChild(scadenza);
+            
+                            // Aggiungi il piano al contenitore
+                            container.appendChild(pianoDiv);
+                        });
+
+                        updatePianiRisparmio(data.piani_risparmio);
+
+                                                
+                        let sfidaElements = document.querySelectorAll('.challenge-bar');
+                        sfidaElements.forEach(sfida => sfida.remove());
+
+                        
+                        
+                        sfidaContainer = document.getElementById('sfidaContainer');
+
+                        
+                        while (sfidaContainer.firstChild) {
+                            sfidaContainer.removeChild(sfidaContainer.firstChild);
+                        }
+                    
+                        if (data.sfide.length === 0) {
+                            
+                            const noChallengeMessage = document.createElement('div');
+                            noChallengeMessage.className = 'challenge-row';
+                            noChallengeMessage.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height: 55px;';
+                            
+                            const icon = document.createElement('div');
+                            icon.className = 'icona-challenge';
+                            icon.style.marginRight = '15px';
+                            icon.innerHTML = '<i class="bi bi-dash-circle-dotted" style="font-size: 25px; color: white;"></i>';
+                    
+                            const messageText = document.createElement('div');
+                            messageText.className = 'dettagli-challenge';
+                            messageText.style.flex = '1';
+                            messageText.style.textAlign = 'left';
+                            messageText.innerHTML = '<h4 style="margin: 0; font-size: 18px; color: red;">Nessuna sfida disponibile</h4>';
+                    
+                            noChallengeMessage.appendChild(icon);
+                            noChallengeMessage.appendChild(messageText);
+                            sfidaContainer.appendChild(noChallengeMessage);
+                        } else {
+                            // Itera sulle sfide fornite nei dati
+                            data.sfide.forEach(sfida => {
+                                // Crea il div principale per la riga della sfida
+                                const challengeRow = document.createElement('div');
+                                challengeRow.className = 'challenge-row';
+                                challengeRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height: 55px;';
+                                
+                                // Sfidante a sinistra
+                                const sfidanteDiv = document.createElement('div');
+                                sfidanteDiv.className = 'sfidante';
+                                sfidanteDiv.style.flex = '1';
+                                sfidanteDiv.style.textAlign = 'left';
+                    
+                                const sfidanteName = document.createElement('h3');
+                                sfidanteName.style.margin = '0';
+                                sfidanteName.style.fontSize = '16px';
+                                sfidanteName.style.color = (sfida.importo_sfidante <= sfida.importo_sfidato) ? '#00995c' : 'red';
+                                sfidanteName.textContent = sfida.sfidante.nome;
+                    
+                                const spesaSfidante = document.createElement('p');
+                                spesaSfidante.style.margin = '0';
+                                spesaSfidante.style.fontSize = '14px';
+                                spesaSfidante.style.color = '#ccc';
+                                spesaSfidante.textContent = `Spesa: €${sfida.importo_sfidante}`;
+                    
+                                sfidanteDiv.appendChild(sfidanteName);
+                                sfidanteDiv.appendChild(spesaSfidante);
+                    
+                                // Barra della sfida centrale
+                                const challengeBar = document.createElement('div');
+                                challengeBar.className = 'challenge-bar';
+                                challengeBar.style.cssText = 'display: flex; height: 30px; width: 70%; border: 1px solid #d3d3d3; background-color: #f0f0f0; border-radius: 5px; overflow: hidden; position: relative;';
+                                
+                                // Condizioni per le percentuali
+                                const bar1Color = (sfida.importo_sfidante < sfida.importo_sfidato) ? '#00995c' : 'red';
+                                const bar2Color = (sfida.importo_sfidante < sfida.importo_sfidato) ? 'red' : '#00995c';
+                    
+                                // Crea la prima barra
+                                const bar1 = document.createElement('div');
+                                bar1.className = 'bar';
+                                bar1.style.cssText = `height: 100%; background-color: ${bar1Color}; width: ${sfida.percentuale_sfidante}%;`;
+                                
+                                // Crea la seconda barra
+                                const bar2 = document.createElement('div');
+                                bar2.className = 'bar';
+                                bar2.style.cssText = `height: 100%; background-color: ${bar2Color}; width: ${sfida.percentuale_sfidato}%;`;
+                                
+                                challengeBar.appendChild(bar1);
+                                challengeBar.appendChild(bar2);
+                    
+                                // Testo della categoria al centro
+                                const categorySpan = document.createElement('span');
+                                categorySpan.style.cssText = 'position: absolute; left: 50%; transform: translateX(-50%); color: #333; font-weight: bold;';
+                                categorySpan.textContent = sfida.categoria_target.nome;
+                                
+                                challengeBar.appendChild(categorySpan);
+                    
+                                // Sfidato a destra
+                                const sfidatoDiv = document.createElement('div');
+                                sfidatoDiv.className = 'sfidato';
+                                sfidatoDiv.style.flex = '1';
+                                sfidatoDiv.style.textAlign = 'right';
+                    
+                                const sfidatoName = document.createElement('h3');
+                                sfidatoName.style.margin = '0';
+                                sfidatoName.style.fontSize = '16px';
+                                sfidatoName.style.color = (sfida.importo_sfidato <= sfida.importo_sfidante) ? '#00995c' : 'red';
+                                sfidatoName.textContent = sfida.sfidato.nome;
+                    
+                                const spesaSfidato = document.createElement('p');
+                                spesaSfidato.style.margin = '0';
+                                spesaSfidato.style.fontSize = '14px';
+                                spesaSfidato.style.color = '#ccc';
+                                spesaSfidato.textContent = `Spesa: €${sfida.importo_sfidato}`;
+                    
+                                sfidatoDiv.appendChild(sfidatoName);
+                                sfidatoDiv.appendChild(spesaSfidato);
+                    
+                                // Aggiungi tutti gli elementi alla riga della sfida
+                                challengeRow.appendChild(sfidanteDiv);
+                                challengeRow.appendChild(challengeBar);
+                                challengeRow.appendChild(sfidatoDiv);
+                    
+                                // Aggiungi la riga della sfida al contenitore delle sfide
+                                sfidaContainer.appendChild(challengeRow);
+                            });
+                        }
+                    
+                    } else {
+                        let firstField = Object.keys(data.errors)[0];
+                        transactionResponseMessage.textContent = data.errors[firstField][0];
+                        transactionResponseMessage.style.color = 'red';
+                    }
+                });
+        });
+
+
+        var tipoDiv = document.getElementById('tipoTra'); 
+        if (tipoDiv) {
+                var selectElement = tipoDiv.querySelector('select'); // Trova il select all'interno del div
+                console.log(selectElement); // Verifica se il select viene correttamente trovato
+        
+                if (selectElement) {
+                    selectElement.addEventListener('change', function() {
+                        console.log("Il valore del tipo di transazione è cambiato");
+                        var tipoTransazione = this.value; // Ottieni il valore selezionato
+                        console.log(tipoTransazione); // Log del valore selezionato
+        
+                        // Nascondi tutte le descrizioni e i campi di transazione
+                        document.querySelectorAll('.descrizione').forEach(function(descrizione) {
+                            descrizione.style.display = 'none'; 
+                        });
+        
+                        document.querySelectorAll('.singola, .periodica, .investimento, .futura, .delegata, .trasferimento').forEach(function(field) {
+                            field.style.display = 'none'; 
+                        });
+        
+                        // Mostra solo i campi corrispondenti al tipo di transazione
+                        if (tipoTransazione === 'singola') {
+                            document.querySelectorAll('.singola').forEach(function(singola) {
+                                singola.style.display = 'block';  
+                            });
+                        } else if (tipoTransazione === 'periodica') {
+                            document.querySelectorAll('.periodica').forEach(function(periodica) {
+                                periodica.style.display = 'block'; 
+                            });
+                        } else if (tipoTransazione === 'investimento') {
+                            document.querySelectorAll('.investimento').forEach(function(investimento) {
+                                investimento.style.display = 'block'; 
+                            });
+                        } else if (tipoTransazione === 'futura') {
+                            document.querySelectorAll('.futura').forEach(function(futura) {
+                                futura.style.display = 'block'; 
+                            });
+                        } else if (tipoTransazione === 'delegata') {
+                            document.querySelectorAll('.delegata').forEach(function(delegata) {
+                                delegata.style.display = 'block'; 
+                            });
+                        } else if (tipoTransazione === 'trasferimento') {
+                            document.querySelectorAll('.trasferimento').forEach(function(trasferimento) {
+                                trasferimento.style.display = 'block'; 
+                            });
+                        }
+                    });
+                } else {
+                    console.log("Il select all'interno del div #tipo non è stato trovato.");
+                }
+        }
+
+        document.getElementById('newChallenge').onclick = function() {
+            const modal = document.getElementById('challengeModal');
+            respondeMessaggeChallenge.textContent = '';
+            modal.style.display = 'block';
+        };
+
+        const closeModalChallenge = () => {
+            const modal = document.getElementById('challengeModal');
+            modal.style.display = 'none';
+            respondeMessaggeChallenge.textContent = '';
+            ChallengeForm.reset();
+        };
+
+        document.getElementById('closeModelChallenge').onclick = function() {
+            closeModalChallenge(); 
+        };
+
+        ChallengeForm.addEventListener('submit', function(event) {
             event.preventDefault();
             const formData1 = new FormData(this);
-            const url1 = "{% url 'createSavingFamily' 0 %}".replace('0', famiglia_id);
+            const url1 = "{% url 'create_challenge' 0 %}".replace('0', famiglia_id);
             
             fetch(url1, {
                 method: 'POST',
@@ -837,172 +1576,240 @@
             .then(
                 response => response.json())
             .then(data => {
-                if (data.success) {
-                    // Rimuovi gli elementi esistenti
-                    const pianiElements = document.querySelectorAll('.singolo-piano');
-                    pianiElements.forEach(piano => piano.remove());
+                if (data.valid) {
+                    // Rimuovi le sfide esistenti
+                    let sfidaElements = document.querySelectorAll('.challenge-row');
+                    sfidaElements.forEach(sfida => sfida.remove());
         
-                    // Sezione contenitore dove vuoi inserire i nuovi piani di risparmio
-                    const container = document.getElementById('pianiContainer'); // Assicurati che esista nel tuo HTML
+                    // Assicurati che il contenitore esista nel tuo HTML
+                    let sfidaContainer = document.getElementById('sfidaContainer');
         
-                    // Itera attraverso i dati dei piani ricevuti
-                    data.piani_risparmio.forEach(piano => {
-                        // Crea il div principale del singolo piano
-                        const pianoDiv = document.createElement('div');
-                        pianoDiv.classList.add('singolo-piano', 'conto-box');
-                        pianoDiv.id=`singolo_piano_${piano.id}`;
-                        pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
+                    // Itera sulle nuove sfide fornite nei dati
+                    data.sfide.forEach(sfida => {
+                        // Crea il div principale per la riga della sfida
+                        const challengeRow = document.createElement('div');
+                        challengeRow.className = 'challenge-row';
+                        challengeRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height: 55px;';
+                        
+                        // Sfidante a sinistra
+                        const sfidanteDiv = document.createElement('div');
+                        sfidanteDiv.className = 'sfidante';
+                        sfidanteDiv.style.flex = '1';
+                        sfidanteDiv.style.textAlign = 'left';
         
-                        // Crea il contenitore del progress circle
-                        const progressDiv = document.createElement('div');
-                        progressDiv.classList.add('progress-circle');
-                        progressDiv.style = "position: relative; display: inline-block; margin-bottom: 10px;";
+                        const sfidanteName = document.createElement('h3');
+                        sfidanteName.style.margin = '0';
+                        sfidanteName.style.fontSize = '18px';
+                        sfidanteName.style.color = (sfida.importo_sfidante <= sfida.importo_sfidato) ? '#00995c' : 'red';
+                        sfidanteName.textContent = sfida.sfidante.nome;
         
-                        // Crea il SVG per la barra di progresso
-                        const svg = `
-                            <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
-                                <path class="circle-bg"
-                                    d="M18 2.0845
-                                        a 15.9155 15.9155 0 0 1 0 31.831
-                                        a 15.9155 15.9155 0 0 1 0 -31.831"
-                                    fill="none"
-                                    stroke="#ddd"
-                                    stroke-width="3" />
-                                <path class="circle"
-                                    stroke-dasharray="${piano.percentuale_completamento}, 100"
-                                    d="M18 2.0845
-                                        a 15.9155 15.9155 0 0 1 0 31.831
-                                        a 15.9155 15.9155 0 0 1 0 -31.831"
-                                    fill="none"
-                                    stroke="#00995c"
-                                    stroke-width="3"
-                                    transform="rotate(180 18 18)" />
-                            </svg>
-                        `;
-                        progressDiv.innerHTML = svg;
+                        const spesaSfidante = document.createElement('p');
+                        spesaSfidante.style.margin = '0';
+                        spesaSfidante.style.fontSize = '14px';
+                        spesaSfidante.style.color = '#ccc';
+                        spesaSfidante.textContent = `Spesa: €${sfida.importo_sfidante}`;
         
-                        // Crea il logo al centro della barra
-                        const logoDiv = document.createElement('div');
-                        logoDiv.classList.add('logo');
-                        logoDiv.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
-                        logoDiv.innerHTML = `<i class="bi bi-safe" style="font-size: 20px;"></i>`;
+                        sfidanteDiv.appendChild(sfidanteName);
+                        sfidanteDiv.appendChild(spesaSfidante);
         
-                        // Aggiungi il logo e il progress SVG al div del progress
-                        progressDiv.appendChild(logoDiv);
+                        // Barra della sfida centrale
+                        const challengeBar = document.createElement('div');
+                        challengeBar.className = 'challenge-bar';
+                        challengeBar.style.cssText = 'display: flex; height: 30px; width: 70%; border: 1px solid #d3d3d3; background-color: #f0f0f0; border-radius: 5px; overflow: hidden; position: relative;';
+                        
+                        // Determina i colori delle barre in base alle percentuali
+                        const bar1Color = (sfida.importo_sfidante < sfida.importo_sfidato) ? '#00995c' : 'red';
+                        const bar2Color = (sfida.importo_sfidante < sfida.importo_sfidato) ? 'red' : '#00995c';
         
-                        // Crea il titolo del conto
-                        const contoTitle = document.createElement('h3');
-                        contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
-                        contoTitle.innerText = piano.conto;
+                        // Crea la prima barra
+                        const bar1 = document.createElement('div');
+                        bar1.className = 'bar';
+                        bar1.style.cssText = `height: 100%; background-color: ${bar1Color}; width: ${sfida.percentuale_sfidante}%;`;
+                        
+                        // Crea la seconda barra
+                        const bar2 = document.createElement('div');
+                        bar2.className = 'bar';
+                        bar2.style.cssText = `height: 100%; background-color: ${bar2Color}; width: ${sfida.percentuale_sfidato}%;`;
+                        
+                        challengeBar.appendChild(bar1);
+                        challengeBar.appendChild(bar2);
         
-                        // Crea l'elemento per l'obbiettivo del conto
-                        const goal = document.createElement('h6');
-                        goal.style = "color: white; font-size: 14px;";
-                        goal.innerText = `Goal: ${piano.obbiettivo} €`;
+                        // Testo della categoria al centro
+                        const categorySpan = document.createElement('span');
+                        categorySpan.style.cssText = 'position: absolute; left: 50%; transform: translateX(-50%); color: #333; font-weight: bold;';
+                        categorySpan.textContent = sfida.categoria_target.nome;
+                        
+                        challengeBar.appendChild(categorySpan);
         
-                        // Crea l'elemento per la data di scadenza
-                        const scadenza = document.createElement('h6');
-                        scadenza.style = "color: white; font-size: 12px; margin-top: 10px;";
-                        scadenza.innerText = piano.data_scadenza;
+                        // Sfidato a destra
+                        const sfidatoDiv = document.createElement('div');
+                        sfidatoDiv.className = 'sfidato';
+                        sfidatoDiv.style.flex = '1';
+                        sfidatoDiv.style.textAlign = 'right';
         
-                        // Assembla tutto dentro il div del piano
-                        pianoDiv.appendChild(progressDiv);
-                        pianoDiv.appendChild(contoTitle);
-                        pianoDiv.appendChild(goal);
-                        pianoDiv.appendChild(scadenza);
+                        const sfidatoName = document.createElement('h3');
+                        sfidatoName.style.margin = '0';
+                        sfidatoName.style.fontSize = '18px';
+                        sfidatoName.style.color = (sfida.importo_sfidato <= sfida.importo_sfidante) ? '#00995c' : 'red';
+                        sfidatoName.textContent = sfida.sfidato.nome;
         
-                        // Aggiungi il piano al contenitore
-                        container.appendChild(pianoDiv);
+                        const spesaSfidato = document.createElement('p');
+                        spesaSfidato.style.margin = '0';
+                        spesaSfidato.style.fontSize = '14px';
+                        spesaSfidato.style.color = '#ccc';
+                        spesaSfidato.textContent = `Spesa: €${sfida.importo_sfidato}`;
+        
+                        sfidatoDiv.appendChild(sfidatoName);
+                        sfidatoDiv.appendChild(spesaSfidato);
+        
+                        // Aggiungi tutti gli elementi alla riga della sfida
+                        challengeRow.appendChild(sfidanteDiv);
+                        challengeRow.appendChild(challengeBar);
+                        challengeRow.appendChild(sfidatoDiv);
+        
+                        // Aggiungi la riga della sfida al contenitore delle sfide
+                        sfidaContainer.appendChild(challengeRow);
                     });
-                   
-                    updatePianiRisparmio(data.piani_risparmio);
-                    const modal = document.getElementById('SavingsPlanModal');
-                    closeModalSavingPlan(modal);
-                }
-                else {
-                    let firstField = Object.keys(data.errors)[0]; 
-                    SavingsresponseMessage.textContent = data.errors[firstField][0]; 
-                    SavingsresponseMessage.style.color = 'red';
-                    document.getElementById('SavingsPlanForm').reset();
+                    closeModalChallenge()
+                } else {
+                    let firstFieldErrorKey = Object.keys(data.errors)[0];
+                    console.error(data.errors[firstFieldErrorKey][0]); // Mostra l'errore nella console o gestiscilo come preferisci
                 }
             });
         });
+    
+        //challenge
 
-        function handleContoClickPianoRisparmio(event, dataset) {
-            if (event.target && event.target.id.startsWith('singolo_piano_')) {
+        function handleContoClickChallenge(event, dataset) {
+            if (event.target && event.target.id.startsWith('singola_sfida_')) {
                
-                const pianoId = event.target.id.split('_')[2];
-                const pianoOggetto = dataset.filter(piano => piano.id == pianoId);
-                createPianoDiRisparmioModal(pianoId, pianoOggetto[0]); // Crea e visualizza il modal per questo conto
+                const ChallengeId = event.target.id.split('_')[2];
+                const ChallengeOggetto = dataset.filter(s => s.id == ChallengeId);
+                createSfidaFamigliareModal(ChallengeId, ChallengeOggetto[0]); // Crea e visualizza il modal per questo conto
             };
         };
 
-        function createClickListenerPianiRisparmio(dataset) {
-            return function(event) {
-                handleContoClickPianoRisparmio(event, dataset);
-            };
+        function createClickListenerChallenge(dataset) {
+                return function(event) {
+                    handleContoClickChallenge(event, dataset);
+                };
         };
-        
-        function addClickListenerPianiRisparmio(dataset) {
-            const pianiContainer = document.getElementById('pianiContainer');
             
-            if (currentClickListenerPianoRisparmio) {
-                pianiContainer.removeEventListener('click', currentClickListenerPianoRisparmio); 
+        function addClickListenerChallenge(dataset) {
+                Container = document.getElementById('sfidaContainer');
+                
+                if (currentClickListenerSfida) {
+                    Container.removeEventListener('click', currentClickListenerSfida); 
+                }
+            
+                
+                currentClickListenerSfida = createClickListenerChallenge(dataset);
+                Container.addEventListener('click', currentClickListenerSfida); // Aggiungi il nuovo listener
+        };
+            
+        function updateChallenge(dataset) {
+                addClickListenerChallenge(dataset);
+        };
+
+        updateChallenge(challenge_json);
+
+        function createSfidaFamigliareModal(sfidaId, sfidaOggetto) {
+
+            let modal = document.getElementById(`sfidaModal_${sfidaId}`);
+            if (modal) {
+                modal.remove(); // Rimuove il modal esistente dal DOM
             }
         
-            
-            currentClickListenerPianoRisparmio = createClickListenerPianiRisparmio(dataset);
-            pianiContainer.addEventListener('click', currentClickListenerPianoRisparmio); // Aggiungi il nuovo listener
+            modal = document.createElement('div');
+            modal.id = `sfidaModal_${sfidaId}`;
+            modal.classList.add('modal');
+        
+            // Contenuto dinamico del modal
+            modal.innerHTML = `
+                <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto; padding: 20px;">
+                    <button id="closeModelDettagliSfida_${sfidaId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+                    
+                    <div class="header-row" style="display: flex; align-items: center; padding: 10px 0; width: 65%;">
+                        <div style="flex: 1;">
+                            <span id="sfidaDescrizione_${sfidaId}" style="font-size: 18px; font-weight: bold;">${sfidaOggetto.descrizione || "N/A"}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-left: auto;">
+                            <i class="bi bi-trash" id="deleteSfidaIcon_${sfidaId}" style="font-size: 20px; cursor: pointer;"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="details-section" style="padding: 10px; width: 70%;">
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Sfidante e Sfidato -->
+                        <p><strong>Challenger:</strong> ${sfidaOggetto.sfidante.nome}</p>
+                        <p><strong>Challenged:</strong> ${sfidaOggetto.sfidato.nome}</p>
+        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Importo sfidante e sfidato -->
+                        <p><strong>Challenger's amount:</strong> €${sfidaOggetto.importo_sfidante}</p>
+                        <p><strong>Challenged's amount:</strong> €${sfidaOggetto.importo_sfidato}</p>
+        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Data di Creazione e Scadenza -->
+                        <p><strong>Creation date:</strong> ${sfidaOggetto.data_creazione}</p>
+                        <p><strong>Due date:</strong> ${sfidaOggetto.data_scadenza}</p>
+        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Categoria e Famiglia -->
+                        <p><strong>Category:</strong> ${sfidaOggetto.categoria_target.nome || "N/A"}</p>
+                        
+        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Percentuali di contributo -->
+                        <p><strong>Challenger's percentage:</strong> ${sfidaOggetto.percentuale_sfidante}%</p>
+                        <p><strong>Challenged's percentage:</strong> ${sfidaOggetto.percentuale_sfidato}%</p>
+        
+                        <!-- Divider -->
+                        <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
+        
+                        <!-- Stato della sfida -->
+                        <p><strong>Challenge status:</strong> ${sfidaOggetto.conclusa ? "Concluded" : "Ongoing"}</p>
+                        
+                    </div>
+                </div>
+            `;
+        
+            document.body.appendChild(modal);
+        
+            // Gestione degli eventi per l'icona di cancellazione
+            const deleteIcon = document.getElementById(`deleteSfidaIcon_${sfidaId}`);
+            deleteIcon.addEventListener('click', function() {
+                deleteSfidaFamigliare(sfidaId); // Funzione per eliminare la sfida
+            });
+        
+            const closeButtonDettagliSfida = document.getElementById(`closeModelDettagliSfida_${sfidaId}`);
+            if (closeButtonDettagliSfida) {
+                closeButtonDettagliSfida.addEventListener('click', function() {
+                    modal = document.getElementById(`sfidaModal_${sfidaId}`);
+                    if (modal) {
+                        modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                    }
+                });
+            }
+        
+            modal.style.display = 'block'; // Mostra il modal
         };
         
-        function updatePianiRisparmio(dataset) {
-            addClickListenerPianiRisparmio(dataset);
-        };
-
-        updatePianiRisparmio(piani_risparmio);
-        
-   
-        
-        
-    function deleteTransaction(transazioneId, contoId) {
-        const confirmDelete = confirm('Are you sure you want to delete this transaction?');
-       
     
-        if (confirmDelete) {
-            fetch("{% url 'elimina_transazione' 0 %}".replace('0', transazioneId), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
-                },
-                body: JSON.stringify({})  // Invia un body vuoto (opzionale)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(transazioniAggiornate => {
-               
-                const transazioniFIltrate = transazioniAggiornate.filter(transazione => transazione.conto_id == contoId);
-                const transactionList = document.getElementById(`transactionList_${contoId}`);
-                transactionList.innerHTML = ''; // Pulisce la lista esistente
-                loadTransactions(contoId, transazioniFIltrate, 1 );
-                closeButtonDettagliConto = document.getElementById(`closeModelDettagliConto_${contoId}`);
-                if (closeButtonDettagliConto) {
-                closeButtonDettagliConto.addEventListener('click', reloadPage);
-                }
-                alert('The transaction has been deleted.');
-                })
-        
-            .catch(error => console.error('Errore durante l\'eliminazione della transazione:', error));
-        }
-    }
-       
+    });
+    
 
        
-}); 
         
 
 

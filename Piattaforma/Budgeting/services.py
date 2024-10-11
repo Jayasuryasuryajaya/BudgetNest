@@ -5,6 +5,7 @@ from django.utils import timezone
 from Users.services import *
 from datetime import timedelta
 from Accounts.services import *
+from Challenges.services import *
 class BudgetingService: 
     def count_transazioni():
         return Transazione.objects.count()  
@@ -110,9 +111,6 @@ class BudgetingService:
             if not transazione.eseguita :
                 conto = transazione.conto 
               
-                    
-        
-    
                 if conto.saldo >= (-transazione.importo):
                     conto.saldo += transazione.importo
                     conto.save()
@@ -120,7 +118,7 @@ class BudgetingService:
                     transazione.save()
                     BudgetingService.ricalcola_lista_piani_risparmio(utente)
                     BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, transazione.data, transazione.importo)
-                    
+                    ChallengeService.aggiorna_sfida(utente,transazione.categoria,transazione.importo)
                     if any(transazione.categoria == obbiettivo.categoria_target for obbiettivo in obbiettivi_spesa):
                         obbiettivi_spesa_filtrati = obbiettivi_spesa.filter(
                             categoria_target=transazione.categoria,
@@ -151,7 +149,7 @@ class BudgetingService:
                     
                     BudgetingService.ricalcola_lista_piani_risparmio(utente)
                     BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, transazione.data, transazione.importo)
-                     
+                    ChallengeService.aggiorna_sfida(utente,transazione.categoria,transazione.importo)
                     if any(transazione.categoria == obbiettivo.categoria_target for obbiettivo in obbiettivi_spesa):
                         obbiettivi_spesa_filtrati = obbiettivi_spesa.filter(
                             categoria_target=transazione.categoria,
@@ -163,8 +161,6 @@ class BudgetingService:
                             obbiettivo.save()
                             BudgetingService.ricalcola_percentuale_completamento_obbiettivoSpesa(request,obbiettivo.pk)
                             
-                   
-                    
                     prima_data = transazione.data
                     data_prossimo_rinnovo = ''
                     data_prossimo_rinnovo_prossimo_rinnovo = ''

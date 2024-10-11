@@ -15,10 +15,13 @@ import json
 from django.http import JsonResponse
 from decimal import Decimal
 from django.shortcuts import redirect
-
+from Challenges.forms import *
+from Challenges.services import * 
 
 @login_required
 def dashboard_utente(request):
+    utente = UserService.get_utenti_by_user(request.user.pk)
+    AccountService.calcola_saldo_totale(utente)
     return render(request, 'dashboard/dashboard.html')
 
 @login_required
@@ -45,8 +48,11 @@ def accedi_famiglia(request, id):
     famiglia = utente.famiglia.filter(pk = id) 
     conti = AccountService.get_family_accounts(famiglia.first())
     formConto = NuovoContoFamiglia()
+    formSfida = NuovaSfidaFamigliare(utente= utente, famiglia= famiglia.first())
     formSavingPlan = NuovoPianoRisparmoFamiglia(famiglia=famiglia.first())
+    formTransazione = NuovaTransazioneFamigliaForm(utente=request.user, famiglia= famiglia.first())
     lista_piani_risparmio = BudgetingService.get_lista_SavingPlan_by_conto(conti)
+    challenge_list = ChallengeService.get_family_challenge(famiglia.first())
     lista_transazioni = []
     for conto in conti:
         lista_transazioni.append(Transazione.objects.filter(eseguita=True).filter(conto = conto).order_by('-data'))
@@ -78,6 +84,22 @@ def accedi_famiglia(request, id):
                 }
                 for conto in conti
         ]
+    challenge_json = []
+    challenge_json = [
+                            {
+                                'id' : sfida_item.pk,
+                                'importo_sfidante' : sfida_item.importo_sfidante,
+                                'importo_sfidato' : sfida_item.importo_sfidato,
+                                'percentuale_sfidante' : sfida_item.percentuale_sfidante,
+                                'percentuale_sfidato' : sfida_item.percentuale_sfidato,
+                                'categoria_target' : sfida_item.categoria_target.to_dict(),
+                                'sfidante' : sfida_item.sfidante.to_dict(),
+                                'sfidato' : sfida_item.sfidato.to_dict(),
+                                'descrizione' : sfida_item.descrizione,
+                            }
+                            for sfida_item in challenge_list
+                        ] 
+    
     
     piani_risparmio_data = []
     piani_risparmio_data = [
@@ -104,6 +126,11 @@ def accedi_famiglia(request, id):
                'piani_risparmio_json':   piani_risparmio_data,
                'formPiano' :formSavingPlan,
                'utente' : utente,
+               'formTransazione' : formTransazione, 
+               'formSfida' : formSfida,
+               'challenge' : challenge_list,
+               'challenge_json' : challenge_json,
+               
                }
     return render(request, 'family/family.html', context)
  
@@ -319,7 +346,7 @@ def transaction_section(request):
                         eseguita = True,
                     )
 
-                    
+                    ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo)
                     
                     
                     
@@ -571,7 +598,7 @@ def transaction_section(request):
                         tipo_rinnovo = formTransazione.cleaned_data['tipo_rinnovo'], 
                         )
                         AccountService.modifica_saldo_totale(utente, importo)
-                        
+                        ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo)
                         BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, data, importo)
                     
         
@@ -898,6 +925,489 @@ def aggiorna_saldo_totale_transazione_eliminata(utente, data_transazione, import
         record.saldo_totale -= importo
         record.save()
 
+@login_required
+def transaction_section_famiglia(request, famiglia):
+   
+    if request.method == 'POST':
+     
+        utente = UserService.get_utenti_by_user(request.user.pk)
+        formTransazione = NuovaTransazioneFamigliaForm(request.POST, utente=request.user, famiglia= famiglia) 
+        Fam = Famiglia.objects.get(pk = famiglia)
+    
+        if formTransazione.is_valid():
+            conto = formTransazione.cleaned_data['conto']
+            categoria = formTransazione.cleaned_data['categoria']
+            obbiettivi_spesa_riguardanti = BudgetingService.get_lista_obbiettivi_spesa_by_categoria(utente,categoria)
+           
+            match formTransazione.cleaned_data['tipo_transazione']:
+                case 'singola':
+                    conto_selezionato = formTransazione.cleaned_data['conto']
+                    importo = formTransazione.cleaned_data['importo']
+                    data = formTransazione.cleaned_data['data']
+                    # Scaliamo l'importo dal conto selezionato
+                    conto = Conto.objects.get(id=conto_selezionato.id)
+                    conto.saldo += importo
+                    conto.save()
+                    utente = UserService.get_utenti_by_user(request.user.id)
+
+                    Transazione.objects.create(
+                        conto=conto,
+                        importo=importo,
+                        data=formTransazione.cleaned_data['data'],
+                        descrizione=formTransazione.cleaned_data['descrizione'],
+                        tipo_transazione=formTransazione.cleaned_data['tipo_transazione'],
+                        utente=  UserService.get_utenti_by_user(request.user.id),
+                        categoria = formTransazione.cleaned_data['categoria'], 
+                        sotto_categoria = formTransazione.cleaned_data['sotto_categoria'], 
+                        eseguita = True,
+                    )
+
+                    ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo)
+                    g = ChallengeService.get_family_challenge(Fam)
+                    challenge_list = [
+                            {
+                                'id' : sfida_item.pk,
+                                'importo_sfidante' : sfida_item.importo_sfidante,
+                                'importo_sfidato' : sfida_item.importo_sfidato,
+                                'percentuale_sfidante' : sfida_item.percentuale_sfidante,
+                                'percentuale_sfidato' : sfida_item.percentuale_sfidato,
+                                'categoria_target' : sfida_item.categoria_target.to_dict(),
+                                'sfidante' : sfida_item.sfidante.to_dict(),
+                                'sfidato' : sfida_item.sfidato.to_dict(),
+                                'descrizione' : sfida_item.descrizione,
+                            }
+                            for sfida_item in g
+                        ] 
+                   
+                    
+                    conti = AccountService.get_family_accounts(famiglia)
+                    conti_data = [
+                        {
+                            'id': conto.id,
+                            'nome': conto.nome,
+                            'tipo': conto.tipo,
+                            'saldo': conto.saldo,
+                        }
+                        for conto in conti
+                    ]
+
+                    transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
+                    
+                    transazioni_data = [
+                        {
+                            'id': transazione.id,
+                            'importo': transazione.importo,
+                            'data': transazione.data,
+                            'descrizione': transazione.descrizione,
+                            'tipo_transazione': transazione.tipo_transazione,
+                            'eseguita' : transazione.eseguita,
+                            'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
+                            'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
+                            'conto' : transazione.conto.to_dict(),
+                            'conto_arrivo' : transazione.conto_arrivo.to_dict() if transazione.tipo_transazione == 'trasferimento' else None,
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
+                             'utente' : (transazione.utente).to_dict(),
+                        }
+                        for transazione in transazioni
+                    ]
+                    
+                    if(conto.tipo == 'risparmio'):
+                        BudgetingService.ricalcola_lista_piani_risparmio(utente)
+                        
+                    piani = BudgetingService.get_lista_SavingPlan_by_conto(conti)
+                    piani_data = [
+                    {
+                        'id' : piano.id,
+                        'obbiettivo': float(piano.obbiettivo),
+                        'percentuale_completamento': float(piano.percentuale_completamento),
+                        'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                        'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                        'conto': piano.conto.nome,
+                     }
+                        for piano in piani
+                    ]
+                    
+                    BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, data, importo)
+                    
+                    if obbiettivi_spesa_riguardanti:  
+                        for obbiettivo in obbiettivi_spesa_riguardanti:
+                             if obbiettivo.data_creazione <= data <= obbiettivo.data_scadenza:
+                                obbiettivo.importo_speso += (-importo)
+                                obbiettivo.percentuale_completamento = (obbiettivo.importo_speso/ obbiettivo.importo) * 100
+                                if(obbiettivo.percentuale_completamento > 100):
+                                    obbiettivo.percentuale_completamento = 100
+                                if(obbiettivo.percentuale_completamento <= 0):
+                                    obbiettivo.percentuale_completamento = 0
+                                obbiettivo.save()
+                            
+                    
+                  
+                    
+                    AccountService.modifica_saldo_totale(utente, importo)
+
+
+                    saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
+                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+                    data = [saldo.saldo_totale for saldo in saldo_data]
+                    
+                    
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'conti': conti_data,
+                        'transazioni': transazioni_data,
+                        "piani_risparmio" : piani_data, 
+                        'labels' : labels,
+                        'data' : data,
+                        'sfide' : challenge_list
+                    })
+                case 'futura':
+                    if request.method == 'POST':
+                        conto_selezionato = formTransazione.cleaned_data['conto']
+                        importo = formTransazione.cleaned_data['importo']
+                        conto = Conto.objects.get(id=conto_selezionato.id)
+                        utente = UserService.get_utenti_by_user(request.user.id)
+                        
+                        Transazione.objects.create(
+                            conto=conto,
+                            importo=importo,
+                            data=formTransazione.cleaned_data['data'],
+                            descrizione=formTransazione.cleaned_data['descrizione'],
+                            tipo_transazione=formTransazione.cleaned_data['tipo_transazione'],
+                            utente=  UserService.get_utenti_by_user(request.user.id),
+                            categoria = formTransazione.cleaned_data['categoria'], 
+                            sotto_categoria = formTransazione.cleaned_data['sotto_categoria'], 
+                            eseguita = False,
+                        )
+
+                        # Aggiorna la lista dei conti
+                        conti = AccountService.get_family_accounts(famiglia)
+                        conti_data = [
+                            {
+                                'id': conto.id,
+                                'nome': conto.nome,
+                                'tipo': conto.tipo,
+                                'saldo': conto.saldo,
+                            }
+                            for conto in conti
+                        ]
+                        transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
+                        transazioni = Transazione.objects.filter(eseguita=True).filter(utente = utente).order_by('-data')
+                        transazioni_data = [
+                        {
+                            'id': transazione.id,
+                            'importo': transazione.importo,
+                            'data': transazione.data,
+                            'descrizione': transazione.descrizione,
+                            'tipo_transazione': transazione.tipo_transazione,
+                            'eseguita' : transazione.eseguita,
+                            'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
+                            'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
+                            'conto' : transazione.conto.to_dict(),
+                            'conto_arrivo' : transazione.conto_arrivo.to_dict() if transazione.tipo_transazione == 'trasferimento' else None,
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
+                            'utente' : (transazione.utente).to_dict(),
+                        }
+                        for transazione in transazioni
+                        ]
+                        
+                        if(conto.tipo == 'risparmio'):
+                            BudgetingService.ricalcola_lista_piani_risparmio(utente)
+                        
+                        
+                        piani = BudgetingService.get_lista_SavingPlan_by_conto(conti)
+                        piani_data = [
+                            {
+                                'id' : piano.id,
+                                'obbiettivo': float(piano.obbiettivo),
+                                'percentuale_completamento': float(piano.percentuale_completamento),
+                                'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                                'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                                'conto': piano.conto.nome,
+                            }
+                            for piano in piani
+                        ]
+                        
+                        g = ChallengeService.get_family_challenge(Fam)
+                        challenge_list = [
+                            {
+                                'id' : sfida_item.pk,
+                                'importo_sfidante' : sfida_item.importo_sfidante,
+                                'importo_sfidato' : sfida_item.importo_sfidato,
+                                'percentuale_sfidante' : sfida_item.percentuale_sfidante,
+                                'percentuale_sfidato' : sfida_item.percentuale_sfidato,
+                                'categoria_target' : sfida_item.categoria_target.to_dict(),
+                                'sfidante' : sfida_item.sfidante.to_dict(),
+                                'sfidato' : sfida_item.sfidato.to_dict(),
+                                'descrizione' : sfida_item.descrizione,
+                            }
+                            for sfida_item in g
+                        ] 
+                        return JsonResponse({
+                            'success': True,
+                            'conti': conti_data,
+                            'transazioni': transazioni_data,
+                            "piani_risparmio" : piani_data,
+                            'sfide' : challenge_list
+                        })
+                case 'periodica':
+                    conto_selezionato = formTransazione.cleaned_data['conto']
+                    conto = Conto.objects.get(id=conto_selezionato.id)
+                    importo = formTransazione.cleaned_data['importo']
+                    prima_data = formTransazione.cleaned_data['data']
+                    utente = UserService.get_utenti_by_user(request.user.id)
+                    data_prossimo_rinnovo = ''
+                    data_prossimo_rinnovo_prossimo_rinnovo = ''
+                    from datetime import timedelta
+
+                    match formTransazione.cleaned_data['tipo_rinnovo']:
+                        case 'settimanale': 
+                            data_prossimo_rinnovo = prima_data + timedelta(days=7)
+                            data_prossimo_rinnovo_prossimo_rinnovo = data_prossimo_rinnovo + timedelta(days=7)
+                        case 'mensile': 
+                            data_prossimo_rinnovo = prima_data + timedelta(days=30)
+                            data_prossimo_rinnovo_prossimo_rinnovo = data_prossimo_rinnovo + timedelta(days=30)
+                        case 'semestrale':
+                            data_prossimo_rinnovo = prima_data + timedelta(days=180)
+                            data_prossimo_rinnovo_prossimo_rinnovo = data_prossimo_rinnovo + timedelta(days=180)
+
+                                
+                    if(prima_data <= timezone.now().date()):
+                        data = formTransazione.cleaned_data['data'],
+                        conto.saldo += importo
+                        conto.save()
+                        Transazione.objects.create(
+                        conto=conto,
+                        importo=importo,
+                        data=formTransazione.cleaned_data['data'],
+                        descrizione=formTransazione.cleaned_data['descrizione'],
+                        tipo_transazione=formTransazione.cleaned_data['tipo_transazione'],
+                        utente=  UserService.get_utenti_by_user(request.user.id),
+                        categoria = formTransazione.cleaned_data['categoria'], 
+                        sotto_categoria = formTransazione.cleaned_data['sotto_categoria'], 
+                        eseguita = True,
+                        prossimo_rinnovo = data_prossimo_rinnovo,
+                        tipo_rinnovo = formTransazione.cleaned_data['tipo_rinnovo'], 
+                        )
+                        
+                        
+                        Transazione.objects.create(
+                        conto=conto,
+                        importo=importo,
+                        data= data_prossimo_rinnovo,
+                        descrizione=formTransazione.cleaned_data['descrizione'],
+                        tipo_transazione=formTransazione.cleaned_data['tipo_transazione'],
+                        utente=  UserService.get_utenti_by_user(request.user.id),
+                        categoria = formTransazione.cleaned_data['categoria'], 
+                        sotto_categoria = formTransazione.cleaned_data['sotto_categoria'], 
+                        eseguita = False,
+                        prossimo_rinnovo = data_prossimo_rinnovo_prossimo_rinnovo, 
+                        tipo_rinnovo = formTransazione.cleaned_data['tipo_rinnovo'], 
+                        )
+                        AccountService.modifica_saldo_totale(utente, importo)
+                        ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo)
+                        BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, data, importo)
+                    
+        
+                        
+                        if obbiettivi_spesa_riguardanti:  
+                         for obbiettivo in obbiettivi_spesa_riguardanti:
+                              if obbiettivo.data_creazione <= data <= obbiettivo.data_scadenza:
+                                obbiettivo.importo_speso += (-importo)
+                                obbiettivo.percentuale_completamento = (obbiettivo.importo_speso/ obbiettivo.importo) * 100
+                                if(obbiettivo.percentuale_completamento > 100):
+                                    obbiettivo.percentuale_completamento = 100
+                                if(obbiettivo.percentuale_completamento <= 0):
+                                    obbiettivo.percentuale_completamento = 0
+                                obbiettivo.save()
+                    else:
+                        Transazione.objects.create(
+                        conto=conto,
+                        importo=importo,
+                        data=formTransazione.cleaned_data['data'],
+                        descrizione=formTransazione.cleaned_data['descrizione'],
+                        tipo_transazione=formTransazione.cleaned_data['tipo_transazione'],
+                        utente=  UserService.get_utenti_by_user(request.user.id),
+                        categoria = formTransazione.cleaned_data['categoria'], 
+                        sotto_categoria = formTransazione.cleaned_data['sotto_categoria'], 
+                        eseguita = False,
+                        prossimo_rinnovo = data_prossimo_rinnovo,
+                        tipo_rinnovo = formTransazione.cleaned_data['tipo_rinnovo'], 
+                        )
+                       
+                    conti = AccountService.get_family_accounts(famiglia)
+                    conti_data = [
+                        {
+                            'id': conto.id,
+                            'nome': conto.nome,
+                            'tipo': conto.tipo,
+                            'saldo': conto.saldo,
+                        }
+                        for conto in conti
+                    ]
+                    
+                    transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
+                    transazioni_data = [
+                        {
+                            'id': transazione.id,
+                            'importo': transazione.importo,
+                            'data': transazione.data,
+                            'descrizione': transazione.descrizione,
+                            'tipo_transazione': transazione.tipo_transazione,
+                            'eseguita' : transazione.eseguita,
+                            'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
+                            'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
+                            'conto' : transazione.conto.to_dict(),
+                            'conto_arrivo' : transazione.conto_arrivo.to_dict() if transazione.tipo_transazione == 'trasferimento' else None,
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
+                             'utente' : (transazione.utente).to_dict(),
+                        }
+                        for transazione in transazioni
+                    ]
+                    
+                    if(conto.tipo == 'risparmio'):
+                        BudgetingService.ricalcola_lista_piani_risparmio(utente)
+                        
+                    
+                    piani = BudgetingService.get_lista_SavingPlan_by_conto(conti)
+                    piani_data = [
+                        {
+                            'id' : piano.id,
+                            'obbiettivo': float(piano.obbiettivo),
+                            'percentuale_completamento': float(piano.percentuale_completamento),
+                            'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                            'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                            'conto': piano.conto.nome,
+                        }
+                        for piano in piani
+                    ]
+                    g = ChallengeService.get_family_challenge(Fam)
+                    challenge_list = [
+                            {
+                                'id' : sfida_item.pk,
+                                'importo_sfidante' : sfida_item.importo_sfidante,
+                                'importo_sfidato' : sfida_item.importo_sfidato,
+                                'percentuale_sfidante' : sfida_item.percentuale_sfidante,
+                                'percentuale_sfidato' : sfida_item.percentuale_sfidato,
+                                'categoria_target' : sfida_item.categoria_target.to_dict(),
+                                'sfidante' : sfida_item.sfidante.to_dict(),
+                                'sfidato' : sfida_item.sfidato.to_dict(),
+                                'descrizione' : sfida_item.descrizione,
+                            }
+                            for sfida_item in g
+                        ] 
+                    return JsonResponse({
+                        'success': True,
+                        'conti': conti_data,
+                        'transazioni': transazioni_data,
+                        "piani_risparmio" : piani_data,
+                        'sfide': challenge_list
+                    })
+                case 'trasferimento':
+                    conto_partenza = formTransazione.cleaned_data['conto']
+                    conto_destinazione = formTransazione.cleaned_data['conto_arrivo']
+                    importo = formTransazione.cleaned_data['importo']
+
+                # A -> B
+                    conto = Conto.objects.get(id=conto_partenza.id)
+                    conto.saldo -= importo
+                    conto.save()
+                    utente = UserService.get_utenti_by_user(request.user.id)
+                    # Crea la nuova transazione
+                    Transazione.objects.create(
+                        conto=conto,
+                        importo=importo,
+                        data=formTransazione.cleaned_data['data'],
+                        descrizione=formTransazione.cleaned_data['descrizione'],
+                        tipo_transazione=formTransazione.cleaned_data['tipo_transazione'],
+                        utente=  UserService.get_utenti_by_user(request.user.id),
+                        categoria = formTransazione.cleaned_data['categoria'], 
+                        sotto_categoria = formTransazione.cleaned_data['sotto_categoria'], 
+                        eseguita = True,
+                        conto_arrivo = conto_destinazione
+                        
+                    )
+                
+                 # B -> A
+                    conto = Conto.objects.get(id=conto_destinazione.id)
+                    conto.saldo += importo
+                    conto.save()
+                   
+
+                    
+                    conti = AccountService.get_family_accounts(famiglia)
+                    conti_data = [
+                        {
+                            'id': conto.id,
+                            'nome': conto.nome,
+                            'tipo': conto.tipo,
+                            'saldo': conto.saldo,
+                        }
+                        for conto in conti
+                    ]
+                    transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
+                    transazioni_data = [
+                        {
+                            'id': transazione.id,
+                            'importo': transazione.importo,
+                            'data': transazione.data,
+                            'descrizione': transazione.descrizione,
+                            'tipo_transazione': transazione.tipo_transazione,
+                            'eseguita' : transazione.eseguita,
+                            'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
+                            'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
+                            'conto' : transazione.conto.to_dict(),
+                            'conto_arrivo' : transazione.conto_arrivo.to_dict() if transazione.tipo_transazione == 'trasferimento' else None,
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
+                            'utente' : (transazione.utente).to_dict(),
+                        }
+                        for transazione in transazioni
+                    ]
+
+                    if(conto.tipo == 'risparmio'):
+                        BudgetingService.ricalcola_lista_piani_risparmio(utente)
+                        
+                    
+                    
+                    piani = BudgetingService.get_lista_SavingPlan_by_conto(conti)
+                    piani_data = [
+                        {
+                            'id' : piano.id,
+                            'obbiettivo': float(piano.obbiettivo),
+                            'percentuale_completamento': float(piano.percentuale_completamento),
+                            'data_scadenza' : piano.data_scadenza.strftime('%Y-%m-%d'), 
+                            'data_creazione' : piano.data_creazione.strftime('%Y-%m-%d'),  
+                            'conto': piano.conto.nome,
+                        }
+                        for piano in piani
+                    ]
+
+                    g = ChallengeService.get_family_challenge(Fam)
+                    challenge_list = [
+                            {
+                                'id' : sfida_item.pk,
+                                'importo_sfidante' : sfida_item.importo_sfidante,
+                                'importo_sfidato' : sfida_item.importo_sfidato,
+                                'percentuale_sfidante' : sfida_item.percentuale_sfidante,
+                                'percentuale_sfidato' : sfida_item.percentuale_sfidato,
+                                'categoria_target' : sfida_item.categoria_target.to_dict(),
+                                'sfidante' : sfida_item.sfidante.to_dict(),
+                                'sfidato' : sfida_item.sfidato.to_dict(),
+                                'descrizione' : sfida_item.descrizione,
+                            }
+                            for sfida_item in g
+                        ] 
+                    return JsonResponse({
+                        'success': True,
+                        'conti': conti_data,
+                        'transazioni': transazioni_data,
+                        "piani_risparmio" : piani_data,
+                        'sfide' : challenge_list
+                    })
+        else:
+            return JsonResponse({'success': False, 'errors': formTransazione.errors}, status=400)
+
+  
 
 
 @login_required
@@ -934,6 +1444,7 @@ def elimina_transazione(request, id):
 
         aggiorna_saldo_totale_transazione_eliminata(utente, data_transazione, transazione.importo)
 
+        ChallengeService.aggiorna_sfida(utente,transazione.categoria,(-transazione.importo))
         
         transazione.delete()  
         
@@ -1272,6 +1783,50 @@ def crea_famiglia(request, nome_famiglia):
 
     return JsonResponse({'success': False}, status=400)  # Handle other methods or errors
 
+
+@login_required
+def createFamChallenge(request, famiglia):
+    print(request.user.pk)
+    utente = UserService.get_utenti_by_user(request.user.pk) 
+    print(utente)
+    form = NuovaSfidaFamigliare(request.POST,utente= utente, famiglia= famiglia)
+    
+    fam = Famiglia.objects.get(pk = famiglia)
+    
+    if form.is_valid():
+        SfidaFamigliare.objects.create(
+            sfidante=utente,
+            sfidato=form.cleaned_data['sfidato'],
+            conclusa=False,
+            data_creazione=timezone.now().date(),
+            data_scadenza=form.cleaned_data['data_scadenza'],
+            importo_sfidante=0,
+            importo_sfidato=0,
+            descrizione=form.cleaned_data['descrizione'],
+            categoria_target=form.cleaned_data['categoria_target'],
+            famiglia=fam,
+        )
+        g = ChallengeService.get_family_challenge(fam)
+        challenge_list = [
+                            {
+                                'id' : sfida_item.pk,
+                                'importo_sfidante' : sfida_item.importo_sfidante,
+                                'importo_sfidato' : sfida_item.importo_sfidato,
+                                'percentuale_sfidante' : sfida_item.percentuale_sfidante,
+                                'percentuale_sfidato' : sfida_item.percentuale_sfidato,
+                                'categoria_target' : sfida_item.categoria_target.to_dict(),
+                                'sfidante' : sfida_item.sfidante.to_dict(),
+                                'sfidato' : sfida_item.sfidato.to_dict(),
+                                'descrizione' : sfida_item.descrizione,
+                            }
+                            for sfida_item in g
+                        ] 
+        return JsonResponse({'valid': True, 'sfide' : challenge_list})
+    
+    return JsonResponse({'valid': False, 'errors': form.errors}, status=400) 
+
+        
+    
 
 
 

@@ -1,5 +1,5 @@
 from django.db import models
-from Users.models import Utente
+from Users.models import Famiglia, Utente
 from Budgeting.models import CategoriaSpesa
 # Create your models here.
 class SfidaPersonale(models.Model):
@@ -21,11 +21,12 @@ class SfidaFamigliare(models.Model):
     sfidato = models.ForeignKey(Utente, related_name='sfidato', on_delete=models.CASCADE)
     conclusa = models.BooleanField(default=False)
     vincitore = models.ForeignKey(Utente, null=True, blank=True, related_name='vincitore', on_delete=models.SET_NULL)
-    durata = models.CharField(max_length=20)
     data_creazione = models.DateField()
-    data_accettazione = models.DateField(null=True, blank=True)
     data_scadenza = models.DateField()
     importo_sfidante = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     importo_sfidato = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    descrizione = models.TextField()
-
+    descrizione = models.TextField(null=True, blank=True)
+    categoria_target = models.ForeignKey(CategoriaSpesa, on_delete=models.CASCADE, null=True, blank=True)
+    famiglia = models.ForeignKey(Famiglia, on_delete=models.CASCADE, null=True)
+    percentuale_sfidante = models.DecimalField(max_digits=10, decimal_places=2, default=50)
+    percentuale_sfidato = models.DecimalField(max_digits=10, decimal_places=2, default=50)

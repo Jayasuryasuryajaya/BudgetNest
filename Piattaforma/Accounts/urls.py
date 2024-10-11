@@ -28,6 +28,8 @@ urlpatterns = [
     path('famiglia_selezionata/<int:id>/', accedi_famiglia, name='accesso_famiglia'),
     path('createAccountFam/<int:id>/', crea_account_famiglia, name='createAccountFamily'),
     path('createSavingsFam/<int:id>/', savings_section_famiglia, name='createSavingFamily'),
+    path('createTransactionFamily/<int:famiglia>/', transaction_section_famiglia, name='createtransactionFamily'),
+    path('createChallengeFamily/<int:famiglia>/', createFamChallenge, name='create_challenge'),
 ]
 
 

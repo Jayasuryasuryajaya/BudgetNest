@@ -350,10 +350,10 @@
                     <input type="hidden" name="next" value="{{ next }}">
                 </form>
             </div>
-        </div>
+    </div>
 
-
-
+   
+     
 
 
 
@@ -779,6 +779,48 @@
                
                 const transactionText = document.createElement('span');
 
+                if(transazione.utente.pk != {{utente.pk}}) {
+                    if (transazione.categoria) {
+                        if (transazione.tipo === 'trasferimento') {
+                            transactionText.textContent = `Category: ${transazione.categoria} | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;
+                        } else {
+                            if(transazione.sottocategoria)
+                            {
+                                if (transazione.descrizione != ''){
+                                    transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
+                                    } else {
+                                    transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
+                                    transactionText.style.padding = '5px 0'; // Padding per il testo
+                                    transactionItem.appendChild(transactionText);
+                            }
+                            else
+                            {
+                                if (transazione.descrizione != ''){
+                                    transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
+                                    } else {
+                                    transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
+                                    transactionText.style.padding = '5px 0'; // Padding per il testo
+                                    transactionItem.appendChild(transactionText);
+                            }
+    
+                           
+                        }
+                    } else {
+                    if (transazione.tipo === 'trasferimento') {
+                        // Se è un trasferimento, utilizza transazione.categoria
+                        transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;
+                    } else {
+                        if (transazione.descrizione != ''){
+                        transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
+                        } else {
+                        transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
+                        transactionText.style.padding = '5px 0'; // Padding per il testo
+                        transactionItem.appendChild(transactionText);
+                    }
+                }
+                }
+                else {
+
                 if (transazione.categoria) {
                     if (transazione.tipo === 'trasferimento') {
                         transactionText.textContent = `Category: ${transazione.categoria} | Amount: ${transazione.importo} | Date: ${transazione.data}`;
@@ -821,6 +863,7 @@
                     transactionItem.appendChild(transactionText);
                 }
             }
+        }
            
                 if(transazione.utente.pk == {{utente.pk}}) {
                     editIcon = document.createElement('i');

@@ -53,5 +53,5 @@ class Utente(models.Model):
     def to_dict(self):
         return {
             'pk': self.pk,
-            'nome': self.nome,
+            'nome': str(self.nome + ' ' + self.cognome),
         }
