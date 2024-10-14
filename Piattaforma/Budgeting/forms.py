@@ -445,3 +445,48 @@ class ObbiettivoSpesaForm(forms.ModelForm):
         if(obbiettivo <= 0):
              raise ValidationError("The amount must be positive")
         
+class NuovoInvestimentoForm(forms.ModelForm):
+    class Meta:
+        model = Transazione
+        fields = [
+            'conto',
+            'descrizione',
+            'numero_azioni',
+            'prezzo_azione',
+        ]
+        widgets = {
+            'descrizione': forms.Textarea(attrs={
+                'placeholder': 'Enter description',
+                'class': 'form-control',
+                'rows': 3,
+            }),
+            
+            'conto': forms.Select(attrs={'class': 'form-control'}),
+            'numero_azioni': forms.NumberInput(attrs={
+                'placeholder': 'Enter number of shares',
+                'class': 'form-control',
+                'step': '1',
+                'min': '0',
+            }),
+            'prezzo_azione': forms.NumberInput(attrs={
+                'placeholder': 'Enter share price',
+                'class': 'form-control',
+                'step': '0.01',
+                'min': '0',
+            }),
+        }
+  
+    
+    def __init__(self, *args, utente=None, **kwargs):  
+        super().__init__(*args, **kwargs)  
+        Utente = UserService.get_utenti_by_user(utente.id)
+        self.fields['conto'].choices = [(conto.pk, str(conto)) for conto in AccountService.get_conti_investimento_utente(Utente.pk)]
+        self.fields['conto'].empty_label = "Select account"
+
+     
+       
+        
+        
+        
+   
+   

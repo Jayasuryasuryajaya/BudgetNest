@@ -78,10 +78,7 @@ class BudgetingService:
     
    
     def aggiorna_saldo_totale_dopo_inserimento(utente, data_transazione, importo):
-   
-   
         saldo_records = SaldoTotale.objects.filter(utente=utente, data_aggiornamento__gte=data_transazione)
-
         for record in saldo_records:
             record.saldo_totale += importo
             record.save()

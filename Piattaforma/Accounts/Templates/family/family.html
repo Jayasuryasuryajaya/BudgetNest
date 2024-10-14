@@ -119,7 +119,7 @@
     </div>
 
 
-    <div id="sfidaContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="border-radius: 15px;margin-left: auto; margin-right: auto; background-color: white; padding: 10px; margin-top: 50px; width: 70%">
+    <div id="sfidaContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="border-radius: 15px;margin-left: auto; margin-right: auto; background-color: white; padding: 10px; margin-top: 50px; width: 70%; text-align: center">
                 {% if not challenge %}
                     <div class="challenge-row" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
                         <div class="icona-challenge" style="margin-right: 15px;">
@@ -132,6 +132,7 @@
                     </div>
                 {% else %}
                     {% for sfida in challenge %}
+                  
                         <div id= "singola_sfida_{{ sfida.id }}" class="challenge-row" style="display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height:55px">
                             <!-- Sfidante a sinistra -->
                             <div class="sfidante" style="flex: 1; text-align: left;">
@@ -167,8 +168,13 @@
                         <p style="margin: 0; font-size: 14px; color: #ccc;">Spesa: €{{ sfida.importo_sfidato }}</p>
                     </div>
                 </div>
+                
             {% endfor %}
         {% endif %}
+       
+        
+       
+        
     </div>
     
 
@@ -605,7 +611,7 @@
             transactionList.innerHTML = ''; // Pulisce la lista
             
             const pageTransactions = transazioniDelConto.slice(start, end);
-            pageTransactions.forEach(transazione => {
+             pageTransactions.forEach(transazione => {
                 const transactionItem = document.createElement('div');
                 transactionItem.style.display = 'flex'; // Usa flexbox per allineare gli elementi
                 transactionItem.style.justifyContent = 'space-between'; // Spazia gli elementi
@@ -1634,14 +1640,14 @@
                         challengeBar.appendChild(bar1);
                         challengeBar.appendChild(bar2);
         
-                        // Testo della categoria al centro
+                       
                         const categorySpan = document.createElement('span');
                         categorySpan.style.cssText = 'position: absolute; left: 50%; transform: translateX(-50%); color: #333; font-weight: bold;';
                         categorySpan.textContent = sfida.categoria_target.nome;
                         
                         challengeBar.appendChild(categorySpan);
         
-                        // Sfidato a destra
+                        
                         const sfidatoDiv = document.createElement('div');
                         sfidatoDiv.className = 'sfidato';
                         sfidatoDiv.style.flex = '1';
@@ -1662,23 +1668,24 @@
                         sfidatoDiv.appendChild(sfidatoName);
                         sfidatoDiv.appendChild(spesaSfidato);
         
-                        // Aggiungi tutti gli elementi alla riga della sfida
+                     
                         challengeRow.appendChild(sfidanteDiv);
                         challengeRow.appendChild(challengeBar);
                         challengeRow.appendChild(sfidatoDiv);
         
-                        // Aggiungi la riga della sfida al contenitore delle sfide
+                        
                         sfidaContainer.appendChild(challengeRow);
                     });
                     closeModalChallenge()
                 } else {
                     let firstFieldErrorKey = Object.keys(data.errors)[0];
-                    console.error(data.errors[firstFieldErrorKey][0]); // Mostra l'errore nella console o gestiscilo come preferisci
+                    console.error(data.errors[firstFieldErrorKey][0]); 
+                    respondeMessaggeChallenge.textContent = data.errors[firstFieldErrorKey][0];
                 }
             });
         });
     
-        //challenge
+        
 
         function handleContoClickChallenge(event, dataset) {
             if (event.target && event.target.id.startsWith('singola_sfida_')) {
@@ -1712,6 +1719,82 @@
         };
 
         updateChallenge(challenge_json);
+
+        function deleteSfidaFamigliare(SfidaId) {
+   
+            const confirmDelete = confirm('Are you sure you want to delete this challenge ?');
+           
+            if (confirmDelete) {
+                fetch("{% url 'elimina_challenge' 0 %}".replace('0', SfidaId), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                    },
+                    body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(risposta => {
+                    if(risposta.success)
+                    alert(risposta.message)
+                    reloadPage()
+                    })
+            
+                .catch(error => console.error('Errore durante l\'eliminazione della challenge:', error));
+            }
+        
+        };
+        
+        function editChallenge(sfidaId) {
+            const newDate = prompt('Enter the new due date (format YYYY-MM-DD):');
+            if (newDate && /^\d{4}-\d{2}-\d{2}$/.test(newDate)) {
+                const today = new Date();
+                const newDateObj = new Date(newDate);
+               
+                if (newDateObj <= today) {
+                    alert("The expiration date cannot be in the past.");
+                } else {
+                    fetch("{% url 'cambia_data_scadenza_challenge' 0 'new_date' %}".replace('0', sfidaId).replace('new_date', encodeURIComponent(newDate)), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            document.getElementById(`ScadenzaChallenge_${sfidaId}`).innerHTML = `<p id="ScadenzaChallenge_${sfidaId}" style="margin: 0;"><strong>Due date:</strong> ${newDate}</p>`;
+                            closeButtonDettagliChallenge = document.getElementById(`closeModelDettagliSfida_${sfidaId}`);
+                            if (closeButtonDettagliChallenge) {
+                            closeButtonDettagliChallenge.addEventListener('click', reloadPage);
+                            }
+                            alert('The due date has been successfully updated.');
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                
+                .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+             } 
+             else {
+                alert('Invalid date format. Please make sure to use the YYYY-MM-DD format.');
+            }
+            
+    
+              
+            
+        };
+
 
         function createSfidaFamigliareModal(sfidaId, sfidaOggetto) {
 
@@ -1755,10 +1838,15 @@
         
                         <!-- Divider -->
                         <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
-        
+
+                        
+
                         <!-- Data di Creazione e Scadenza -->
                         <p><strong>Creation date:</strong> ${sfidaOggetto.data_creazione}</p>
-                        <p><strong>Due date:</strong> ${sfidaOggetto.data_scadenza}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <p id = "ScadenzaChallenge_${sfidaId}" ><strong>Due date:</strong> ${sfidaOggetto.data_scadenza}</p>
+                        <i class="bi bi-pencil" id="editScadenza_${sfidaId}" style="font-size: 20px; cursor: pointer;"></i>
+                        </div>
         
                         <!-- Divider -->
                         <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
@@ -1778,7 +1866,7 @@
                         <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
         
                         <!-- Stato della sfida -->
-                        <p><strong>Challenge status:</strong> ${sfidaOggetto.conclusa ? "Concluded" : "Ongoing"}</p>
+                        <p><strong>Challenge status:</strong> Ongoing</p>
                         
                     </div>
                 </div>
@@ -1801,15 +1889,22 @@
                     }
                 });
             }
+
+            const editScadenza= document.getElementById(`editScadenza_${sfidaId}`);
+            editScadenza.addEventListener('click', function() {
+                editChallenge(sfidaId); // Funzione per modificare il piano di risparmio
+            });
+            
         
             modal.style.display = 'block'; // Mostra il modal
         };
+        
         
     
     });
     
 
-       
+    
         
 
 

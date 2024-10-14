@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from .services import *
 from django.contrib.auth.decorators import login_required
@@ -16,12 +17,16 @@ from django.http import JsonResponse
 from decimal import Decimal
 from django.shortcuts import redirect
 from Challenges.forms import *
+import urllib.request
 from Challenges.services import * 
+from Budgeting.models import * 
 
 @login_required
 def dashboard_utente(request):
     utente = UserService.get_utenti_by_user(request.user.pk)
     AccountService.calcola_saldo_totale(utente)
+    AccountService.calcola_saldo_totale_investimenti(utente)
+    ChallengeService.concludi_sfida(utente)
     return render(request, 'dashboard/dashboard.html')
 
 @login_required
@@ -53,6 +58,7 @@ def accedi_famiglia(request, id):
     formTransazione = NuovaTransazioneFamigliaForm(utente=request.user, famiglia= famiglia.first())
     lista_piani_risparmio = BudgetingService.get_lista_SavingPlan_by_conto(conti)
     challenge_list = ChallengeService.get_family_challenge(famiglia.first())
+    today = timezone.now().date()
     lista_transazioni = []
     for conto in conti:
         lista_transazioni.append(Transazione.objects.filter(eseguita=True).filter(conto = conto).order_by('-data'))
@@ -96,6 +102,9 @@ def accedi_famiglia(request, id):
                                 'sfidante' : sfida_item.sfidante.to_dict(),
                                 'sfidato' : sfida_item.sfidato.to_dict(),
                                 'descrizione' : sfida_item.descrizione,
+                                'data_scadenza' : sfida_item.data_scadenza.strftime('%Y-%m-%d'),
+                                'data_creazione' : sfida_item.data_creazione.strftime('%Y-%m-%d'),  
+                                'conclusa' : "true" if sfida_item.conclusa else "false",
                             }
                             for sfida_item in challenge_list
                         ] 
@@ -116,7 +125,8 @@ def accedi_famiglia(request, id):
         for piano in lista_piani_risparmio
         
     ]
-      
+    
+   
     context = {'famiglia': famiglia.first(),
                'conti' : conti,
                'formConto' : formConto,
@@ -130,7 +140,7 @@ def accedi_famiglia(request, id):
                'formSfida' : formSfida,
                'challenge' : challenge_list,
                'challenge_json' : challenge_json,
-               
+               'today' : today,
                }
     return render(request, 'family/family.html', context)
  
@@ -178,6 +188,7 @@ def personal_section(request):
     BudgetingService.check_future_transactions(request)
     utente = UserService.get_utenti_by_user(request.user.pk)
     AccountService.calcola_saldo_totale(utente)
+    AccountService.calcola_saldo_totale_investimenti(utente)
     form = NuovoConto()
     formTransazione = NuovaTransazioneForm(utente=request.user)
     conti = AccountService.get_conti_utente(utente.pk)
@@ -317,7 +328,6 @@ def transaction_section(request):
         utente = UserService.get_utenti_by_user(request.user.pk)
         formTransazione = NuovaTransazioneForm(request.POST, utente=request.user) 
         
-       
         if formTransazione.is_valid():
             conto = formTransazione.cleaned_data['conto']
             categoria = formTransazione.cleaned_data['categoria']
@@ -916,6 +926,7 @@ def savings_section_famiglia(request,id):
             return JsonResponse({'success': False, 'errors': formSavingPlan.errors})
 
 
+
 def aggiorna_saldo_totale_transazione_eliminata(utente, data_transazione, importo):
     # Recupera tutti i record di SaldoTotale a partire dalla data della transazione
     saldo_records = SaldoTotale.objects.filter(utente=utente, data_aggiornamento__gte=data_transazione)
@@ -975,6 +986,9 @@ def transaction_section_famiglia(request, famiglia):
                                 'sfidante' : sfida_item.sfidante.to_dict(),
                                 'sfidato' : sfida_item.sfidato.to_dict(),
                                 'descrizione' : sfida_item.descrizione,
+                                'data_scadenza' : sfida_item.data_scadenza.strftime('%Y-%m-%d'), 
+                                'data_creazione' : sfida_item.data_creazione.strftime('%Y-%m-%d'), 
+                                'conclusa' : sfida_item.conclusa,
                             }
                             for sfida_item in g
                         ] 
@@ -1140,6 +1154,9 @@ def transaction_section_famiglia(request, famiglia):
                                 'sfidante' : sfida_item.sfidante.to_dict(),
                                 'sfidato' : sfida_item.sfidato.to_dict(),
                                 'descrizione' : sfida_item.descrizione,
+                                'data_scadenza' : sfida_item.data_scadenza.strftime('%Y-%m-%d'),
+                                'data_creazione' : sfida_item.data_creazione.strftime('%Y-%m-%d'),
+                                'conclusa' : sfida_item.conclusa,  
                             }
                             for sfida_item in g
                         ] 
@@ -1293,6 +1310,9 @@ def transaction_section_famiglia(request, famiglia):
                                 'sfidante' : sfida_item.sfidante.to_dict(),
                                 'sfidato' : sfida_item.sfidato.to_dict(),
                                 'descrizione' : sfida_item.descrizione,
+                                'data_scadenza' : sfida_item.data_scadenza.strftime('%Y-%m-%d'),  
+                                'data_creazione' : sfida_item.data_creazione.strftime('%Y-%m-%d'), 
+                                'conclusa' : sfida_item.conclusa, 
                             }
                             for sfida_item in g
                         ] 
@@ -1394,6 +1414,9 @@ def transaction_section_famiglia(request, famiglia):
                                 'sfidante' : sfida_item.sfidante.to_dict(),
                                 'sfidato' : sfida_item.sfidato.to_dict(),
                                 'descrizione' : sfida_item.descrizione,
+                                'data_scadenza' : sfida_item.data_scadenza.strftime('%Y-%m-%d'),  
+                                'data_creazione' : sfida_item.data_creazione.strftime('%Y-%m-%d'), 
+                                'conclusa' : sfida_item.conclusa, 
                             }
                             for sfida_item in g
                         ] 
@@ -1797,7 +1820,7 @@ def createFamChallenge(request, famiglia):
         SfidaFamigliare.objects.create(
             sfidante=utente,
             sfidato=form.cleaned_data['sfidato'],
-            conclusa=False,
+            conclusa= False,
             data_creazione=timezone.now().date(),
             data_scadenza=form.cleaned_data['data_scadenza'],
             importo_sfidante=0,
@@ -1818,6 +1841,9 @@ def createFamChallenge(request, famiglia):
                                 'sfidante' : sfida_item.sfidante.to_dict(),
                                 'sfidato' : sfida_item.sfidato.to_dict(),
                                 'descrizione' : sfida_item.descrizione,
+                                'data_scadenza' : sfida_item.data_scadenza.strftime('%Y-%m-%d'),  
+                                'data_creazione' : sfida_item.data_creazione.strftime('%Y-%m-%d'), 
+                                'conclusa' : sfida_item.conclusa, 
                             }
                             for sfida_item in g
                         ] 
@@ -1827,6 +1853,53 @@ def createFamChallenge(request, famiglia):
 
         
     
+@login_required
+def eliminaChallenge(request, id):
+    if request.method == 'POST':
+        try:
+            sfida = SfidaFamigliare.objects.get(pk=id)
+            
+            sfida.delete()
+            
+            response_data = {
+                'success': True,
+                'message': 'Challenge successfully deleted.'
+            }
+        except Conto.DoesNotExist:
+            response_data = {
+                'success': False,
+                'message': 'Challenge doesn\'t exist'
+            }
+        
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False, 'message': 'Metodo non permesso.'}, status=405)
+
+@login_required
+def modificaChallenge(request, id, new_date):
+    if request.method == 'POST':
+        try:
+            
+            Challenge = (SfidaFamigliare.objects.get(pk = id))
+            
+            Challenge.data_scadenza = new_date
+            
+            Challenge.save()
+            
+            
+            response_data = {
+                'success': True,
+            }
+            
+        except Challenge.DoesNotExist:
+            response_data = {
+                'success': False,
+            }
+        
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'success': False}, status=405)
+
 
 
 
@@ -1855,8 +1928,213 @@ def unisciti_famiglia(request, codice):
                     data_intestazione=timezone.now().date()
                 )
             return JsonResponse({'success': True})
-        
+       
         return JsonResponse({'success': False}, status=400)
     
 
     return JsonResponse({'success': False}, status=400)
+
+@login_required
+def investments(request):
+    utente = UserService.get_utenti_by_user(request.user.pk)
+    conti = AccountService.get_conti_investimento_utente(utente.pk)
+    formTransazione = NuovoInvestimentoForm(utente=request.user)
+    AccountService.calcola_saldo_totale_investimenti(utente)
+    utente = UserService.get_utenti_by_user(request.user.pk)
+    saldo_data = SaldoTotaleInvestimenti.objects.filter(utente=utente).order_by('data_aggiornamento')
+    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+    data = [saldo.saldo_totale for saldo in saldo_data]
+    aggiorna_posizioni_investimenti(request)
+    context = { "data" : data, "labels": labels, "conti" : conti, "formTransazione" : formTransazione}
+    return render(request, 'investments/homepageInvest.html', context)
+
+
+def get_company_data(request, company_name):
+    api_key = os.getenv('FINHUB_API_KEY')
+    url = f'https://finnhub.io/api/v1/search?q={company_name}&token={api_key}'
+
+    try:
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read().decode())
+        
+        # Filtrare solo le azioni comuni (Common Stock) senza suffissi
+        filtered_results = [
+            company for company in data.get('result', [])
+            if 'Common Stock' in company.get('type', '') and '.' not in company['displaySymbol']
+        ]
+
+        # Ordinare i risultati in base al simbolo (opzionale)
+        filtered_results.sort(key=lambda x: x['displaySymbol'])  # Ordinamento semplice
+
+        return JsonResponse({'result': filtered_results})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def get_exchange_rate():
+    # Funzione per ottenere il tasso di cambio USD to EUR
+    url = 'https://api.exchangerate-api.com/v4/latest/USD'  # API per il tasso di cambio
+    try:
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read().decode())
+            return data['rates']['EUR']  # Restituisce il tasso di cambio per EUR
+    except urllib.error.URLError as e:
+        return None  # Gestione dell'errore
+    
+def get_stock_data(request, symbol):
+    api_key = settings.ALPHA_VANTAGE_API_KEY
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}'
+    
+    try:
+        # Effettua la richiesta usando urllib
+        with urllib.request.urlopen(url) as response:
+            data = json.loads(response.read().decode())
+
+        # Gestione dell'errore
+        if 'Error Message' in data:
+            return JsonResponse({'error': 'Invalid symbol'}, status=400)
+
+        return JsonResponse(data)
+
+    except urllib.error.URLError as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def get_latest_price_in_euro(request, symbol):
+    # Richiama la funzione get_stock_data per ottenere i dati delle azioni
+    stock_data_response = get_stock_data(request, symbol)
+
+    # Controlla se ci sono errori nella risposta
+    if isinstance(stock_data_response, JsonResponse) and stock_data_response.status_code != 200:
+        return stock_data_response  # Restituisce errore se presente
+
+    # Estrai i dati delle azioni dalla risposta JSON
+    stock_data = json.loads(stock_data_response.content)  # Usa content per ottenere i dati
+
+    # Controlla se la chiave 'Time Series (Daily)' è presente
+    if 'Time Series (Daily)' not in stock_data:
+        return JsonResponse({'error': 'No time series data available for this symbol.'}, status=400)
+
+    # Estrai l'ultimo prezzo disponibile
+    latest_date = next(iter(stock_data['Time Series (Daily)']))
+    
+    closing_price_usd = float(stock_data['Time Series (Daily)'][latest_date]['4. close'])
+
+    # Ottieni il tasso di cambio USD to EUR
+    exchange_rate = get_exchange_rate()
+
+    if exchange_rate is None:
+        return JsonResponse({'error': 'Unable to fetch exchange rate'}, status=500)
+
+    # Calcola il prezzo in euro
+    closing_price_eur = closing_price_usd * exchange_rate
+
+    # Restituisci il prezzo in euro formattato
+    response_data = {
+        'symbol': symbol,
+        'closing_price_usd': f"${closing_price_usd:.2f}",
+        'closing_price_eur': f"€{closing_price_eur:.2f}"
+    }
+
+    return JsonResponse(response_data)
+
+def aggiorna_posizioni_investimenti(request):
+    utente = UserService.get_utenti_by_user(request.user.pk)
+    posizioni = AccountService.get_posizioni(utente=utente)
+
+    for posizione in posizioni:
+        # Richiama il prezzo attuale in euro
+        prezzo_attuale_response = get_latest_price_in_euro(request, posizione.ticker)
+        print("ciao")
+        # Controlla se ci sono errori nella risposta
+        if isinstance(prezzo_attuale_response, JsonResponse) and prezzo_attuale_response.status_code != 200:
+            return prezzo_attuale_response  
+
+        print("ehi")
+        prezzo_attuale_data = prezzo_attuale_response.json()
+        prezzo_attuale = float(prezzo_attuale_data['closing_price_eur'].replace('€', '').replace(',', '.'))
+
+     
+        posizione.saldo_totale = posizione.numero_azioni * prezzo_attuale
+        posizione.differenza = posizione.saldo_totale - posizione.saldo_investito
+
+        # Salva le modifiche alla posizione nel database
+        posizione.save()
+
+    return JsonResponse({'message': 'Posizioni aggiornate con successo'}, status=200)
+
+@login_required
+def investment_section(request, symbol, nome_azienda):
+    if request.method == 'POST':
+        utente = UserService.get_utenti_by_user(request.user.pk)
+        formTransazione = NuovoInvestimentoForm(request.POST, utente=request.user) 
+        
+        if formTransazione.is_valid():
+            conto_id = formTransazione.cleaned_data['conto']
+            conto = Conto.objects.get(id=conto_id.id)
+            importo = -(formTransazione.cleaned_data['numero_azioni']*formTransazione.cleaned_data['prezzo_azione'])
+            conto.saldo += Decimal(importo)
+            conto.save()
+            
+            Transazione.objects.create(
+                        conto=conto,
+                        importo=importo,
+                        data=  timezone.now().date(),
+                        descrizione= formTransazione.cleaned_data['descrizione'],
+                        tipo_transazione= CategoriaTransazione.INVESTIMENTO,
+                        utente=  utente, 
+                        eseguita = True,
+                        ticker = symbol,
+                        prezzo_azione = formTransazione.cleaned_data['prezzo_azione'],
+                        numero_azioni = formTransazione.cleaned_data['numero_azioni'],
+                    )
+
+            conti = AccountService.get_conti_investimento_utente(utente.pk)
+            conti_data = [
+                        {
+                            'id': conto.id,
+                            'nome': conto.nome,
+                            'tipo': conto.tipo,
+                            'saldo': conto.saldo,
+                        }
+                        for conto in conti
+                ]
+
+            transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
+            transazioni_data = [
+                        {
+                            'id': transazione.id,
+                            'importo': transazione.importo,
+                            'data': transazione.data,
+                            'descrizione': transazione.descrizione,
+                            'tipo_transazione': transazione.tipo_transazione,
+                            'eseguita' : transazione.eseguita,
+                            'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
+                            'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
+                            'conto' : transazione.conto.to_dict(),
+                            'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
+                            'utente' : (transazione.utente).to_dict(),
+                            'ticker' : symbol,
+                            'prezzo_azione' : transazione.prezzo_azione,
+                            'numero_azioni' : transazione.numero_azioni,
+                        }
+                        for transazione in transazioni
+                    ]
+                    
+                    
+            
+            AccountService.modifica_saldo_totale(utente, Decimal(importo))
+            AccountService.modifica_saldo_totale_investimenti(utente, Decimal(importo))
+            AccountService.registra_posizione_investimento(utente, conto, symbol,  formTransazione.cleaned_data['numero_azioni'], formTransazione.cleaned_data['prezzo_azione'], nome_azienda)
+            
+            saldo_data = SaldoTotaleInvestimenti.objects.filter(utente=utente).order_by('data_aggiornamento')
+            labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+            data = [saldo.saldo_totale for saldo in saldo_data]
+                    
+            return JsonResponse({
+                        'success': True,
+                        'conti': conti_data,
+                        'transazioni': transazioni_data,
+                        'labels' : labels,
+                        'data' : data,
+                    })
+  

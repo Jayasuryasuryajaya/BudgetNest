@@ -1,0 +1,13 @@
+# .gitignore
+.env
+
+# Ignora cartelle di ambiente virtuale Python
+venv/
+.venv/
+
+# Ignora file di cache
+__pycache__/
+*.pyc
+
+# Ignora cartelle di file statici (se usi collectstatic per Django)
+staticfiles/
