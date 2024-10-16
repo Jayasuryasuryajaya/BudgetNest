@@ -1,0 +1,151 @@
+{% extends "registration/base.html" %}
+
+{% block content %}
+<section id="profile-section" class="sections section dark-background d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
+    <div class="container text-center">
+        <div class="row gy-4 justify-content-center">
+                
+            <!-- Rettangolo Modifica Profilo -->
+            <div class="col-md-8 d-flex flex-column align-items-center" data-aos="fade-up" data-aos-delay="200">
+                <div class="section-box p-4">
+                    <i class="bi bi-person-circle"></i>
+                    <h3>Edit Profile</h3>
+                    <p>Update your personal details below.</p>
+
+                    <form method="POST" id = "profileForm" action="{% url 'profile_update' %}">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <!-- Username -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <input type="text" id="username" name="username" class="form-control" value="{{ utente.username }}" required>
+                                </div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="password">Password</label>
+                                    <div class="input-group">
+                                        <input type="password" id="password" name="password" class="form-control" value="{{ utente.password }}" required>
+                                        <button type="button" class="btn btn-outline-secondary " id="togglePassword">Show</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <!-- Phone -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="telefono">Phone Number</label>
+                                    <input type="text" id="telefono" name="telefono" class="form-control" value="{{ utente.telefono }}" required>
+                                </div>
+                            </div>
+
+                            <!-- First Name -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nome">First Name</label>
+                                    <input type="text" id="nome" name="nome" class="form-control" value="{{ utente.nome }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <!-- Last Name -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="cognome">Last Name</label>
+                                    <input type="text" id="cognome" name="cognome" class="form-control" value="{{ utente.cognome }}" required>
+                                </div>
+                            </div>
+                                                        <!-- Date of Birth -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="data_di_nascita">Date of Birth</label>
+                                    <input type="date" id="data_di_nascita" name="data_di_nascita" class="form-control" value="{{ utente.data_di_nascita|date:'Y-m-d' }}" >
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <!-- Address -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="indirizzo">Address</label>
+                                    <input type="text" id="indirizzo" name="indirizzo" class="form-control" value="{{ utente.indirizzo }}">
+                                </div>
+                            </div>
+
+                            <!-- Gender -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="sesso">Gender</label>
+                                    <select id="sesso" name="sesso" class="form-control">
+                                        <option value="M" {% if utente.sesso == 'M' %}selected{% endif %}>Male</option>
+                                        <option value="F" {% if utente.sesso == 'F' %}selected{% endif %}>Female</option>
+                                        <option value="O" {% if utente.sesso == 'O' %}selected{% endif %}>Others</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit"  style="border-radius: 50px; background-color: #28a745; color: white; padding:10px">Save Changes</button>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<script>
+   
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.textContent = type === 'password' ? 'Show' : 'Hide';
+    });
+
+   
+    const profileForm = document.getElementById('profileForm');
+
+    profileForm.addEventListener('submit', function(event) {
+        event.preventDefault(); 
+
+        const formData = new FormData(profileForm);
+
+        fetch(profileForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}' // Includere il token CSRF
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('username').value = data.username || document.getElementById('username').value;
+            document.getElementById('password').value = data.password || document.getElementById('password').value;
+            document.getElementById('telefono').value = data.telefono || document.getElementById('telefono').value;
+            document.getElementById('nome').value = data.nome || document.getElementById('nome').value;
+            document.getElementById('cognome').value = data.cognome || document.getElementById('cognome').value;
+            document.getElementById('data_di_nascita').value = data.data_di_nascita || document.getElementById('data_di_nascita').value;
+            document.getElementById('indirizzo').value = data.indirizzo || document.getElementById('indirizzo').value;
+            document.getElementById('sesso').value = data.sesso || document.getElementById('sesso').value;
+
+            alert('Profile updated successfully!'); // Notifica di aggiornamento riuscito
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('There was an error updating the profile.');
+        });
+    });
+</script>
+{% endblock content %}
+

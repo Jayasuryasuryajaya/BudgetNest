@@ -1,5 +1,5 @@
 
-from .models import Transazione, PianoDiRisparmio, CategoriaSpesa, ObbiettivoSpesa
+from .models import Transazione, PianoDiRisparmio, CategoriaSpesa, ObbiettivoSpesa, SottoCategoriaSpesa
 from Accounts.models import IntestazioniConto, Conto
 from django.utils import timezone
 from Users.services import *
@@ -64,6 +64,9 @@ class BudgetingService:
         lista_categorie = CategoriaSpesa.objects.all()
         return lista_categorie
     
+    def get_sotto_categorie_utente(utente):
+        lista_sotto_categorie = SottoCategoriaSpesa.objects.filter(utente = utente)
+        return lista_sotto_categorie
     
     def ricalcola_percentuale_completamento_pianoRisparmio(request, id):
         utente = UserService.get_utenti_by_user(request.user.id)

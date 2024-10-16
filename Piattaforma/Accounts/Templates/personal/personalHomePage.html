@@ -165,12 +165,17 @@
                                         <h3 style="margin: 0; font-size: 18px; color: #00995c;">Transfer</h3>
                                         <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
                                     {% else %}
-                                        {% if t.importo >= 0 %}
-                                        <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
-                                        {% else %}
-                                            <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
-                                        {% endif %}
-                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
+                                    {% if t.tipo_transazione == 'investimento' %}
+                                        <h3 style="margin: 0; font-size: 18px; color: #00995c;">Investment</h3>
+                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
+                                            {% else %}
+                                                {% if t.importo >= 0 %}
+                                                <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
+                                                {% else %}
+                                                    <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
+                                                {% endif %}
+                                                <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
+                                    {% endif %}
                                     {% endif %}
                                 </div>
                                 <div class="importo-transazione" style="flex: 1; text-align: right;">
@@ -194,12 +199,17 @@
                                         <h3 style="margin: 0; font-size: 18px; color: #00995c;">Transfer</h3>
                                         <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
                                     {% else %}
-                                        {% if t.importo >= 0 %}
-                                            <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
-                                        {% else %}
-                                            <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
-                                        {% endif %}
-                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
+                                    {% if t.tipo_transazione == 'investimento' %}
+                                        <h3 style="margin: 0; font-size: 18px; color: #00995c;">Investment</h3>
+                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
+                                            {% else %}
+                                                {% if t.importo >= 0 %}
+                                                    <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
+                                                {% else %}
+                                                    <h3 style="margin: 0; font-size: 18px; color: red;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
+                                                {% endif %}
+                                                <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
+                                    {% endif %}
                                     {% endif %}
                                 </div>
                                  <div class="importo-transazione" style="flex: 1; text-align: right;">
@@ -271,21 +281,7 @@
                 <div class="mb-4 periodica" style="display:none;">
                     {{ formTransazione.tipo_rinnovo}}
                 </div>
-                <div class="mb-4 investimento"  style="display:none;">
-                    {{ formTransazione.ticker}}
-                </div>
-                <div class="mb-4 investimento"  style="display:none;">
-                    {{ formTransazione.numero_azioni}}
-                </div>
-                <div class="mb-4 investimento"  style="display:none;">
-                    {{ formTransazione.prezzo_ordine}}
-                </div>
-                <div class="mb-4 investimento"  style="display:none;">
-                    {{ formTransazione.borsa}}
-                </div>
-                <div class="mb-4 investimento"  style="display:none;">
-                    {{ formTransazione.valuta}}
-                </div>
+                
                 <div id= "formTransazioneContoArrivo" class="mb-4 trasferimento"  style="display:none;">
                     {{ formTransazione.conto_arrivo}}
                 </div>
@@ -1253,9 +1249,14 @@
                     categoriaH3.style.margin = '0';
                     categoriaH3.style.fontSize = '18px';
                     categoriaH3.style.color = transazione.importo >= 0 ? '#00995c' : 'red';
-                    categoriaH3.textContent = transazione.tipo_transazione === 'trasferimento' ? 'Transfer' 
-                         : transazione.categoria ? `${transazione.categoria.nome} | ${transazione.sottocategoria ? transazione.sottocategoria.nome : ''}` 
-                         : 'N/D';
+                    categoriaH3.textContent = transazione.tipo_transazione === 'trasferimento' 
+                    ? 'Transfer' 
+                    : transazione.tipo_transazione === 'investimento' 
+                    ? 'Investment' 
+                    : transazione.categoria 
+                    ? `${transazione.categoria.nome} | ${transazione.sottocategoria ? transazione.sottocategoria.nome : ''}` 
+                    : 'N/D';
+
                     const contoP = document.createElement('p');
                     contoP.style.margin = '0';
                     contoP.style.fontSize = '14px';
@@ -1304,7 +1305,7 @@
                 
                
                 } else {
-                // Se ci sono 5 o più transazioni, itera su tutte quelle fatte oggi
+               
                 transazioniOggi.forEach(transazione => {
                     // Creare un elemento per ogni transazione
                     const transazioneBox = document.createElement('div');
@@ -1345,9 +1346,13 @@
                     categoriaH3.style.margin = '0';
                     categoriaH3.style.fontSize = '18px';
                     categoriaH3.style.color = transazione.importo >= 0 ? '#00995c' : 'red';
-                    categoriaH3.textContent = transazione.tipo_transazione === 'trasferimento' ? 'Transfer' 
-                         : transazione.categoria ? `${transazione.categoria.nome} | ${transazione.sottocategoria ? transazione.sottocategoria.nome : ''}` 
-                         : 'N/D';
+                    categoriaH3.textContent = transazione.tipo_transazione === 'trasferimento' 
+                    ? 'Transfer' 
+                    : transazione.tipo_transazione === 'investimento' 
+                    ? 'Investment' 
+                    : transazione.categoria 
+                    ? `${transazione.categoria.nome} | ${transazione.sottocategoria ? transazione.sottocategoria.nome : ''}` 
+                    : 'N/D';
                     const contoP = document.createElement('p');
                     contoP.style.margin = '0';
                     contoP.style.fontSize = '14px';

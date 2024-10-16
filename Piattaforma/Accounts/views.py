@@ -27,6 +27,7 @@ def dashboard_utente(request):
     AccountService.calcola_saldo_totale(utente)
     AccountService.calcola_saldo_totale_investimenti(utente)
     ChallengeService.concludi_sfida(utente)
+    #aggiorna_posizioni_investimenti(request) #ogni mattina da reinserire
     return render(request, 'dashboard/dashboard.html')
 
 @login_required
@@ -72,7 +73,7 @@ def accedi_famiglia(request, id):
                     'id': transazione.id,
                     'descrizione': transazione.descrizione if transazione.delete != None else '',
                     'importo': float(transazione.importo),  
-                    'data': transazione.data.strftime('%Y-%m-%d'),  # Converte la data in stringa
+                    'data': transazione.data.strftime('%Y-%m-%d'),  
                     'tipo_transazione': transazione.tipo_transazione,
                     'conto' :  (Conto.objects.get(pk = transazione.conto.pk )).to_dict(),
                     'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
@@ -155,6 +156,7 @@ def crea_account_famiglia(request, id):
                 nome=form.cleaned_data['nome'],
                 tipo= TipoConto.RISPARMIO,
                 saldo=form.cleaned_data['saldo'],
+                liquidita = form.cleaned_data['saldo'],
                 condiviso = True,
             )
             persone = AccountService.get_family_members(famiglia) 
@@ -200,8 +202,8 @@ def personal_section(request):
     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
 
 
-    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
-    data = [saldo.saldo_totale for saldo in saldo_data]  # Saldi per l'asse Y
+    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
+    data = [saldo.saldo_totale for saldo in saldo_data]
 
     conti_data = [
                 {
@@ -235,7 +237,7 @@ def personal_section(request):
             'id': transazione.id,
             'descrizione': transazione.descrizione if transazione.delete != None else '',
             'importo': float(transazione.importo),  
-            'data': transazione.data.strftime('%Y-%m-%d'),  # Converte la data in stringa
+            'data': transazione.data.strftime('%Y-%m-%d'),  
             'tipo_transazione': transazione.tipo_transazione,
             'conto' :  (Conto.objects.get(pk = transazione.conto.pk )).to_dict(),
             'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
@@ -264,10 +266,12 @@ def personal_section(request):
     if request.method == 'POST':  
         form = NuovoConto(request.POST, request=request)
         if form.is_valid():
+            
             conto = Conto.objects.create(
                 nome=form.cleaned_data['nome'],
                 tipo=form.cleaned_data['tipo'],
-                saldo=form.cleaned_data['saldo'],
+                saldo=(form.cleaned_data['saldo']),
+                liquidita = form.cleaned_data['saldo'],
             )
             IntestazioniConto.objects.create(
                 conto=conto,
@@ -275,7 +279,7 @@ def personal_section(request):
                 data_intestazione=timezone.now().date()
             )
             
-            conti = AccountService.get_conti_utente(utente.pk)  # Aggiorna i conti
+            conti = AccountService.get_conti_utente(utente.pk)  
             conti_data = [
                 {
                     'id': conto.id,
@@ -322,7 +326,6 @@ def personal_section(request):
 
 @login_required
 def transaction_section(request):
-   
     if request.method == 'POST':
      
         utente = UserService.get_utenti_by_user(request.user.pk)
@@ -338,7 +341,7 @@ def transaction_section(request):
                     conto_selezionato = formTransazione.cleaned_data['conto']
                     importo = formTransazione.cleaned_data['importo']
                     data = formTransazione.cleaned_data['data']
-                    # Scaliamo l'importo dal conto selezionato
+        
                     conto = Conto.objects.get(id=conto_selezionato.id)
                     conto.saldo += importo
                     conto.save()
@@ -443,7 +446,7 @@ def transaction_section(request):
 
 
                     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
-                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data] 
                     data = [saldo.saldo_totale for saldo in saldo_data]
                     
                     
@@ -476,7 +479,7 @@ def transaction_section(request):
                             eseguita = False,
                         )
 
-                        # Aggiorna la lista dei conti
+                       
                         conti = AccountService.get_conti_utente(utente.pk)
                         conti_data = [
                             {
@@ -542,7 +545,7 @@ def transaction_section(request):
                         ]
                         
                         saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
-                        labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+                        labels = [str(saldo.data_aggiornamento) for saldo in saldo_data] 
                         data = [saldo.saldo_totale for saldo in saldo_data]
                         return JsonResponse({
                             'success': True,
@@ -702,7 +705,7 @@ def transaction_section(request):
                         ]
                     
                     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
-                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
                     data = [saldo.saldo_totale for saldo in saldo_data]
                         
                     return JsonResponse({
@@ -722,9 +725,11 @@ def transaction_section(request):
                 # A -> B
                     conto = Conto.objects.get(id=conto_partenza.id)
                     conto.saldo -= importo
+                    conto.liquidita -= importo
+                        
                     conto.save()
                     utente = UserService.get_utenti_by_user(request.user.id)
-                    # Crea la nuova transazione
+                    
                     Transazione.objects.create(
                         conto=conto,
                         importo=importo,
@@ -742,6 +747,7 @@ def transaction_section(request):
                  # B -> A
                     conto = Conto.objects.get(id=conto_destinazione.id)
                     conto.saldo += importo
+                    conto.liquidita += importo
                     conto.save()
                    
 
@@ -810,7 +816,7 @@ def transaction_section(request):
                     ]
                     
                     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
-                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
                     data = [saldo.saldo_totale for saldo in saldo_data]
 
                     return JsonResponse({
@@ -830,7 +836,7 @@ def transaction_section(request):
     utente = UserService.get_utenti_by_user(request.user.id)
     conti = AccountService.get_conti_utente(utente.pk)
 
-    formTransazione = NuovaTransazioneForm(utente=request.user)  # Passa direttamente l'utente
+    formTransazione = NuovaTransazioneForm(utente=request.user) 
     context = {"conti": conti, "formTransazione": formTransazione}
     return render(request, 'personal/transactionPage.html', context)
 
@@ -928,10 +934,7 @@ def savings_section_famiglia(request,id):
 
 
 def aggiorna_saldo_totale_transazione_eliminata(utente, data_transazione, importo):
-    # Recupera tutti i record di SaldoTotale a partire dalla data della transazione
     saldo_records = SaldoTotale.objects.filter(utente=utente, data_aggiornamento__gte=data_transazione)
-
-    
     for record in saldo_records:
         record.saldo_totale -= importo
         record.save()
@@ -955,7 +958,7 @@ def transaction_section_famiglia(request, famiglia):
                     conto_selezionato = formTransazione.cleaned_data['conto']
                     importo = formTransazione.cleaned_data['importo']
                     data = formTransazione.cleaned_data['data']
-                    # Scaliamo l'importo dal conto selezionato
+ 
                     conto = Conto.objects.get(id=conto_selezionato.id)
                     conto.saldo += importo
                     conto.save()
@@ -1061,7 +1064,7 @@ def transaction_section_famiglia(request, famiglia):
 
 
                     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
-                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+                    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data] 
                     data = [saldo.saldo_totale for saldo in saldo_data]
                     
                     
@@ -1094,7 +1097,7 @@ def transaction_section_famiglia(request, famiglia):
                             eseguita = False,
                         )
 
-                        # Aggiorna la lista dei conti
+                     
                         conti = AccountService.get_family_accounts(famiglia)
                         conti_data = [
                             {
@@ -1462,8 +1465,8 @@ def elimina_transazione(request, id):
         for obbiettivo in obiettivi:
             
             obbiettivo.importo_speso += transazione.importo 
-            obbiettivo.save()# Aggiorna l'importo speso
-            BudgetingService.ricalcola_percentuale_completamento_obbiettivoSpesa(request, obbiettivo.id)  # Ricalcola la percentuale di completamento
+            obbiettivo.save()
+            BudgetingService.ricalcola_percentuale_completamento_obbiettivoSpesa(request, obbiettivo.id) 
 
         aggiorna_saldo_totale_transazione_eliminata(utente, data_transazione, transazione.importo)
 
@@ -1478,7 +1481,7 @@ def elimina_transazione(request, id):
                 'id': transazione.id,
                 'descrizione': transazione.descrizione if transazione.delete != None else '',
                 'importo': float(transazione.importo),  
-                'data': transazione.data.strftime('%Y-%m-%d'),  # Converte la data in stringa
+                'data': transazione.data.strftime('%Y-%m-%d'), 
                 'tipo_transazione': transazione.tipo_transazione,
                 'conto_id' :  float(Conto.objects.get(pk = transazione.conto.pk ).pk),
                 'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
@@ -1500,21 +1503,21 @@ def obbiettivoSpesa_section(request):
             if formSpendingGoal.is_valid():
                 tipo = formSpendingGoal.cleaned_data['tipo']
 
-                # Calcola la data di scadenza in base al tipo
+              
                 data_creazione = timezone.now().date()
 
                 if tipo == 'mensile':
-                    data_scadenza = data_creazione + timedelta(days=30)  # Approximation for one month
+                    data_scadenza = data_creazione + timedelta(days=30)  
                 elif tipo == 'trimestrale':
-                    data_scadenza = data_creazione + timedelta(days=90)  # Approximation for three months
+                    data_scadenza = data_creazione + timedelta(days=90) 
                 elif tipo == 'semestrale':
-                    data_scadenza = data_creazione + timedelta(days=180)  # Approximation for six months
+                    data_scadenza = data_creazione + timedelta(days=180)
                 elif tipo == 'annuale':
-                    data_scadenza = data_creazione + timedelta(days=365)  # One year
+                    data_scadenza = data_creazione + timedelta(days=365)  
                 else:
-                    data_scadenza = data_creazione # fallback in caso di errore
+                    data_scadenza = data_creazione 
 
-                # Crea l'oggetto ObbiettivoSpesa usando i dati del form
+           
                 ObbiettivoSpesa.objects.create(
                     importo=formSpendingGoal.cleaned_data['importo'],
                     percentuale_completamento=0,
@@ -1526,7 +1529,7 @@ def obbiettivoSpesa_section(request):
                     importo_speso = 0
                 )
 
-                # Ottieni la lista degli obiettivi dell'utente
+                
                 obbiettivi_utente = BudgetingService.get_lista_Obbiettivi_Spesa(utente)
                     
                 Obbiettivi_data = [
@@ -1626,7 +1629,7 @@ def cambia_obbiettivo_view(request, id, new_obbiettivo):
             piano = (BudgetingService.get_lista_SavingPlan(utente)).get(pk = id)
          
         
-            # Modifica l'obbiettivo
+           
             piano.obbiettivo = Decimal(new_obbiettivo)
             piano.save()
         
@@ -1638,7 +1641,7 @@ def cambia_obbiettivo_view(request, id, new_obbiettivo):
                 'success': True,
                 'percentuale': percentuale_troncata,
             }
-        except ObjectDoesNotExist:  # Cattura l'eccezione corretta
+        except ObjectDoesNotExist:  
             response_data = {
                 'success': False,
                 'error': 'Piano di risparmio non trovato'
@@ -1681,9 +1684,6 @@ def cambia_data_scadenza_view(request, id, new_date):
         return JsonResponse({'success': False}, status=405)
 
 
-
-
-
 @login_required
 def elimina_piano_view(request, id):
     if request.method == 'POST':
@@ -1709,23 +1709,20 @@ def elimina_piano_view(request, id):
 def cambia_obbiettivo_obbiettivoSpesa_view(request, id, new_obbiettivo):
     if request.method == 'POST':
         try:   
-            utente = UserService.get_utenti_by_user(request.user.id)
-            print(utente)
+            utente = UserService.get_utenti_by_user(request.user.id)   
             obbiettivo = (BudgetingService.get_lista_Obbiettivi_Spesa(utente)).get(pk = id)
-            print(obbiettivo)
             obbiettivo.importo = Decimal(new_obbiettivo)
             obbiettivo.save()
         
             
             percentuale = BudgetingService.ricalcola_percentuale_completamento_obbiettivoSpesa(request,id)
-            print(percentuale)
             percentuale_troncata = round(percentuale, 2)
             
             response_data = {
                 'success': True,
                 'percentuale': percentuale_troncata,
             }
-        except ObjectDoesNotExist:  # Cattura l'eccezione corretta
+        except ObjectDoesNotExist:  
             response_data = {
                 'success': False,
                 'error': 'Obbiettivo non trovato'
@@ -1766,7 +1763,6 @@ def cambia_data_scadenza_obbiettivoSpesa_view(request, id, new_date):
     else:
         return JsonResponse({'success': False}, status=405)
 
-
 @login_required
 def elimina_obbiettivo_view(request, id):
     if request.method == 'POST':
@@ -1788,7 +1784,6 @@ def elimina_obbiettivo_view(request, id):
     else:
         return JsonResponse({'success': False, 'message': 'Metodo non permesso.'}, status=405)
 
-
 @login_required
 def crea_famiglia(request, nome_famiglia):
     
@@ -1802,16 +1797,13 @@ def crea_famiglia(request, nome_famiglia):
         utente = Utente.objects.get(user_profile=request.user)
         utente.famiglia.add(new_family)
 
-        return JsonResponse({'success': True})  # Return a JSON response indicating success
+        return JsonResponse({'success': True})  
 
-    return JsonResponse({'success': False}, status=400)  # Handle other methods or errors
-
+    return JsonResponse({'success': False}, status=400) 
 
 @login_required
 def createFamChallenge(request, famiglia):
-    print(request.user.pk)
     utente = UserService.get_utenti_by_user(request.user.pk) 
-    print(utente)
     form = NuovaSfidaFamigliare(request.POST,utente= utente, famiglia= famiglia)
     
     fam = Famiglia.objects.get(pk = famiglia)
@@ -1851,8 +1843,6 @@ def createFamChallenge(request, famiglia):
     
     return JsonResponse({'valid': False, 'errors': form.errors}, status=400) 
 
-        
-    
 @login_required
 def eliminaChallenge(request, id):
     if request.method == 'POST':
@@ -1900,9 +1890,6 @@ def modificaChallenge(request, id, new_date):
     else:
         return JsonResponse({'success': False}, status=405)
 
-
-
-
 @login_required
 def unisciti_famiglia(request, codice):
     if request.method == 'POST':
@@ -1937,18 +1924,22 @@ def unisciti_famiglia(request, codice):
 @login_required
 def investments(request):
     utente = UserService.get_utenti_by_user(request.user.pk)
-    conti = AccountService.get_conti_investimento_utente(utente.pk)
     formTransazione = NuovoInvestimentoForm(utente=request.user)
+    formVendita = NuovaVenditaForm(utente = request.user)
+    aggiorna_posizioni_investimenti(request) #ogni mattina da reinserire
     AccountService.calcola_saldo_totale_investimenti(utente)
     utente = UserService.get_utenti_by_user(request.user.pk)
     saldo_data = SaldoTotaleInvestimenti.objects.filter(utente=utente).order_by('data_aggiornamento')
-    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+    labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
     data = [saldo.saldo_totale for saldo in saldo_data]
-    aggiorna_posizioni_investimenti(request)
-    context = { "data" : data, "labels": labels, "conti" : conti, "formTransazione" : formTransazione}
+    posizione_aperta_list = AccountService.get_posizioni(utente)
+    conti = AccountService.get_conti_investimento_utente(utente.pk)
+   
+    context = { "data" : data, "labels": labels, "conti" : conti,
+               "formTransazione" : formTransazione, 'posizione_aperta_list' : posizione_aperta_list, 'formVendita' : formVendita}
     return render(request, 'investments/homepageInvest.html', context)
 
-
+@login_required
 def get_company_data(request, company_name):
     api_key = os.getenv('FINHUB_API_KEY')
     url = f'https://finnhub.io/api/v1/search?q={company_name}&token={api_key}'
@@ -1957,40 +1948,39 @@ def get_company_data(request, company_name):
         with urllib.request.urlopen(url) as response:
             data = json.loads(response.read().decode())
         
-        # Filtrare solo le azioni comuni (Common Stock) senza suffissi
+        
         filtered_results = [
             company for company in data.get('result', [])
             if 'Common Stock' in company.get('type', '') and '.' not in company['displaySymbol']
         ]
 
-        # Ordinare i risultati in base al simbolo (opzionale)
-        filtered_results.sort(key=lambda x: x['displaySymbol'])  # Ordinamento semplice
+
+        filtered_results.sort(key=lambda x: x['displaySymbol']) 
 
         return JsonResponse({'result': filtered_results})
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
+    
 def get_exchange_rate():
-    # Funzione per ottenere il tasso di cambio USD to EUR
-    url = 'https://api.exchangerate-api.com/v4/latest/USD'  # API per il tasso di cambio
+   
+    url = 'https://api.exchangerate-api.com/v4/latest/USD'  # API 
     try:
         with urllib.request.urlopen(url) as response:
             data = json.loads(response.read().decode())
-            return data['rates']['EUR']  # Restituisce il tasso di cambio per EUR
+            return data['rates']['EUR']  
     except urllib.error.URLError as e:
-        return None  # Gestione dell'errore
-    
+        return None 
+
+@login_required   
 def get_stock_data(request, symbol):
     api_key = settings.ALPHA_VANTAGE_API_KEY
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={api_key}'
     
     try:
-        # Effettua la richiesta usando urllib
         with urllib.request.urlopen(url) as response:
             data = json.loads(response.read().decode())
-
-        # Gestione dell'errore
+        print(data) #verifica 25 richieste al giorno
         if 'Error Message' in data:
             return JsonResponse({'error': 'Invalid symbol'}, status=400)
 
@@ -1999,67 +1989,85 @@ def get_stock_data(request, symbol):
     except urllib.error.URLError as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required
 def get_latest_price_in_euro(request, symbol):
-    # Richiama la funzione get_stock_data per ottenere i dati delle azioni
+    
     stock_data_response = get_stock_data(request, symbol)
-
-    # Controlla se ci sono errori nella risposta
+  
     if isinstance(stock_data_response, JsonResponse) and stock_data_response.status_code != 200:
-        return stock_data_response  # Restituisce errore se presente
+        return stock_data_response  
 
-    # Estrai i dati delle azioni dalla risposta JSON
-    stock_data = json.loads(stock_data_response.content)  # Usa content per ottenere i dati
+   
+    stock_data = json.loads(stock_data_response.content)  
 
-    # Controlla se la chiave 'Time Series (Daily)' è presente
+   
     if 'Time Series (Daily)' not in stock_data:
         return JsonResponse({'error': 'No time series data available for this symbol.'}, status=400)
 
-    # Estrai l'ultimo prezzo disponibile
+    
     latest_date = next(iter(stock_data['Time Series (Daily)']))
     
     closing_price_usd = float(stock_data['Time Series (Daily)'][latest_date]['4. close'])
 
-    # Ottieni il tasso di cambio USD to EUR
+    
     exchange_rate = get_exchange_rate()
-
+   
     if exchange_rate is None:
         return JsonResponse({'error': 'Unable to fetch exchange rate'}, status=500)
 
-    # Calcola il prezzo in euro
+    
     closing_price_eur = closing_price_usd * exchange_rate
+    
 
-    # Restituisci il prezzo in euro formattato
+   
     response_data = {
         'symbol': symbol,
         'closing_price_usd': f"${closing_price_usd:.2f}",
-        'closing_price_eur': f"€{closing_price_eur:.2f}"
+        'closing_price_eur': f"{closing_price_eur:.2f}"
     }
 
     return JsonResponse(response_data)
 
+@login_required
 def aggiorna_posizioni_investimenti(request):
     utente = UserService.get_utenti_by_user(request.user.pk)
     posizioni = AccountService.get_posizioni(utente=utente)
-
+    
     for posizione in posizioni:
-        # Richiama il prezzo attuale in euro
         prezzo_attuale_response = get_latest_price_in_euro(request, posizione.ticker)
-        print("ciao")
-        # Controlla se ci sono errori nella risposta
+      
         if isinstance(prezzo_attuale_response, JsonResponse) and prezzo_attuale_response.status_code != 200:
             return prezzo_attuale_response  
+        
+        prezzo_attuale_data = prezzo_attuale_response.content
+        json_string = prezzo_attuale_data.decode('utf-8')
+        prezzo_attuale_dict = json.loads(json_string)
+        closing_price_eur = prezzo_attuale_dict['closing_price_eur']
+        closing_price_decimal = Decimal(closing_price_eur)
+       
 
-        print("ehi")
-        prezzo_attuale_data = prezzo_attuale_response.json()
-        prezzo_attuale = float(prezzo_attuale_data['closing_price_eur'].replace('€', '').replace(',', '.'))
-
-     
-        posizione.saldo_totale = posizione.numero_azioni * prezzo_attuale
+        posizione.saldo_totale = posizione.numero_azioni * closing_price_decimal
         posizione.differenza = posizione.saldo_totale - posizione.saldo_investito
 
-        # Salva le modifiche alla posizione nel database
         posizione.save()
-
+    
+    conti = AccountService.get_conti_investimento_utente(utente)
+    totale_posizioni = 0
+    for conto in conti:
+        totale_posizioni = 0
+        posizioni = PosizioneAperta.objects.filter(conto = conto)
+        for posizione in posizioni:
+            totale_posizioni += posizione.saldo_totale
+        conto.saldo = conto.liquidita + totale_posizioni
+        conto.save()
+    
+    
+            
+    
+    AccountService.calcola_saldo_totale(utente)
+    AccountService.calcola_saldo_totale_investimenti(utente)
+   
+ 
     return JsonResponse({'message': 'Posizioni aggiornate con successo'}, status=200)
 
 @login_required
@@ -2072,7 +2080,7 @@ def investment_section(request, symbol, nome_azienda):
             conto_id = formTransazione.cleaned_data['conto']
             conto = Conto.objects.get(id=conto_id.id)
             importo = -(formTransazione.cleaned_data['numero_azioni']*formTransazione.cleaned_data['prezzo_azione'])
-            conto.saldo += Decimal(importo)
+            conto.liquidita += Decimal(importo)
             conto.save()
             
             Transazione.objects.create(
@@ -2088,6 +2096,12 @@ def investment_section(request, symbol, nome_azienda):
                         numero_azioni = formTransazione.cleaned_data['numero_azioni'],
                     )
 
+             
+            
+            AccountService.registra_posizione_investimento(utente, conto, symbol,  formTransazione.cleaned_data['numero_azioni'], formTransazione.cleaned_data['prezzo_azione'], nome_azienda)
+            aggiorna_posizioni_investimenti(request) #ogni mattina da reinserire
+            
+             
             conti = AccountService.get_conti_investimento_utente(utente.pk)
             conti_data = [
                         {
@@ -2095,9 +2109,11 @@ def investment_section(request, symbol, nome_azienda):
                             'nome': conto.nome,
                             'tipo': conto.tipo,
                             'saldo': conto.saldo,
+                            'liquidita' : conto.liquidita,
                         }
                         for conto in conti
                 ]
+            
 
             transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
             transazioni_data = [
@@ -2119,15 +2135,24 @@ def investment_section(request, symbol, nome_azienda):
                         }
                         for transazione in transazioni
                     ]
-                    
-                    
             
-            AccountService.modifica_saldo_totale(utente, Decimal(importo))
-            AccountService.modifica_saldo_totale_investimenti(utente, Decimal(importo))
-            AccountService.registra_posizione_investimento(utente, conto, symbol,  formTransazione.cleaned_data['numero_azioni'], formTransazione.cleaned_data['prezzo_azione'], nome_azienda)
-            
+            posizioni_utente = AccountService.get_posizioni(utente=utente)   
+            posizioni_data = [
+                {
+                    'id' : posizione.id,
+                    'nome_azienda' : posizione.nome_azienda,
+                    'conto' : posizione.conto.to_dict(),
+                    'numero_azioni' : posizione.numero_azioni,
+                    'saldo_totale' : posizione.saldo_totale,
+                    'saldo_investito' : posizione.saldo_investito,
+                    'pmc' : posizione.pmc,
+                    'differenza' : posizione.differenza,
+                    'ticker' : posizione.ticker,
+                }
+                for posizione in posizioni_utente
+            ] 
             saldo_data = SaldoTotaleInvestimenti.objects.filter(utente=utente).order_by('data_aggiornamento')
-            labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  # Date per l'asse X
+            labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
             data = [saldo.saldo_totale for saldo in saldo_data]
                     
             return JsonResponse({
@@ -2136,5 +2161,81 @@ def investment_section(request, symbol, nome_azienda):
                         'transazioni': transazioni_data,
                         'labels' : labels,
                         'data' : data,
+                        'posizioni' : posizioni_data,
                     })
-  
+        return JsonResponse({'success' : False,'errors': formTransazione.errors})
+
+@login_required
+def sell_section(request):
+    if request.method == 'POST':
+        utente = UserService.get_utenti_by_user(request.user.pk)
+        formVendinta = NuovaVenditaForm(request.POST, utente=request.user) 
+        
+        if formVendinta.is_valid():
+            posizione_id = formVendinta.cleaned_data['nome_azienda']
+            posizione_obj = PosizioneAperta.objects.get(pk = posizione_id)
+            numero_azioni = formVendinta.cleaned_data['numero_azioni']
+            ticker = posizione_obj.ticker
+            conto = posizione_obj.conto
+            pmc = posizione_obj.pmc
+            
+            
+            prezzo_attuale_data = (get_latest_price_in_euro(request, ticker)).content
+            json_string = prezzo_attuale_data.decode('utf-8')
+            prezzo_attuale_dict = json.loads(json_string)
+            closing_price_eur = prezzo_attuale_dict['closing_price_eur']
+            prezzo = Decimal(closing_price_eur)
+            AccountService.registra_posizione_vendita(utente, conto, ticker, numero_azioni, prezzo,pmc)
+            return JsonResponse({'message': 'Posizioni aggiornate con successo', 'success' : True}, status=200)
+        return JsonResponse({'success' : False,'errors': formVendinta.errors})
+    
+@login_required
+def toolkit_switch(request):
+    return render(request, 'toolkit/toolkit.html')
+
+
+@login_required
+def update_profile(request):
+    utente = UserService.get_utenti_by_user(request.user.pk)
+
+    if request.method == "POST":
+    
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        telefono = request.POST.get('telefono')
+        nome = request.POST.get('nome')
+        cognome = request.POST.get('cognome')
+        data_di_nascita = request.POST.get('data_di_nascita')
+        indirizzo = request.POST.get('indirizzo')
+        sesso = request.POST.get('sesso')
+
+        utente.username = username
+        if password: 
+            request.user.set_password(password)
+            utente.password = password
+        
+        request.user.save()
+        utente.telefono = telefono
+        utente.nome = nome
+        utente.cognome = cognome
+        utente.data_di_nascita = data_di_nascita
+        utente.indirizzo = indirizzo
+        utente.sesso = sesso
+        
+       
+        utente.save()
+
+       
+        updated_data = {
+            'username': utente.username,
+            'telefono': utente.telefono,
+            'nome': utente.nome,
+            'cognome': utente.cognome,
+            'data_di_nascita': utente.data_di_nascita,
+            'indirizzo': utente.indirizzo,
+            'sesso': utente.sesso,
+        }
+        return JsonResponse(updated_data)
+    
+    context = {"utente": utente}
+    return render(request, 'toolkit/profile.html', context)

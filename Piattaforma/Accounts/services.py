@@ -59,15 +59,16 @@ class AccountService:
     def calcola_saldo_totale(utente):
     
         conti = AccountService.get_conti_utente(utente)
-        totale = sum(conto.saldo for conto in conti)  # Calcola il saldo totale
+        totale = sum(conto.saldo for conto in conti)  
 
-        # Controlla se esiste già un SaldoTotale per l'utente con la data di oggi
+       
         data_aggiornamento = timezone.now().date()
         try:
+            
             saldo = SaldoTotale.objects.get(utente=utente, data_aggiornamento=data_aggiornamento)
             saldo.saldo_totale = totale
             saldo.save()
-             # Puoi anche gestire questa situazione come preferisci
+            
         except ObjectDoesNotExist:
             # Se non esiste, crea un nuovo oggetto SaldoTotale
             SaldoTotale.objects.create(
@@ -92,7 +93,7 @@ class AccountService:
             saldo = SaldoTotaleInvestimenti.objects.get(utente=utente, data_aggiornamento=data_aggiornamento)
             saldo.saldo_totale = totale
             saldo.save()
-             # Puoi anche gestire questa situazione come preferisci
+           
         except ObjectDoesNotExist:
             # Se non esiste, crea un nuovo oggetto SaldoTotale
             SaldoTotaleInvestimenti.objects.create(
@@ -119,8 +120,6 @@ class AccountService:
         posizione.save()
         return
     
-        
-   
     def registra_posizione_investimento(utente, conto, ticker, numero_azioni, prezzo_azione, nome_azienda):
         
         posizioni = AccountService.get_posizioni(utente= utente)
@@ -147,3 +146,37 @@ class AccountService:
             )
         return
 
+    def registra_posizione_vendita(utente, conto, ticker, numero_azioni, prezzo_azione,pmc):
+        posizioni = AccountService.get_posizioni(utente=utente)
+        
+        for posizione in posizioni:
+           
+            if posizione.conto == conto and posizione.utente == utente and posizione.ticker == ticker:
+                if posizione.numero_azioni < numero_azioni:
+                    raise ValueError("Non puoi vendere più azioni di quelle possedute.")  
+                
+                posizione.numero_azioni -= Decimal(numero_azioni)
+                posizione.save()
+                posizione.saldo_totale = Decimal(posizione.numero_azioni * prezzo_azione)
+                posizione.saldo_investito -= Decimal(numero_azioni * pmc)
+                posizione.save()
+                posizione.differenza += posizione.saldo_totale - posizione.saldo_investito
+                posizione.save()
+                
+                totale_posizioni = 0
+                conto.liquidita += Decimal(numero_azioni * prezzo_azione)
+                posizioni = PosizioneAperta.objects.filter(conto = conto)
+                for posizione in posizioni:
+                        totale_posizioni += posizione.saldo_totale
+                conto.saldo = conto.liquidita + totale_posizioni
+                conto.save()
+                
+                print(posizione.numero_azioni)
+                if(posizione.numero_azioni == 0):
+                    posizione.delete()
+                    
+                
+                return
+        
+        # Se la posizione non esiste, puoi decidere di gestire la situazione
+        raise ValueError("Posizione non trovata per la vendita.")

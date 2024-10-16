@@ -39,7 +39,6 @@ class ObbiettivoSpesa(models.Model):
         ('semestrale', 'Semi-Annually'),
         ('annuale', 'Annually'),
     ]
-    
     importo_speso = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     importo = models.DecimalField(max_digits=10, decimal_places=2)
     percentuale_completamento = models.FloatField(default=0)
@@ -52,7 +51,6 @@ class ObbiettivoSpesa(models.Model):
     def __str__(self):
         return f"{self.tipo} - {self.importo}"
 
-
 class PianoDiRisparmio(models.Model):
     durata = models.CharField(max_length=20)
     obbiettivo = models.DecimalField(max_digits=10, decimal_places=2)
@@ -63,7 +61,6 @@ class PianoDiRisparmio(models.Model):
     
 
 class CategoriaTransazione(models.TextChoices):
-    DELEGATA = 'delegata', 'Delegated Transaction'
     SINGOLA = 'singola', 'Single Transaction'
     PERIODICA = 'periodica', 'Recurring Transaction'
     FUTURA = 'futura', 'Future Transaction'
@@ -75,8 +72,6 @@ class TipoRinnovo(models.TextChoices):
     MENSILE = 'mensile', 'Monthly Renewal'
     SEMESTRALE = 'semestrale', 'Semi-Annual Renewal'
 
-
-    
 class Transazione(models.Model):
     importo = models.DecimalField(max_digits=10, decimal_places=2)
     data = models.DateField()
@@ -91,14 +86,11 @@ class Transazione(models.Model):
     ticker = models.CharField(max_length=10, null=True, blank=True)
     prezzo_azione = models.FloatField(null=True, blank=True)
     numero_azioni = models.FloatField(null=True, blank=True)
-    borsa = models.CharField(max_length=50, null=True, blank=True)
-    valuta = models.CharField(max_length=3, null=True, blank=True)
     conto = models.ForeignKey(Conto, on_delete=models.CASCADE,  related_name='conto_partenza')
     utente = models.ForeignKey(Utente, on_delete=models.CASCADE)
     categoria = models.ForeignKey(CategoriaSpesa, null=True, blank=True, on_delete=models.SET_NULL)
     sotto_categoria = models.ForeignKey(SottoCategoriaSpesa, null=True, blank=True, on_delete=models.SET_NULL)
     mittente_delega = models.ForeignKey(Utente, null=True, blank=True, related_name='delegante', on_delete=models.SET_NULL)
-    accetta_delega = models.BooleanField(null=True, blank=True)
     descrizione = models.TextField(null=True, blank=True)
     tipo_rinnovo = models.CharField(
         max_length=20,

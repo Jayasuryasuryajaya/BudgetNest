@@ -1,0 +1,43 @@
+{% extends "registration/base.html" %}
+
+{% block content %}
+
+<section id="dashboard" class="sections section dark-background d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
+  <div class="container text-center">
+    <div class="row gy-4 justify-content-center">
+      
+      <!-- Primo Rettangolo: Modifica Profilo -->
+      <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-right" data-aos-delay="200">
+        <div class="section-box p-4">
+          <i class="bi bi-person"></i>
+          <h3>Profile</h3>
+          <p>Update your profile information and manage your settings.</p>
+          <a href="{% url 'profile_update' %}" class="btn-get-started">Go to section</a>
+        </div>
+      </div>
+      
+      <!-- Secondo Rettangolo: Crea Sottocategorie Personalizzate -->
+      <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-down" data-aos-delay="300">
+        <div class="section-box p-4">
+          <i class="bi bi-tags"></i>
+          <h3>Custom Categories</h3>
+          <p>Create and manage your personalized spending categories.</p>
+          <a href="{% url 'custom_categories' %}" class="btn-get-started">Go to section</a>
+        </div>
+      </div>
+      
+      <!-- Terzo Rettangolo: Riscatta Premi -->
+      <div class="col-md-4 d-flex flex-column align-items-center" data-aos="fade-left" data-aos-delay="400">
+        <div class="section-box p-4">
+          <i class="bi bi-coin"></i>
+          <h3>Redeem Rewards</h3>
+          <p>Redeem your account coins for exclusive rewards.</p>
+          <a href="" class="btn-get-started">Go to section</a>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+{% endblock content %}

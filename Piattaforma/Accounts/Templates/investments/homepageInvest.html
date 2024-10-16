@@ -5,7 +5,7 @@
     
     <!-- Contenitore dei conti -->
     <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="align-items: center; margin: 60px 30px 5px; justify-content: flex-start; border-radius: 15px; background-color: white; box-shadow: 0 0 18px rgba(0, 0, 0, 0.1); padding: 5px;">
-     
+    
       {% if not conti %}
         <div id="conto_esempio" class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; text-align: left;">
             <i class="bi bi-bank"></i>
@@ -28,6 +28,7 @@
           {% endif %}
           <h3 style="margin-top: 5px; font-size: 18px; color: white">{{ conto.nome }}</h3>
           <h6 style="font-size: 14px; color: white">Balance: {{ conto.saldo }} €</h6>
+          <h6 style="font-size: 14px; color: white">Liquidity: {{ conto.liquidita }} €</h6>
         </div>
       {% endfor %}
     </div>
@@ -43,7 +44,10 @@
       <div style="padding: 10px; border-radius: 8px; text-align: center;">
         <div class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="border-radius: 15px; background-color: white; padding: 10px;">
           <button id="openModalBtn" style="margin: 5px; padding: 10px; border-radius: 8px; border: none; background-color: #00995c; color: white; cursor: pointer; width: 90%;">
-            New Transaction
+            Buy
+          </button>
+          <button id="openModalSell" style="margin: 5px; padding: 10px; border-radius: 8px; border: none; background-color: red; color: white; cursor: pointer; width: 90%;">
+            Sell
           </button>
         </div>
       </div>
@@ -73,15 +77,23 @@
           </div>
         </div>
 
-        <!-- Contenitore per i risultati della ricerca -->
+        <!-- Contenitore per i risultati -->
         <div id="searchResultsContainer" class="mt-4"></div>
       </div>
 
       <div id="investimentoModal" class="modal">
         <div class="modal-content" id = "transactionFormDiv">
-            <button  id="closeModelTransaction" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+            <button id="closeModelTransaction" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
             <div id="transactionResponseMessage" style="color: red; text-align: center; /* Centro il testo */ font-size: 14px; margin-top: 10px;"></div>
             <h4 style="color: #100d30;">Insert your transaction</h4>
+           
+
+            <div id="spinnerForm" style="display: none; text-align: center;">
+              <div class="spinner-border" role="status">
+                  <span class="visually-hidden">Loading...</span>
+              </div>
+          </div>
+
             <form id="form" method="post" class="mt-4" >
                 {% csrf_token %}
                 <div id= "formTransazioneContainer"class="mb-4">
@@ -97,15 +109,78 @@
                     {{ formTransazione.prezzo_azione}}
                 </div>
                 <div style="display: flex; justify-content: center;">
-                    <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3; ">Create</button>
+                    <button type="submit" style="background: #00995c; color:white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3; ">Buy</button>
                 </div>
                 <input type="hidden" name="next" value="{{ next }}">
             </form>
         </div>
+      </div>
     </div>
 
-    </div>
+    <!-- Sezione Transazioni -->
+    <div data-aos="fade-up" data-aos-delay="300"  style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;  ">
+      <div  id = "contenitore_transazione" style="flex: 5; margin-right: 30px; padding: 10px; text-align: center; border-radius: 15px; background-color: white; box-shadow: 0 0 18px rgba(0, 0, 0, 0.1);">
+       
 
+      {% if posizione_aperta_list %}
+      {% for posizione in posizione_aperta_list %}
+          <div class="posizione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px 0; padding: 10px; border-radius: 10px; background-color: #100d30; color: white; width: 100%; height: auto;">
+             
+              <div class="icona-posizione" style="margin-right: 15px;">
+                  {% if posizione.differenza >= 0 %}
+                      <i class="bi bi-arrow-up-circle-fill" style="font-size: 25px; color: green;"></i>
+                  {% else %}
+                      <i class="bi bi-arrow-down-circle-fill" style="font-size: 25px; color: red;"></i>
+                  {% endif %}
+              </div>
+  
+              <!-- Dettagli della posizione -->
+              <div class="dettagli-posizione" style="flex: 1; text-align: left;">
+                  <h3 style="margin: 0; font-size: 18px; color: white;">{{ posizione.nome_azienda }} ({{ posizione.ticker }})</h3>
+                  <p style="margin: 0; font-size: 14px; color: #ccc;">Conto: {{ posizione.conto.nome }}</p>
+                  <p style="margin: 0; font-size: 14px; color: #ccc;">Azioni: {{ posizione.numero_azioni }}</p>
+              </div>
+  
+              <!-- Saldi -->
+              <div class="saldo-posizione" style="flex: 1; text-align: right;">
+                  <h3 style="margin: 0; font-size: 18px; color: white;">Saldo totale: € {{ posizione.saldo_totale }}</h3>
+                  <p style="margin: 0; font-size: 14px; color: #ccc;">Saldo investito: € {{ posizione.saldo_investito }}</p>
+                  <p style="margin: 0; font-size: 14px; color: #ccc;">PMC: € {{ posizione.pmc }}</p>
+                  <p style="margin: 0; font-size: 14px; color: {% if posizione.differenza >= 0 %}green{% else %}red{% endif %};">
+                      Differenza: € {{ posizione.differenza }}
+                  </p>
+              </div>
+          </div>
+      {% endfor %}
+      {% else %}
+          <p style="color: white;">Nessuna posizione aperta trovata.</p>
+      {% endif %}
+      </div>
+    </div>
+  
+
+
+    <!--Modal vendita-->
+    <div id="venditaModal" class="modal">
+      <div class="modal-content" id = "transactionFormDiv">
+          <button  id="closeModelSell" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+          <div id="SellResponseMessage" style="color: red; text-align: center; /* Centro il testo */ font-size: 14px; margin-top: 10px;"></div>
+          <h4 style="color: #100d30;">Sell</h4>
+          <form id="formSell" method="post" class="mt-4" >
+              {% csrf_token %}
+              <div class="mb-4">
+                  {{ formVendita.nome_azienda}}
+              </div>
+              <div class="mb-4">
+                  {{ formVendita.numero_azioni}}
+              </div>
+              <div style="display: flex; justify-content: center;">
+                  <button type="submit" style="background: red; color:white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3; ">Sell</button>
+              </div>
+              <input type="hidden" name="next" value="{{ next }}">
+          </form>
+      </div>
+    </div>
 
     <!-- Script -->
     <script>
@@ -122,8 +197,10 @@
         const resultsContainer = document.getElementById("searchResultsContainer");
         const loadingSpinner = document.getElementById("loadingSpinner");
         const TransazioneForm = document.getElementById('form');
-        
-        
+        const SellForm = document.getElementById('formSell')
+        const SellResponde = document.getElementById('SellResponseMessage');
+        const InvestimentoMessaggi = document.getElementById('transactionResponseMessage');
+       
 
         var data = {{ data|safe }}.map(Number);  
         var ctx = document.getElementById('saldoChart').getContext('2d');
@@ -159,6 +236,12 @@
           }
         });
 
+        document.getElementById('openModalSell').addEventListener('click', function() {
+          document.getElementById('venditaModal').style.display = 'block';
+        });
+        document.getElementById('closeModelSell').addEventListener('click', function() {
+          document.getElementById('venditaModal').style.display = 'none';
+        });
         // Gestione del modal
         document.getElementById('openModalBtn').addEventListener('click', function() {
           document.getElementById('transactionModal').style.display = 'block';
@@ -167,9 +250,12 @@
         document.getElementById('closeModalBtn').addEventListener('click', function() {
           document.getElementById('transactionModal').style.display = 'none';
         });
-
+        document.getElementById('closeModelTransaction').addEventListener('click', function(){
+          document.getElementById('investimentoModal').style.display = 'none';
+        })
+       
         
-        // Ricerca azienda con spinner
+        
         searchForm.addEventListener("submit", function(event) {
           event.preventDefault();
           const companyName = document.getElementById("companyName").value;
@@ -214,8 +300,14 @@
 
         TransazioneForm.addEventListener('submit', function(event) {
             event.preventDefault();
+            const loadingSpinner = document.getElementById('spinnerForm');
+            const buyButton = this.querySelector('button[type="submit"]');
+            
+            loadingSpinner.style.display = 'block'; // Mostra il caricamento
+            buyButton.disabled = true; // Disabilita il pulsante
+       
+
             const formData = new FormData(TransazioneForm);
-            console.log(ticker_azienda)
             fetch("{% url 'gestioneInvestimento' 'q' 'z' %}".replace('q', encodeURIComponent(ticker_azienda)).replace('z', encodeURIComponent(nome_azienda)), {
                 method: 'POST',
                 body: formData,
@@ -225,7 +317,8 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log("ciao")
+              loadingSpinner.style.display = 'none';
+              buyButton.disabled = false; 
                 if (data.success) {
                     
                     const contiElements = document.querySelectorAll('.singolo-conto');
@@ -241,7 +334,7 @@
                         contoDiv.style.color = 'white';
                         contoDiv.style.backgroundColor = '#100d30';
                         contoDiv.style.textAlign = 'left';
-                        contoDiv.style.maxHeight = '100px'; 
+                        contoDiv.style.maxHeight = '130px'; 
 
 
                         let iconHtml = '';
@@ -257,13 +350,64 @@
 
                         contoDiv.innerHTML = `${iconHtml}
                             <h3 style="margin-top:5px; color: white; font-size: 18px;">${conto.nome}</h3>
-                            <h6 style="color: white; font-size: 14px;">Saldo: ${conto.saldo} €</h6>`;
+                            <h6 style="color: white; font-size: 14px;">Saldo: ${conto.saldo} €</h6>
+                            <h6 style="font-size: 14px; color: white">Liquidity: ${ conto.liquidita } €</h6>`;
                         contiContainer.appendChild(contoDiv);
                         
                     });
                     
+                
+            const posizioniElements = document.querySelectorAll('.posizione-box');
+            posizioniElements.forEach(posizione => posizione.remove());
 
-                    
+           
+            const posizioniContainer = document.getElementById('contenitore_transazione');  // Trova il contenitore delle posizioni
+            data.posizioni.forEach(posizione => {
+                const posizioneDiv = document.createElement('div');
+                posizioneDiv.className = 'posizione-box';
+                posizioneDiv.style.display = 'flex';
+                posizioneDiv.style.alignItems = 'center';
+                posizioneDiv.style.justifyContent = 'space-between';
+                posizioneDiv.style.margin = '10px 0';
+                posizioneDiv.style.padding = '10px';
+                posizioneDiv.style.borderRadius = '10px';
+                posizioneDiv.style.backgroundColor = '#100d30';
+                posizioneDiv.style.color = 'white';
+                posizioneDiv.style.width = '100%';
+                posizioneDiv.style.height = 'auto';
+
+                // Icona
+                let iconHtml = '';
+                if (posizione.differenza >= 0) {
+                    iconHtml = '<i class="bi bi-arrow-up-circle-fill" style="font-size: 25px; color: green;"></i>';
+                } else {
+                    iconHtml = '<i class="bi bi-arrow-down-circle-fill" style="font-size: 25px; color: red;"></i>';
+                }
+
+                // Contenuto HTML della posizione
+                posizioneDiv.innerHTML = `
+                    <div class="icona-posizione" style="margin-right: 15px;">
+                        ${iconHtml}
+                    </div>
+                    <div class="dettagli-posizione" style="flex: 1; text-align: left;">
+                        <h3 style="margin: 0; font-size: 18px; color: white;">${posizione.nome_azienda} (${posizione.ticker})</h3>
+                        <p style="margin: 0; font-size: 14px; color: #ccc;">Conto: ${posizione.conto.nome}</p>
+                        <p style="margin: 0; font-size: 14px; color: #ccc;">Azioni: ${posizione.numero_azioni}</p>
+                    </div>
+                    <div class="saldo-posizione" style="flex: 1; text-align: right;">
+                        <h3 style="margin: 0; font-size: 18px; color: white;">Saldo totale: € ${posizione.saldo_totale}</h3>
+                        <p style="margin: 0; font-size: 14px; color: #ccc;">Saldo investito: € ${posizione.saldo_investito}</p>
+                        <p style="margin: 0; font-size: 14px; color: #ccc;">PMC: € ${posizione.pmc}</p>
+                        <p style="margin: 0; font-size: 14px; color: ${posizione.differenza >= 0 ? 'green' : 'red'};">
+                            Differenza: € ${posizione.differenza}
+                        </p>
+                    </div>
+                `;
+
+             
+                posizioniContainer.appendChild(posizioneDiv);
+            });
+
                     document.getElementById('transactionModal').style.display = 'none';
                     document.getElementById('investimentoModal').style.display = 'none';
 
@@ -272,14 +416,45 @@
                     saldoChart.data.labels = data.labels;  // Imposta le nuove etichette
                     saldoChart.data.datasets[0].data = data.data;  // Imposta i nuovi saldi
                     saldoChart.update();
+                    document.getElementById('investimentoModal').style.display = 'none';
+                    document.getElementById('transactionModal').style.display = 'none';
+                    TransazioneForm.reset();
+                    searchForm.reset();
+                    InvestimentoMessaggi.textContent = '';
+                    document.getElementById('searchResultsContainer').innerHTML = '';
 
                 } else {
                     let firstField = Object.keys(data.errors)[0];
-                    transactionResponseMessage.textContent = data.errors[firstField][0];
-                    transactionResponseMessage.style.color = 'red';
+                    InvestimentoMessaggi.textContent = data.errors[firstField][0];
+                    InvestimentoMessaggi.style.color = 'red';
                 }
             });
         });
+
+        SellForm.addEventListener('submit', function(event) {
+          event.preventDefault();
+          const formData = new FormData(SellForm);
+          
+          fetch("{% url 'gestioneVendita' %}", {
+              method: 'POST',
+              body: formData,
+              headers: {
+                  'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+              }
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  alert('Success');
+                  location.reload(); 
+              }
+              else {
+                  let firstField = Object.keys(data.errors)[0];
+                  SellResponde.textContent = data.errors[firstField][0];
+                  SellResponde.style.color = 'red';
+              }
+          });
+      });
        
 
       });

@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from Users.services import *
 from django import forms
-from .models import Transazione, CategoriaSpesa, SottoCategoriaSpesa, Conto, PianoDiRisparmio, ObbiettivoSpesa, TipoRinnovo
+from .models import CategoriaTransazione, Transazione, CategoriaSpesa, SottoCategoriaSpesa, Conto, PianoDiRisparmio, ObbiettivoSpesa, TipoRinnovo
 from Accounts.services import *
 from Users.services import *
 from django.db.models import Q
@@ -26,11 +26,6 @@ class NuovaTransazioneForm(forms.ModelForm):
             'sotto_categoria',
             'descrizione',
             'tipo_rinnovo',
-            'numero_azioni',
-            'prezzo_azione',
-            'borsa',
-            'valuta',
-            'ticker',
             'conto_arrivo'
         ]
         widgets = {
@@ -55,32 +50,6 @@ class NuovaTransazioneForm(forms.ModelForm):
             'categoria': forms.Select(attrs={'class': 'form-control'}),
             'sotto_categoria': forms.Select(attrs={'class': 'form-control'}),
             'tipo_rinnovo': forms.Select(attrs={'class': 'form-control'}),
-            'numero_azioni': forms.NumberInput(attrs={
-                'placeholder': 'Enter number of shares',
-                'class': 'form-control',
-                'step': '1',
-                'min': '0',
-            }),
-            'prezzo_azione': forms.NumberInput(attrs={
-                'placeholder': 'Enter share price',
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0',
-            }),
-            'borsa': forms.TextInput(attrs={
-                'placeholder': 'Enter stock exchange',
-                'class': 'form-control',
-            }),
-            'valuta': forms.TextInput(attrs={
-                'placeholder': 'Enter currency (e.g., USD)',
-                'class': 'form-control',
-                'maxlength': 3,
-            }),
-            'ticker': forms.TextInput(attrs={
-                'placeholder': 'Enter the ticker (e.g., VUSA)',
-                'class': 'form-control',
-                
-            }),
         }
   
     
@@ -103,7 +72,10 @@ class NuovaTransazioneForm(forms.ModelForm):
         self.fields['sotto_categoria'].queryset = SottoCategoriaSpesa.objects.filter(Q(utente=Utente.pk) | Q(personalizzata=False))
         self.fields['sotto_categoria'].empty_label = "Select sub-category"
         
-        
+        self.fields['tipo_transazione'].choices = [
+            (key, value) for key, value in self.fields['tipo_transazione'].choices
+            if key != CategoriaTransazione.INVESTIMENTO
+        ]
         
    
     def clean(self):
@@ -175,9 +147,6 @@ class NuovaTransazioneFamigliaForm(forms.ModelForm):
             'tipo_rinnovo',
             'numero_azioni',
             'prezzo_azione',
-            'borsa',
-            'valuta',
-            'ticker',
             'conto_arrivo'
         ]
         widgets = {
@@ -202,32 +171,10 @@ class NuovaTransazioneFamigliaForm(forms.ModelForm):
             'categoria': forms.Select(attrs={'class': 'form-control'}),
             'sotto_categoria': forms.Select(attrs={'class': 'form-control'}),
             'tipo_rinnovo': forms.Select(attrs={'class': 'form-control'}),
-            'numero_azioni': forms.NumberInput(attrs={
-                'placeholder': 'Enter number of shares',
-                'class': 'form-control',
-                'step': '1',
-                'min': '0',
-            }),
-            'prezzo_azione': forms.NumberInput(attrs={
-                'placeholder': 'Enter share price',
-                'class': 'form-control',
-                'step': '0.01',
-                'min': '0',
-            }),
-            'borsa': forms.TextInput(attrs={
-                'placeholder': 'Enter stock exchange',
-                'class': 'form-control',
-            }),
-            'valuta': forms.TextInput(attrs={
-                'placeholder': 'Enter currency (e.g., USD)',
-                'class': 'form-control',
-                'maxlength': 3,
-            }),
-            'ticker': forms.TextInput(attrs={
-                'placeholder': 'Enter the ticker (e.g., VUSA)',
-                'class': 'form-control',
-                
-            }),
+            
+            
+            
+           
         }
   
     
@@ -482,7 +429,68 @@ class NuovoInvestimentoForm(forms.ModelForm):
         Utente = UserService.get_utenti_by_user(utente.id)
         self.fields['conto'].choices = [(conto.pk, str(conto)) for conto in AccountService.get_conti_investimento_utente(Utente.pk)]
         self.fields['conto'].empty_label = "Select account"
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        conto_pk = cleaned_data.get('conto')
+        numero_azioni = cleaned_data.get('numero_azioni')
+        prezzo_azione = cleaned_data.get('prezzo_azione')
 
+        
+        if conto_pk and numero_azioni and prezzo_azione:
+          
+            conto = Conto.objects.get(pk = conto_pk.pk)
+
+            importo_investimento = numero_azioni * prezzo_azione
+
+            # Verifica se la liquidità del conto è sufficiente
+            if conto.liquidita < importo_investimento:
+                raise forms.ValidationError(f"The account does not have enough funds. Available balance: {conto.liquidita}, required: {importo_investimento}.")
+
+        return cleaned_data
+
+class NuovaVenditaForm(forms.ModelForm):
+    class Meta:
+        model = PosizioneAperta
+        fields = [
+            'nome_azienda',
+            'numero_azioni',
+        ]
+        widgets = {
+            'nome_azienda': forms.Select(attrs={'class': 'form-control'}),
+            'numero_azioni': forms.NumberInput(attrs={
+                'placeholder': 'Enter number of shares',
+                'class': 'form-control',
+                'step': '1',
+                'min': '0',
+            }),
+        }
+  
+    
+    def __init__(self, *args, utente=None, **kwargs):  
+        super().__init__(*args, **kwargs)  
+        Utente = UserService.get_utenti_by_user(utente.id)
+        t = AccountService.get_posizioni(Utente) 
+        self.fields['nome_azienda'].empty_label = "Select position"
+        self.fields['nome_azienda'] = forms.ChoiceField(
+            choices=[(posizione.pk, str(posizione.conto.nome + " -> " + posizione.nome_azienda)) for posizione in t],
+            widget=forms.Select(attrs={'class': 'form-control'})
+        )
+        
+    def clean_numero_azioni(self):
+        numero_azioni_vendita = self.cleaned_data.get('numero_azioni')
+        nome_azienda_pk = self.cleaned_data.get('nome_azienda')
+        
+
+        posizione = PosizioneAperta.objects.get(pk = self.cleaned_data.get('nome_azienda'))
+        numero_azioni_possedute = posizione.numero_azioni
+
+       
+        if numero_azioni_vendita > numero_azioni_possedute:
+            raise forms.ValidationError(f"You cannot sell more shares than you own. You have {numero_azioni_possedute} shares.")
+
+        return numero_azioni_vendita
+       
      
        
         

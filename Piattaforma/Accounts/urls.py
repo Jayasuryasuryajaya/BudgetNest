@@ -33,9 +33,14 @@ urlpatterns = [
     path('elimina_challenge/<int:id>/', eliminaChallenge, name='elimina_challenge'),
     path('cambia_challenge/<int:id>/<str:new_date>/', modificaChallenge, name='cambia_data_scadenza_challenge'),
     path('investimentSection/', investments , name= "homePageInvestimenti"),
-    path('api/stock/<str:symbol>/', get_stock_data, name='get_stock_data'),
     path('api/get-company-data/<str:company_name>/', get_company_data, name='search_company'),
     path('investimento/<str:symbol>/<str:nome_azienda>', investment_section, name = 'gestioneInvestimento'),
+    path('vendita/', sell_section, name = 'gestioneVendita'),
+    path('select_toolkit/', toolkit_switch, name='select_impostazioni'),
+    path('select_toolkit/profile', update_profile, name='profile_update'),
+    path('custom_cat', create_custom_categories, name='custom_categories'),
+    path('update_subcategory/<int:subcategory_id>/', update_subcategory, name='update_subcategory'),
+    path('delete_subcategory/<int:subcategory_id>/', delete_subcategory, name='delete_subcategory'),
 ]
 
 

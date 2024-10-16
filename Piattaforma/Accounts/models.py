@@ -9,6 +9,7 @@ class TipoConto(models.TextChoices):
 class Conto(models.Model):
     nome = models.CharField(max_length=10)
     saldo = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    liquidita = models.DecimalField(max_digits=10, decimal_places=2, default=saldo)
     tipo = models.CharField(
         max_length=20,
         choices=TipoConto.choices,
