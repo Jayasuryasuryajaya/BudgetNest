@@ -104,6 +104,7 @@
         <div id="rightDiv" style="flex: 1; margin-left: 10px; padding: 10px; border-radius: 8px; text-align: center;">
             <div id="contiContainer" class="d-flex flex-wrap" data-aos="fade-up" data-aos-delay="300" style="border-radius: 15px; background-color: white; padding: 10px;">
                 <div class="d-flex flex-column" style="align-items: center; width: 100%;">
+                    <h6>Family code: {{famiglia.codice}} </h6>
                     <button id= "newTransactionBtn" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #00995c; color: white; cursor: pointer;  width: 90%;">
                         New transaction
                     </button>
@@ -113,6 +114,7 @@
                     <button   id= "newChallenge" style="margin: 5px; padding: 10px 10px; border-radius: 8px; border: none; background-color: #100d30; color: white; cursor: pointer;  width: 90%;">
                         New challenge
                     </button>
+                    
                 </div>
             </div>
         </div>
@@ -292,6 +294,8 @@
             </form>
         </div>
     </div>
+
+   
 
 </section>
 
@@ -1110,7 +1114,6 @@
 
         function handleContoClickPianoRisparmio(event, dataset) {
                 if (event.target && event.target.id.startsWith('singolo_piano_')) {
-                
                     const pianoId = event.target.id.split('_')[2];
                     const pianoOggetto = dataset.filter(piano => piano.id == pianoId);
                     createPianoDiRisparmioModal(pianoId, pianoOggetto[0]); // Crea e visualizza il modal per questo conto
@@ -1118,14 +1121,16 @@
         };
 
         function createClickListenerPianiRisparmio(dataset) {
+        
                 return function(event) {
+                   
                     handleContoClickPianoRisparmio(event, dataset);
                 };
         };
             
         function addClickListenerPianiRisparmio(dataset) {
                 const pianiContainer = document.getElementById('pianiContainer');
-                
+
                 if (currentClickListenerPianoRisparmio) {
                     pianiContainer.removeEventListener('click', currentClickListenerPianoRisparmio); 
                 }
@@ -1300,7 +1305,7 @@
                             const pianoDiv = document.createElement('div');
                             pianoDiv.classList.add('singolo-piano', 'conto-box');
                             pianoDiv.id=`singolo_piano_${piano.id}`;
-                            pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
+                            pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 29%;";
             
                             console.log(pianoDiv);
                             // Crea il contenitore del progress circle
@@ -1407,8 +1412,8 @@
                                 const challengeRow = document.createElement('div');
                                 challengeRow.className = 'challenge-row';
                                 challengeRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 30px); height: 55px;';
-                                
-                                // Sfidante a sinistra
+                                challengeRow.id=`singola_sfida_${sfida.id}`;
+                               
                                 const sfidanteDiv = document.createElement('div');
                                 sfidanteDiv.className = 'sfidante';
                                 sfidanteDiv.style.flex = '1';
@@ -1487,7 +1492,9 @@
                                 // Aggiungi la riga della sfida al contenitore delle sfide
                                 sfidaContainer.appendChild(challengeRow);
                             });
+                            updateChallenge(data.sfide);
                         }
+
                     
                     } else {
                         let firstField = Object.keys(data.errors)[0];
@@ -1689,14 +1696,17 @@
 
         function handleContoClickChallenge(event, dataset) {
             if (event.target && event.target.id.startsWith('singola_sfida_')) {
-               
+                console.log("ciao3");
                 const ChallengeId = event.target.id.split('_')[2];
+                console.log(ChallengeId);
                 const ChallengeOggetto = dataset.filter(s => s.id == ChallengeId);
+                console.log(ChallengeOggetto);
                 createSfidaFamigliareModal(ChallengeId, ChallengeOggetto[0]); // Crea e visualizza il modal per questo conto
             };
         };
 
         function createClickListenerChallenge(dataset) {
+            console.log("ciao2");
                 return function(event) {
                     handleContoClickChallenge(event, dataset);
                 };
@@ -1704,7 +1714,7 @@
             
         function addClickListenerChallenge(dataset) {
                 Container = document.getElementById('sfidaContainer');
-                
+                console.log("ciao");
                 if (currentClickListenerSfida) {
                     Container.removeEventListener('click', currentClickListenerSfida); 
                 }
@@ -1715,6 +1725,7 @@
         };
             
         function updateChallenge(dataset) {
+                console.log(dataset);
                 addClickListenerChallenge(dataset);
         };
 
@@ -1798,7 +1809,7 @@
 
         function createSfidaFamigliareModal(sfidaId, sfidaOggetto) {
 
-            let modal = document.getElementById(`sfidaModal_${sfidaId}`);
+        let modal = document.getElementById(`sfidaModal_${sfidaId}`);
             if (modal) {
                 modal.remove(); // Rimuove il modal esistente dal DOM
             }

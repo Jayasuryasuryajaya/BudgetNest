@@ -60,8 +60,6 @@ class AccountService:
     
         conti = AccountService.get_conti_utente(utente)
         totale = sum(conto.saldo for conto in conti)  
-
-       
         data_aggiornamento = timezone.now().date()
         try:
             
@@ -76,7 +74,7 @@ class AccountService:
                 saldo_totale=totale,  # Assicurati che il campo si chiami 'saldo_totale'
                 data_aggiornamento=data_aggiornamento
             )
-            print("Nuovo saldo totale creato.")
+          
 
         
     def modifica_saldo_totale(utente, transazione):

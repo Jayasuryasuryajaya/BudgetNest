@@ -491,9 +491,24 @@ class NuovaVenditaForm(forms.ModelForm):
 
         return numero_azioni_vendita
        
-     
+class Sotto_Categoria_Form(forms.ModelForm):
+    class Meta:
+        model = SottoCategoriaSpesa
+        fields = ['nome', 'categoria_superiore']
+        widgets = {
+            'categoria_superiore': forms.Select(attrs={'class': 'form-control'}),
+            'nome': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    
        
-        
+    def __init__(self, *args, **kwargs):  
+        super().__init__(*args, **kwargs)  
+        categorie = BudgetingService.get_categorie_utente() 
+        self.fields['categoria_superiore'].choices = [
+            (categoria.pk, str(categoria.nome)) for categoria in categorie
+        ]
+        self.fields['nome'].empty_label = "Sub-Category Name"
         
         
    

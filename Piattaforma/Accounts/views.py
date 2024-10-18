@@ -21,13 +21,16 @@ import urllib.request
 from Challenges.services import * 
 from Budgeting.models import * 
 
+
 @login_required
 def dashboard_utente(request):
     utente = UserService.get_utenti_by_user(request.user.pk)
     AccountService.calcola_saldo_totale(utente)
-    AccountService.calcola_saldo_totale_investimenti(utente)
     ChallengeService.concludi_sfida(utente)
-    #aggiorna_posizioni_investimenti(request) #ogni mattina da reinserire
+    today = date.today()
+    posizione_oggi_esiste = SaldoTotaleInvestimenti.objects.filter(data_aggiornamento=today, utente=utente).exists()
+    if not posizione_oggi_esiste:
+        aggiorna_posizioni_investimenti(request)
     return render(request, 'dashboard/dashboard.html')
 
 @login_required
@@ -126,7 +129,7 @@ def accedi_famiglia(request, id):
         for piano in lista_piani_risparmio
         
     ]
-    
+   
    
     context = {'famiglia': famiglia.first(),
                'conti' : conti,
@@ -200,8 +203,10 @@ def personal_section(request):
     lista_obbiettivi_spesa = BudgetingService.get_lista_Obbiettivi_Spesa(utente)
     lista_transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
+    categorie, importi = BudgetingService.get_spese_per_categoria(utente)
 
-
+    categorie_ultimo_mese, importi_ultimo_mese = BudgetingService.get_spese_per_categoria_ultimo_mese(utente)
+    
     labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
     data = [saldo.saldo_totale for saldo in saldo_data]
 
@@ -244,6 +249,7 @@ def personal_section(request):
             'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else 'Trasferimento',
             'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
             'utente' : (transazione.utente).to_dict(),
+            'ticker' : transazione.ticker,
         })
         
     obbiettivi_spesa_data = []
@@ -258,7 +264,7 @@ def personal_section(request):
             'data_scadenza' : obbiettivo.data_scadenza.strftime('%Y-%m-%d'),
             'data_creazione' : obbiettivo.data_creazione.strftime('%Y-%m-%d'),
         })
-   
+  
    
     oggi = timezone.now().date()
     transazioni_odierne = lista_transazioni.filter(data=oggi)
@@ -320,7 +326,9 @@ def personal_section(request):
                'data': data, 'conti_json' : json.dumps(conti_data),
                 "transazioni_serializzate": json.dumps(transazioni_serializzate),
                 'piani_risparmio_json':   piani_risparmio_data,
-                'obbiettivi_spesa_json' : obbiettivi_spesa_data, 'utente' : utente
+                'obbiettivi_spesa_json' : obbiettivi_spesa_data, 'utente' : utente,
+                'categorie': categorie, 'importi': importi,
+                'categorie_ultimo_mese': categorie_ultimo_mese, 'importi_ultimo_mese': importi_ultimo_mese,
                 }
     return render(request, 'personal/personalHomePage.html', context)
 
@@ -449,8 +457,15 @@ def transaction_section(request):
                     labels = [str(saldo.data_aggiornamento) for saldo in saldo_data] 
                     data = [saldo.saldo_totale for saldo in saldo_data]
                     
+                    categorie, importi = BudgetingService.get_spese_per_categoria(utente)
+                    labels_spese = [str(categoria) for categoria in categorie]
+                    data_spese = [ importo for importo in importi]
                     
+                    categorie1, importi1 = BudgetingService.get_spese_per_categoria(utente)
+                    labels_spese_ultimo_mese = [str(categoria) for categoria in categorie1]
+                    data_spese_ultimo_mese = [ importo for importo in importi1]
                     
+                
                     return JsonResponse({
                         'success': True,
                         'conti': conti_data,
@@ -459,6 +474,12 @@ def transaction_section(request):
                         'obbiettivi_spesa' : Obbiettivi_data,
                         'labels' : labels,
                         'data' : data,
+                        'categorie': categorie, 'importi': importi,
+                        'labels_spese' : labels_spese,
+                        'data_spese' : data_spese,
+                        'labels_spese_ultimo_mese' : labels_spese_ultimo_mese,
+                        'data_spese_ultimo_mese' : data_spese_ultimo_mese,
+                        
                     })
                 case 'futura':
                     if request.method == 'POST':
@@ -547,6 +568,12 @@ def transaction_section(request):
                         saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
                         labels = [str(saldo.data_aggiornamento) for saldo in saldo_data] 
                         data = [saldo.saldo_totale for saldo in saldo_data]
+                        categorie, importi = BudgetingService.get_spese_per_categoria(utente)
+                        labels_spese = [str(categoria) for categoria in categorie]
+                        data_spese = [ importo for importo in importi]
+                        categorie1, importi1 = BudgetingService.get_spese_per_categoria(utente)
+                        labels_spese_ultimo_mese = [str(categoria) for categoria in categorie1]
+                        data_spese_ultimo_mese = [ importo for importo in importi1]
                         return JsonResponse({
                             'success': True,
                             'conti': conti_data,
@@ -555,6 +582,11 @@ def transaction_section(request):
                             'obbiettivi_spesa' : Obbiettivi_data,
                             'labels' : labels,
                             'data' : data,
+                            'categorie': categorie, 'importi': importi,
+                            'labels_spese' : labels_spese,
+                            'data_spese' : data_spese,
+                            'labels_spese_ultimo_mese' : labels_spese_ultimo_mese,
+                            'data_spese_ultimo_mese' : data_spese_ultimo_mese,
                         })
                 case 'periodica':
                     conto_selezionato = formTransazione.cleaned_data['conto']
@@ -626,6 +658,8 @@ def transaction_section(request):
                                 if(obbiettivo.percentuale_completamento <= 0):
                                     obbiettivo.percentuale_completamento = 0
                                 obbiettivo.save()
+                        
+                        
                     else:
                         Transazione.objects.create(
                         conto=conto,
@@ -707,7 +741,13 @@ def transaction_section(request):
                     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
                     labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
                     data = [saldo.saldo_totale for saldo in saldo_data]
-                        
+                    categorie, importi = BudgetingService.get_spese_per_categoria(utente)
+                    labels_spese = [str(categoria) for categoria in categorie]
+                    data_spese = [ importo for importo in importi]
+                    categorie1, importi1 = BudgetingService.get_spese_per_categoria(utente)
+                    labels_spese_ultimo_mese = [str(categoria) for categoria in categorie1]
+                    data_spese_ultimo_mese = [ importo for importo in importi1]
+                    
                     return JsonResponse({
                         'success': True,
                         'conti': conti_data,
@@ -716,6 +756,11 @@ def transaction_section(request):
                         'obbiettivi_spesa' : Obbiettivi_data,
                         'labels' : labels,
                         'data' : data,
+                        'categorie': categorie, 'importi': importi,
+                        'labels_spese' : labels_spese,
+                        'data_spese' : data_spese,
+                        'labels_spese_ultimo_mese' : labels_spese_ultimo_mese,
+                        'data_spese_ultimo_mese' : data_spese_ultimo_mese,
                     })
                 case 'trasferimento':
                     conto_partenza = formTransazione.cleaned_data['conto']
@@ -818,7 +863,13 @@ def transaction_section(request):
                     saldo_data = SaldoTotale.objects.filter(utente=utente).order_by('data_aggiornamento')
                     labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
                     data = [saldo.saldo_totale for saldo in saldo_data]
-
+                    categorie, importi = BudgetingService.get_spese_per_categoria(utente)
+                    labels_spese = [str(categoria) for categoria in categorie]
+                    data_spese = [ importo for importo in importi]
+                    categorie1, importi1 = BudgetingService.get_spese_per_categoria(utente)
+                    labels_spese_ultimo_mese = [str(categoria) for categoria in categorie1]
+                    data_spese_ultimo_mese = [ importo for importo in importi1]
+                    
                     return JsonResponse({
                         'success': True,
                         'conti': conti_data,
@@ -827,6 +878,11 @@ def transaction_section(request):
                         'obbiettivi_spesa' : Obbiettivi_data,
                         'labels' : labels,
                         'data' : data,
+                        'categorie': categorie, 'importi': importi,
+                        'labels_spese' : labels_spese,
+                        'data_spese' : data_spese,
+                        'labels_spese_ultimo_mese' : labels_spese_ultimo_mese,
+                        'data_spese_ultimo_mese' : data_spese_ultimo_mese,
                     })
         else:
             return JsonResponse({'success': False, 'errors': formTransazione.errors}, status=400)
@@ -1336,7 +1392,7 @@ def transaction_section_famiglia(request, famiglia):
                     conto.saldo -= importo
                     conto.save()
                     utente = UserService.get_utenti_by_user(request.user.id)
-                    # Crea la nuova transazione
+                   
                     Transazione.objects.create(
                         conto=conto,
                         importo=importo,
@@ -1449,7 +1505,7 @@ def elimina_transazione(request, id):
         conto.save()
         aggiorna_saldo_totale_transazione_eliminata(utente, data_transazione, transazione.importo)
         
-        if conto.tipo == 'risparmio':  # Assicurati di avere un modo per identificare il tipo di conto
+        if conto.tipo == 'risparmio':  
             piani = BudgetingService.get_lista_SavingPlan_byConto(conto.id)
             for piano in piani:
                 BudgetingService.ricalcola_percentuale_completamento_pianoRisparmio(request, piano.id)
@@ -1488,6 +1544,7 @@ def elimina_transazione(request, id):
                 'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else 'Trasferimento',
                 'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
                 'utente' : (transazione.utente).to_dict(),
+                'ticker' : transazione.ticker,
             })
             
        
@@ -1926,7 +1983,6 @@ def investments(request):
     utente = UserService.get_utenti_by_user(request.user.pk)
     formTransazione = NuovoInvestimentoForm(utente=request.user)
     formVendita = NuovaVenditaForm(utente = request.user)
-    aggiorna_posizioni_investimenti(request) #ogni mattina da reinserire
     AccountService.calcola_saldo_totale_investimenti(utente)
     utente = UserService.get_utenti_by_user(request.user.pk)
     saldo_data = SaldoTotaleInvestimenti.objects.filter(utente=utente).order_by('data_aggiornamento')
@@ -1934,9 +1990,38 @@ def investments(request):
     data = [saldo.saldo_totale for saldo in saldo_data]
     posizione_aperta_list = AccountService.get_posizioni(utente)
     conti = AccountService.get_conti_investimento_utente(utente.pk)
-   
+    conti_data = [
+                        {
+                            'id': conto.id,
+                            'nome': conto.nome,
+                            'tipo': conto.tipo,
+                            'saldo': float(conto.saldo),
+                            'liquidita' : float(conto.liquidita),
+                        }
+                        for conto in conti
+                ]
+    lista_transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
+    transazioni_serializzate = []
+    for transazione in lista_transazioni:
+            transazioni_serializzate.append({
+                'id': transazione.id,
+                'descrizione': transazione.descrizione if transazione.delete != None else '',
+                'importo': float(transazione.importo),  
+                'data': transazione.data.strftime('%Y-%m-%d'), 
+                'tipo_transazione': transazione.tipo_transazione,
+                'conto_id' :  float(Conto.objects.get(pk = transazione.conto.pk ).pk),
+                'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
+                'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else 'Trasferimento',
+                'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
+                'utente' : (transazione.utente).to_dict(),
+                'ticker' : transazione.ticker,
+                
+            })
     context = { "data" : data, "labels": labels, "conti" : conti,
-               "formTransazione" : formTransazione, 'posizione_aperta_list' : posizione_aperta_list, 'formVendita' : formVendita}
+               "formTransazione" : formTransazione, 'posizione_aperta_list' : posizione_aperta_list,
+               'formVendita' : formVendita,
+                'conti_json' : json.dumps(conti_data),
+                "transazioni_serializzate": json.dumps(transazioni_serializzate),}
     return render(request, 'investments/homepageInvest.html', context)
 
 @login_required
@@ -1980,7 +2065,7 @@ def get_stock_data(request, symbol):
     try:
         with urllib.request.urlopen(url) as response:
             data = json.loads(response.read().decode())
-        print(data) #verifica 25 richieste al giorno
+        print(data)  #verifica 25 richieste al giorno
         if 'Error Message' in data:
             return JsonResponse({'error': 'Invalid symbol'}, status=400)
 
@@ -1992,8 +2077,9 @@ def get_stock_data(request, symbol):
 @login_required
 def get_latest_price_in_euro(request, symbol):
     
+    
     stock_data_response = get_stock_data(request, symbol)
-  
+    #print(stock_data_response)
     if isinstance(stock_data_response, JsonResponse) and stock_data_response.status_code != 200:
         return stock_data_response  
 
@@ -2035,7 +2121,7 @@ def aggiorna_posizioni_investimenti(request):
     
     for posizione in posizioni:
         prezzo_attuale_response = get_latest_price_in_euro(request, posizione.ticker)
-      
+        
         if isinstance(prezzo_attuale_response, JsonResponse) and prezzo_attuale_response.status_code != 200:
             return prezzo_attuale_response  
         
@@ -2108,8 +2194,8 @@ def investment_section(request, symbol, nome_azienda):
                             'id': conto.id,
                             'nome': conto.nome,
                             'tipo': conto.tipo,
-                            'saldo': conto.saldo,
-                            'liquidita' : conto.liquidita,
+                            'saldo': float(conto.saldo),
+                            'liquidita' : float(conto.liquidita),
                         }
                         for conto in conti
                 ]
@@ -2118,11 +2204,12 @@ def investment_section(request, symbol, nome_azienda):
             transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
             transazioni_data = [
                         {
-                            'id': transazione.id,
-                            'importo': transazione.importo,
-                            'data': transazione.data,
+                            'id': float(transazione.id),
+                            'importo': float(transazione.importo),
+                            'data': transazione.data.strftime('%Y-%m-%d'),
                             'descrizione': transazione.descrizione,
                             'tipo_transazione': transazione.tipo_transazione,
+                            'conto_id' :  float(Conto.objects.get(pk = transazione.conto.pk ).pk),
                             'eseguita' : transazione.eseguita,
                             'categoria' : transazione.categoria.to_dict() if transazione.categoria != None else None,
                             'sottocategoria' : transazione.sotto_categoria.to_dict() if transazione.sotto_categoria != None else None,
@@ -2130,8 +2217,8 @@ def investment_section(request, symbol, nome_azienda):
                             'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
                             'utente' : (transazione.utente).to_dict(),
                             'ticker' : symbol,
-                            'prezzo_azione' : transazione.prezzo_azione,
-                            'numero_azioni' : transazione.numero_azioni,
+                            'prezzo_azione' : float(transazione.prezzo_azione),
+                            'numero_azioni' : float(transazione.numero_azioni),
                         }
                         for transazione in transazioni
                     ]
@@ -2162,6 +2249,7 @@ def investment_section(request, symbol, nome_azienda):
                         'labels' : labels,
                         'data' : data,
                         'posizioni' : posizioni_data,
+                        'conti_json' : json.dumps(conti_data),
                     })
         return JsonResponse({'success' : False,'errors': formTransazione.errors})
 
@@ -2178,12 +2266,16 @@ def sell_section(request):
             ticker = posizione_obj.ticker
             conto = posizione_obj.conto
             pmc = posizione_obj.pmc
-            
+            #print(ticker)
             
             prezzo_attuale_data = (get_latest_price_in_euro(request, ticker)).content
+            #print(prezzo_attuale_data)
             json_string = prezzo_attuale_data.decode('utf-8')
+            #print(json_string)
             prezzo_attuale_dict = json.loads(json_string)
+            #print(prezzo_attuale_dict)
             closing_price_eur = prezzo_attuale_dict['closing_price_eur']
+            #print(closing_price_eur)
             prezzo = Decimal(closing_price_eur)
             AccountService.registra_posizione_vendita(utente, conto, ticker, numero_azioni, prezzo,pmc)
             return JsonResponse({'message': 'Posizioni aggiornate con successo', 'success' : True}, status=200)

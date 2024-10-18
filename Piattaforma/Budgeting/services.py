@@ -6,6 +6,8 @@ from Users.services import *
 from datetime import timedelta
 from Accounts.services import *
 from Challenges.services import *
+from django.db.models import Sum
+from .models import Transazione
 class BudgetingService: 
     def count_transazioni():
         return Transazione.objects.count()  
@@ -98,6 +100,61 @@ class BudgetingService:
         obbiettivo.save()
         return obbiettivo.percentuale_completamento
     
+   
+    def get_spese_per_categoria_ultimo_mese(utente):
+        un_mese_fa = timezone.now() - timedelta(days=30)
+        spese_per_categoria = (
+        Transazione.objects.filter(
+            utente=utente, 
+            eseguita=True, 
+            importo__lt=0,  # Filtro per importo negativo
+            categoria__isnull=False ,
+            data__gte= un_mese_fa# Solo le transazioni con una categoria assegnata
+        )
+        .values('categoria')  # Supponendo che tu abbia un campo 'nome' nella categoria
+        .annotate(totale=Sum('importo'))  # Somma degli importi per categoria
+    )
+       
+
+        
+        categorie = []
+        importi = []
+        for spesa in spese_per_categoria:
+            categoria = CategoriaSpesa.objects.get(pk = spesa['categoria'])
+            
+            cat = categoria.nome
+                
+            categorie.append(cat)
+            importi.append(float(spesa['totale']))
+
+        return categorie, importi
+    
+    def get_spese_per_categoria(utente):
+        spese_per_categoria = (
+        Transazione.objects.filter(
+            utente=utente, 
+            eseguita=True, 
+            importo__lt=0,  # Filtro per importo negativo
+            categoria__isnull=False  # Solo le transazioni con una categoria assegnata
+        )
+        .values('categoria')  # Supponendo che tu abbia un campo 'nome' nella categoria
+        .annotate(totale=Sum('importo'))  # Somma degli importi per categoria
+    )
+       
+
+        
+        categorie = []
+        importi = []
+        for spesa in spese_per_categoria:
+            categoria = CategoriaSpesa.objects.get(pk = spesa['categoria'])
+            
+            cat = categoria.nome
+                
+            categorie.append(cat)
+            importi.append(float(spesa['totale']))
+
+        return categorie, importi
+
     
     
     def check_future_transactions(request):

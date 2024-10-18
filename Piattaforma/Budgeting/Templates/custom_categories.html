@@ -12,8 +12,8 @@
                     <h3>Manage Subcategories</h3>
                     <p>Below you can edit or delete your subcategories, or create new ones.</p>
 
-                    <!-- Bottone per Creare Nuova Sottocategoria -->
                     <button type="button" class="btn btn-outline-success mb-4" id="createSubcategoryButton" style="border-radius: 50px;">Create New Subcategory</button>
+
 
                     <table class="table table-dark table-striped  ">
                         <thead>
@@ -27,6 +27,7 @@
                         <tbody id="subcategoryTable">
                             {% for subcategory in sottocategorie %}
                             <tr data-id="{{ subcategory.id }}">
+                                
                                 <td>{{ subcategory.categoria_superiore.nome }}</td>
                                 <td><input type="text" class="form-control" value="{{ subcategory.nome }}" id= "nome" /></td>
                                 <td>{{ subcategory.data_creazione }}</td>
@@ -45,6 +46,30 @@
             
         </div>
     </div>
+
+    <!-- Modal Sotto_Categorie-->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <button class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
+            <div id="responseMessage" style="color: red;"></div>
+            <h4 style="color:#100d30;">Insert your category</h4>
+            <form id="sottoCategoriaForm" method="post" action="{% url 'SezionePersonale' %}" class="mt-4">
+                {% csrf_token %}
+                <div class="mb-3" style = "text-align: center">
+                    <label for="id_nome" style="color: black; padding-bottom: 7px;">Sub-Category Name</label>
+                    {{ form.nome }}
+                </div>
+                <div class="mb-4" style="text-align: center">
+                        {{ form.categoria_superiore }}
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <button type="submit" style="background: #00995c; color: white; height: 50px; width: 100px; border-radius: 20px; border: 1px solid #d3d3d3;">Create</button>
+                </div>
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+        </div>
+    </div>
+    
 </section>
 
 <script>
@@ -52,17 +77,36 @@
 
     
     const createSubcategoryFormContainer = document.getElementById('createSubcategoryFormContainer');
+    const modal = document.getElementById('myModal');
+    const openModalBtn = document.getElementById('createSubcategoryButton');
+    const closeModalBtn = document.querySelector('.modal .close');
 
+    openModalBtn.addEventListener('click', function() {
+        modal.style.display = 'block';
+    });
 
-    document.querySelectorAll('.saveSubcategory').forEach(button => {
-        button.addEventListener('click', function () {
-            const row = this.closest('tr');
+    closeModalBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    document.getElementById('subcategoryTable').addEventListener('click', function (event) {
+        // Controlla se il clic è avvenuto su un pulsante con la classe 'saveSubcategory'
+        if (event.target.classList.contains('saveSubcategory')) {
+            const button = event.target;
+            const row = button.closest('tr');
             const subcategoryId = row.getAttribute('data-id');
             const newSubcategoryName = row.querySelector('input').value;
+    
             console.log(newSubcategoryName);
             const formData = new FormData();
             formData.append('nome', newSubcategoryName);
-
+    
             fetch(`/dashboard/update_subcategory/${subcategoryId}/`, {
                 method: 'POST',
                 headers: {
@@ -79,15 +123,18 @@
                     alert('Error updating subcategory');
                 }
             });
-        });
+        };
     });
 
     
-    document.querySelectorAll('.deleteSubcategory').forEach(button => {
-        button.addEventListener('click', function () {
-            const row = this.closest('tr');
+    document.getElementById('subcategoryTable').addEventListener('click', function (event) {
+        // Controlla se il clic è avvenuto su un pulsante con la classe 'deleteSubcategory'
+        if (event.target.classList.contains('deleteSubcategory')) {
+            const button = event.target;
+            const row = button.closest('tr');
             const subcategoryId = row.getAttribute('data-id');
             const confirmDeletion = confirm('Are you sure you want to delete this sub-category?');
+                
            if (confirmDeletion) {
             fetch(`/dashboard/delete_subcategory/${subcategoryId}/`, {
                 method: 'POST',
@@ -106,7 +153,61 @@
                 }
             });
         }
-        });
+        };
     });
+
+    document.getElementById('sottoCategoriaForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(document.getElementById('sottoCategoriaForm'));
+        
+        fetch(`/dashboard/create_sub_category/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) if (data.success) {
+                    
+                    alert('Subcategory created successfully');
+        
+                    // Ottieni l'elemento <tbody> della tabella dove inserire le nuove righe
+                    const subcategoryTable = document.getElementById('subcategoryTable');
+                    
+                    // Svuota tutte le righe esistenti
+                    subcategoryTable.innerHTML = '';
+                   
+                    data.sottocategorie.forEach(function(subcategory) {
+                        // Crea un nuovo elemento <tr>
+                        const newRow = document.createElement('tr');
+                        newRow.setAttribute('data-id', subcategory.id);
+        
+                        
+                        newRow.innerHTML = `
+                            <td>${subcategory.categoria_superiore}</td>
+                            <td><input type="text" class="form-control" value="${subcategory.nome}" id="nome-${subcategory.id}" /></td>
+                            <td>${subcategory.data_creazione}</td>
+                            <td>
+                                <button class="btn btn-outline-primary btn-sm saveSubcategory">Save</button>
+                                <button class="btn btn-outline-danger btn-sm deleteSubcategory">Delete</button>
+                            </td>
+                        `;
+        
+                        
+                        subcategoryTable.appendChild(newRow);
+       
+                        
+                        
+                    });
+                    modal.style.display = 'none';
+                    
+                } else {
+                    alert('Error creating subcategory');
+                }
+            });
+        });
+
 </script>
 {% endblock content %}

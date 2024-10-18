@@ -200,8 +200,8 @@
         const SellForm = document.getElementById('formSell')
         const SellResponde = document.getElementById('SellResponseMessage');
         const InvestimentoMessaggi = document.getElementById('transactionResponseMessage');
-       
-
+        let conti = {{ conti_json|safe }}; 
+        transazioni = JSON.parse('{{ transazioni_serializzate|escapejs }}');
         var data = {{ data|safe }}.map(Number);  
         var ctx = document.getElementById('saldoChart').getContext('2d');
         var saldoChart = new Chart(ctx, {
@@ -406,8 +406,8 @@
 
              
                 posizioniContainer.appendChild(posizioneDiv);
-            });
-
+            });     console.log(data.transazioni)
+                    updateTransazioni(data.transazioni, data.conti); 
                     document.getElementById('transactionModal').style.display = 'none';
                     document.getElementById('investimentoModal').style.display = 'none';
 
@@ -456,6 +456,252 @@
           });
       });
        
+
+      let currentClickListener;
+
+      function handleContoClick(event, dataset) {
+            if (event.target && event.target.id.startsWith('singolo_conto_')) {
+                
+                const contoId = event.target.id.split('_')[2];
+                console.log(contoId)
+                console.log(dataset)
+                const transazioniDelConto = dataset.filter(transazione => transazione.conto_id == contoId);
+                const NomeConto = (conti.filter(conto => conto.id == contoId))[0]?.nome;
+                console.log(NomeConto)
+                console.log(transazioniDelConto)
+                createModal(contoId, transazioniDelConto, NomeConto); // Crea e visualizza il modal per questo conto
+            }
+        }
+        
+      function createClickListener(dataset) {
+            return function(event) {
+                handleContoClick(event, dataset);
+            };
+        }
+        
+      function addClickListener(dataset) {
+            const contiContainer = document.getElementById('contiContainer');
+        
+            if (currentClickListener) {
+                contiContainer.removeEventListener('click', currentClickListener); 
+            }
+        
+            
+            currentClickListener = createClickListener(dataset);
+            contiContainer.addEventListener('click', currentClickListener); // Aggiungi il nuovo listener
+         }
+        
+      function updateTransazioni(dataset, newConti) {
+            conti = newConti; // Aggiorna la variabile globale conti
+            addClickListener(dataset); // Aggiungi il listener dopo l'aggiornamento
+        }
+
+      updateTransazioni(transazioni, conti)
+      
+      function createModal(contoId, transazioniDelConto, NomeConto) {
+        let modal = document.getElementById(`contoModal_${contoId}`);
+        if (modal) {
+            modal.remove(); 
+        }
+       
+            modal = document.createElement('div');
+            modal.id = `contoModal_${contoId}`;
+            modal.classList.add('modal');
+            
+            // Contenuto dinamico del modal
+            modal.innerHTML = `
+                <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto;">
+        <button id="closeModelDettagliConto_${contoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
+            <div class="header-row" style="display: flex; align-items: center; padding: 10px 0;">
+                <div style="flex: 1;">
+                    <span id="contoNome_${contoId}" style="font-size: 18px; margin-right: 60px; font-weight: bold;">${NomeConto}</span> 
+                </div>
+                <div style="display: flex; align-items: center; margin-left: auto;"> 
+                    <i class="bi bi-pencil"id="editContoIcon_${contoId}" style="font-size: 20px; margin-right: 10px; cursor: pointer;"></i> 
+                    <i class="bi bi-trash" id="deleteContoIcon_${contoId}"  style="font-size: 20px; cursor: pointer;"></i>
+                </div>
+            </div>
+
+                   
+                    <div class="transactions-section">
+                        <div id="transactionList_${contoId}" style="max-height: 370px; overflow-y: auto; padding: 10px;">
+                            <!-- Le transazioni saranno caricate qui -->
+                        </div>
+                        <!-- Paginazione -->
+                        <div class="pagination" style="display: flex; justify-content: center; margin-top: 30px;">
+                            <button id="prevPage_${contoId}" class="pagination-btn" style="margin-right: 10px; background: #100d30; color:White; border-radius: 5px;">&laquo; Previous</button>
+                            <button id="nextPage_${contoId}" class="pagination-btn" style= "background: #100d30; color:White; border-radius: 5px;" >Next &raquo;</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            const deleteIcon = document.getElementById(`deleteContoIcon_${contoId}`);
+            deleteIcon.addEventListener('click', function() {
+                deleteConto(contoId); 
+            });
+
+            const editIcon = document.getElementById(`editContoIcon_${contoId}`);
+
+            editIcon.addEventListener('click', function(){
+                renameConto(contoId)
+            });
+            
+            closeButtonDettagliConto = document.getElementById(`closeModelDettagliConto_${contoId}`);
+            if (closeButtonDettagliConto) {
+                closeButtonDettagliConto.addEventListener('click', function() {
+                    modal = document.getElementById(`contoModal_${contoId}`);
+                    if (modal) {
+                        modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                    }
+                });
+            }
+
+            
+            loadTransactions(contoId, transazioniDelConto, 1);
+        
+        
+        modal.style.display = 'block';
+    }
+
+    function loadTransactions(contoId, transazioniDelConto, page) {
+
+          
+        const transactionsPerPage = 10;
+        const start = (page - 1) * transactionsPerPage;
+        const end = start + transactionsPerPage;
+        
+        const transactionList = document.getElementById(`transactionList_${contoId}`);
+        transactionList.innerHTML = ''; // Pulisce la lista
+        
+        const pageTransactions = transazioniDelConto.slice(start, end);
+        pageTransactions.forEach(transazione => {
+            const transactionItem = document.createElement('div');
+            transactionItem.style.display = 'flex'; // Usa flexbox per allineare gli elementi
+            transactionItem.style.justifyContent = 'space-between'; // Spazia gli elementi
+            transactionItem.style.alignItems = 'center'; // Centra verticalmente
+        
+          
+            const transactionText = document.createElement('span');
+
+            if (transazione.descrizione != ''){
+                transactionText.textContent = `Ticker: ${transazione.ticker}  | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
+                } else {
+                transactionText.textContent = `Ticker: ${transazione.ticker}  | Amount: ${transazione.importo} | Date: ${transazione.data} `;}
+                transactionText.style.padding = '5px 0'; // Padding per il testo
+                transactionItem.appendChild(transactionText);
+                
+            
+      
+    
+      
+          
+            
+        
+            // Aggiungi la transazione alla lista
+            transactionList.appendChild(transactionItem);
+        
+            // Aggiungi una linea divisiva
+            const divider = document.createElement('hr');
+            divider.style.margin = '5px 0'; // Spaziatura attorno alla linea divisiva
+            transactionList.appendChild(divider);
+        });
+        
+        // Gestione paginea
+        document.getElementById(`prevPage_${contoId}`).onclick = function() {
+            if (page > 1) {
+                loadTransactions(contoId, transazioniDelConto, page - 1);
+            }
+        };
+        document.getElementById(`nextPage_${contoId}`).onclick = function() {
+            if (end < transazioniDelConto.length) {
+                loadTransactions(contoId, transazioniDelConto, page + 1);
+            }
+        };
+    }
+
+    function deleteConto(contoId) {
+        const confirmDelete = confirm('Are you sure you want to delete this account?');
+      
+        if (confirmDelete) {
+            fetch("{% url 'elimina_conto' 0 %}".replace('0', contoId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}', 
+                },
+                body: JSON.stringify({})  
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(risposta => {
+                
+                if(risposta.success)
+              
+                reloadPage()
+                })
+        
+            .catch(error => console.error('Errore durante l\'eliminazione del conto:', error));
+        }
+    }
+
+
+    function getCSRFToken() {
+              
+      const name = 'csrftoken';
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+
+    function renameConto(contoId) {
+      const newName = prompt('Enter the new name:');
+    
+      if (newName) {
+          fetch("{% url 'rinomina_conto' 0 'new_name' %}".replace('0', contoId).replace('new_name', encodeURIComponent(newName)), {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+              },
+              body: JSON.stringify({
+                  'new_name': newName
+              })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  
+                  document.getElementById(`contoNome_${contoId}`).textContent = newName;
+                  
+                  closeButtonDettagliConto = document.getElementById(`closeModelDettagliConto_${contoId}`);
+                  if (closeButtonDettagliConto) {
+                  closeButtonDettagliConto.addEventListener('click', reloadPage);
+                  }
+                  alert('The account name has been updated.');
+              } else {
+                  alert('Error: ' + data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+          });
+      } else {
+          alert('Account name is not valid.');
+      }
+    }
+
+        
+    function reloadPage() {
+        location.reload(); 
+    }
 
       });
     </script>

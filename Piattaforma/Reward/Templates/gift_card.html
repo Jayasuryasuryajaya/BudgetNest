@@ -1,0 +1,83 @@
+{% extends "registration/base.html" %}
+
+{% block content %}
+<section id="purchase-section" class="sections section dark-background d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
+    <div class="container">
+        <!-- Icona utente in alto a destra con monete -->
+        <div class="row">
+            <div class="col d-flex justify-content-end">
+                <div class="coin-container d-flex align-items-center">
+                    <span id="coin-balance" class="me-2" style="color: white;">{{ utente.monete_account }} coins</span>
+                    <i class="bi bi-coin" style="font-size: 1.5rem; color: gold;"></i>
+                </div>
+            </div>
+        </div>
+    
+        <div class="row gy-4 justify-content-center" style="margin-top: 50px;">
+            {% for premio in premi %}
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="{{ forloop.counter0|add:200 }}">
+                <div class="section-box p-4 text-center">
+                    <i class="bi bi-gift" style="font-size: 3rem; color: #f39c12;"></i>
+                    <h3>{{ premio.nome }}€</h3>
+                    <p>Price: {{ premio.costo_monete }} coins</p>
+                    <button type="button" class="btn btn-outline-success purchase-btn" 
+                            data-price="{{ premio.costo_monete }}" 
+                            data-item="{{ premio.nome }}" 
+                            style="border-radius: 50px;">
+                        Buy Now
+                    </button>
+                </div>
+            </div>
+             {% endfor %} 
+        </div>
+            
+            
+           
+        </div>
+    </div>
+</section>
+
+<script>
+    const purchaseButtons = document.querySelectorAll('.purchase-btn');
+    const coinBalanceSpan = document.getElementById('coin-balance');
+    let selectedItem = '';
+    let selectedPrice = 0;
+
+    purchaseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            selectedItem = this.getAttribute('data-item');
+            selectedPrice = this.getAttribute('data-price');
+            
+            // Usa il dialogo `confirm()` per la conferma dell'acquisto
+            const confirmPurchase = confirm(`Are you sure you want to purchase?`);
+            
+            if (confirmPurchase) {
+                // Invia la richiesta di acquisto
+                fetch(`/dashboard/purchase/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'item': selectedItem,
+                        'price': selectedPrice
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Purchase successful! Please check your email for details.');
+                        
+                        // Aggiorna dinamicamente il numero di monete
+                        coinBalanceSpan.textContent = `${data.new_coin_balance} coins`;
+                    } else {
+                        alert('Insufficient coins.');
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+{% endblock content %}

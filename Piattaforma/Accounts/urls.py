@@ -5,6 +5,7 @@ from HomePage import urls as home_urls
 from Users.views import *
 from Accounts.views import *
 from Budgeting.views import *
+from Reward.views import *
 
 urlpatterns = [
     path('',dashboard_utente , name='dashboard'),  
@@ -41,6 +42,9 @@ urlpatterns = [
     path('custom_cat', create_custom_categories, name='custom_categories'),
     path('update_subcategory/<int:subcategory_id>/', update_subcategory, name='update_subcategory'),
     path('delete_subcategory/<int:subcategory_id>/', delete_subcategory, name='delete_subcategory'),
+    path('create_sub_category/', create_sub, name='create_sub_category'),
+    path('shop/', shop_view, name='shop'),
+    path('purchase/', purchase_item, name='purchase'),
 ]
 
 

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .forms import NuovaTransazioneForm
+from .forms import NuovaTransazioneForm, Sotto_Categoria_Form
 from django.http import JsonResponse
 from django.views import View
 from .models import *
@@ -20,8 +20,9 @@ def nuova_transazione_view(request):
 
 def create_custom_categories(request):
     utente = UserService.get_utenti_by_user(request.user.pk)
+    form = Sotto_Categoria_Form()
     sottocategorie = BudgetingService.get_sotto_categorie_utente(utente)
-    context = {"utente" : utente, "sottocategorie" : sottocategorie}
+    context = {"utente" : utente, "sottocategorie" : sottocategorie, "form" : form}
     return render(request, 'custom_categories.html', context)
 
 def update_subcategory(request, subcategory_id):
@@ -51,23 +52,47 @@ def delete_subcategory(request, subcategory_id):
     subcategory = SottoCategoriaSpesa.objects.get(pk = subcategory_id)
     print(subcategory)
     subcategory.delete()
-    sottocategorie = BudgetingService.get_sotto_categorie_utente(utente=utente)
-    sottocategorie_data = [
-        {
-            'id' : c.pk,
-            'categoria_superiore' : c.categoria_superiore.nome,
-            'nome' : c.nome,
-            'data_creazione' : c.data_creazione.strftime('%Y-%m-%d'),  
-        }
-        for c in sottocategorie
-        
-    ]
     return JsonResponse({
             'success': True,
-            'data': {
-                'id': subcategory.id,
-                'nome': subcategory.nome,
-                'sotto_categorie' : sottocategorie_data
-            }
         })
  
+
+def create_sub(request):
+    utente = UserService.get_utenti_by_user(request.user.pk)
+    if request.method == 'POST':
+        form = Sotto_Categoria_Form(request.POST)
+        
+        print("ciao")
+        
+        if form.is_valid(): 
+            # Converte l'ID della categoria superiore in un'istanza di CategoriaSpesa
+            categoria_superiore = (form.cleaned_data['categoria_superiore'])  # Assicurati che sia un intero
+           
+            # Crea una nuova SottoCategoriaSpesa
+            SottoCategoriaSpesa.objects.create(
+                nome=form.cleaned_data['nome'],
+                categoria_superiore=categoria_superiore,  # Passa l'istanza
+                utente=utente,
+                data_creazione=timezone.now().date(),
+                personalizzata=True
+            )
+            
+            # Recupera le sottocategorie dell'utente
+            sottocategorie = BudgetingService.get_sotto_categorie_utente(utente=utente)
+            sottocategorie_data = [
+                {
+                    'id': c.pk,
+                    'categoria_superiore': c.categoria_superiore.nome,
+                    'nome': c.nome,
+                    'data_creazione': c.data_creazione.strftime('%Y-%m-%d'),
+                }
+                for c in sottocategorie
+            ]
+            
+            return JsonResponse({'success': True, 'sottocategorie': sottocategorie_data})
+        else:
+            # Stampa gli errori di validazione
+            print("Errori di validazione:", form.errors)  # Aggiungi questo
+            return JsonResponse({'success': False, 'errors': form.errors})
+
+    return JsonResponse({'success': False, 'message': 'Invalid request'})

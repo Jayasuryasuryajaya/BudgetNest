@@ -14,13 +14,10 @@ from Budgeting.services import BudgetingService
 @never_cache
 def Login(request):
     form = AuthenticationForm(request, data=request.POST or None)
-    print("ciao")
     if form.is_valid():
         user = form.get_user()
         auth_login(request, user)
         
-    
-    
     return render(request, 'registration/login.html', {'form': form})
 
 

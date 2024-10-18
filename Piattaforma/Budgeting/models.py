@@ -19,7 +19,7 @@ class CategoriaSpesa(models.Model):
 
 class SottoCategoriaSpesa(models.Model):
     categoria_superiore = models.ForeignKey(CategoriaSpesa, on_delete=models.CASCADE,)
-    utente = models.ForeignKey(Utente, on_delete=models.CASCADE, null= True)
+    utente = models.ForeignKey(Utente, on_delete=models.CASCADE, null= True, blank=True)
     personalizzata = models.BooleanField(default=False)
     data_creazione = models.DateField()
     nome = models.CharField(max_length=50, null= True)
