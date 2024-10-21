@@ -2,7 +2,7 @@
 from .models import *
 from django.utils import timezone
 from Users.services import *
-from datetime import timedelta
+from datetime import datetime, timedelta
 from Accounts.services import *
 from Reward.services import *
 class ChallengeService: 
@@ -10,16 +10,21 @@ class ChallengeService:
         challenge_list = SfidaFamigliare.objects.filter(famiglia =famiglia, data_scadenza__gte=timezone.now().date() )
         return list(challenge_list)
    
-    def aggiorna_sfida(utente, categoria, nuovo_importo):
+    def aggiorna_sfida(utente, categoria, nuovo_importo, data_transazione):
+        data  = datetime.strptime(data_transazione, '%Y-%m-%d').date()
         sfide = SfidaFamigliare.objects.filter(
             categoria_target=categoria,
-            sfidante=utente
+            sfidante=utente,
+            data_creazione__lte=data, 
+            data_scadenza__gte=data   
         ).union(
             SfidaFamigliare.objects.filter(
                 categoria_target=categoria,
-                sfidato=utente
+                sfidato=utente,
+                data_creazione__lte=data,  
+                data_scadenza__gte=data   
             )
-        ) # Prendi solo la prima sfida trovata
+        ) 
 
         if sfide:
             for sfida_in_corso in sfide:

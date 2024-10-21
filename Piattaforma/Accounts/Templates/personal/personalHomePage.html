@@ -177,7 +177,7 @@
                                     {% else %}
                                     {% if t.tipo_transazione == 'investimento' %}
                                         <h3 style="margin: 0; font-size: 18px; color: #00995c;">Investment</h3>
-                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
+                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
                                             {% else %}
                                                 {% if t.importo >= 0 %}
                                                 <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
@@ -211,7 +211,7 @@
                                     {% else %}
                                     {% if t.tipo_transazione == 'investimento' %}
                                         <h3 style="margin: 0; font-size: 18px; color: #00995c;">Investment</h3>
-                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }} -> {{ t.conto_arrivo }}</p>
+                                        <p style="margin: 0; font-size: 14px; color: #ccc;">{{ t.conto }}</p>
                                             {% else %}
                                                 {% if t.importo >= 0 %}
                                                     <h3 style="margin: 0; font-size: 18px; color: #00995c;">{{ t.categoria }} | {{ t.sotto_categoria.nome }}</h3>
@@ -654,7 +654,7 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    
+                   
                     const contiElements = document.querySelectorAll('.singolo-conto');
                     document.getElementById('formTransazioneContainer').innerHTML = data.formTransazione;
                     document.getElementById('formTransazioneContoArrivo').innerHTML = data.formContoArrivo;

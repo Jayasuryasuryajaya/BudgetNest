@@ -58,7 +58,7 @@
       <div class="modal-content" style="background-color: white; border-radius: 10px; width: 80%; margin: 10% auto; padding: 20px;">
         <button id="closeModalBtn" class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
         <div id="searchResponseMessage" style="color: red;"></div>
-        <h4 style="color: #100d30;">Search for a Company</h4>
+        <h4 style="color: #100d30;">Search for a Company by Ticker Symbol</h4>
         
         <form id="searchCompanyForm" class="mt-4">
           {% csrf_token %}
@@ -168,7 +168,7 @@
           <h4 style="color: #100d30;">Sell</h4>
           <form id="formSell" method="post" class="mt-4" >
               {% csrf_token %}
-              <div class="mb-4">
+              <div class="mb-4" id= "lista_aziende">
                   {{ formVendita.nome_azienda}}
               </div>
               <div class="mb-4">
@@ -422,7 +422,7 @@
                     searchForm.reset();
                     InvestimentoMessaggi.textContent = '';
                     document.getElementById('searchResultsContainer').innerHTML = '';
-
+                    document.getElementById('lista_aziende').innerHTML = data.formInvestimento;
                 } else {
                     let firstField = Object.keys(data.errors)[0];
                     InvestimentoMessaggi.textContent = data.errors[firstField][0];
@@ -586,7 +586,7 @@
           
             const transactionText = document.createElement('span');
 
-            if (transazione.descrizione != ''){
+            if (transazione.descrizione != '' && transazione.descrizione !== null){
                 transactionText.textContent = `Ticker: ${transazione.ticker}  | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
                 } else {
                 transactionText.textContent = `Ticker: ${transazione.ticker}  | Amount: ${transazione.importo} | Date: ${transazione.data} `;}

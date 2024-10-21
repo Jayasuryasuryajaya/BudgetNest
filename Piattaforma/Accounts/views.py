@@ -296,8 +296,7 @@ def personal_section(request):
                 for conto in conti
             ]
             
-            
-            
+                        
             formTransazione = NuovaTransazioneForm(utente=request.user) 
             formTransazione_html = render_to_string('personal/conto_field.html', {'formTransazione': formTransazione})
             formSavingPlanContoArrivo_html = render_to_string ('personal/conto_field_arrivo.html', {'formTransazione' : formTransazione})
@@ -366,8 +365,9 @@ def transaction_section(request):
                         sotto_categoria = formTransazione.cleaned_data['sotto_categoria'], 
                         eseguita = True,
                     )
-
-                    ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo)
+                    
+                    data_t=formTransazione.cleaned_data['data']
+                    ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo, data_t.strftime('%Y-%m-%d') )
                     
                     
                     
@@ -642,8 +642,9 @@ def transaction_section(request):
                         prossimo_rinnovo = data_prossimo_rinnovo_prossimo_rinnovo, 
                         tipo_rinnovo = formTransazione.cleaned_data['tipo_rinnovo'], 
                         )
+                        data_t=formTransazione.cleaned_data['data']
                         AccountService.modifica_saldo_totale(utente, importo)
-                        ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo)
+                        ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo, data_t.strftime('%Y-%m-%d'))
                         BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, data, importo)
                     
         
@@ -1031,8 +1032,9 @@ def transaction_section_famiglia(request, famiglia):
                         sotto_categoria = formTransazione.cleaned_data['sotto_categoria'], 
                         eseguita = True,
                     )
+                    data_transazione = formTransazione.cleaned_data['data']
 
-                    ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo)
+                    ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo, data_transazione.strftime('%Y-%m-%d'))
                     g = ChallengeService.get_family_challenge(Fam)
                     challenge_list = [
                             {
@@ -1280,8 +1282,9 @@ def transaction_section_famiglia(request, famiglia):
                         prossimo_rinnovo = data_prossimo_rinnovo_prossimo_rinnovo, 
                         tipo_rinnovo = formTransazione.cleaned_data['tipo_rinnovo'], 
                         )
+                        data_t=formTransazione.cleaned_data['data']
                         AccountService.modifica_saldo_totale(utente, importo)
-                        ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo)
+                        ChallengeService.aggiorna_sfida(utente,formTransazione.cleaned_data['categoria'],importo, data_t.strftime('%Y-%m-%d'))
                         BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, data, importo)
                     
         
@@ -1525,8 +1528,8 @@ def elimina_transazione(request, id):
             BudgetingService.ricalcola_percentuale_completamento_obbiettivoSpesa(request, obbiettivo.id) 
 
         aggiorna_saldo_totale_transazione_eliminata(utente, data_transazione, transazione.importo)
-
-        ChallengeService.aggiorna_sfida(utente,transazione.categoria,(-transazione.importo))
+        data_t=transazione.data
+        ChallengeService.aggiorna_sfida(utente,transazione.categoria,(-transazione.importo), data_t.strftime('%Y-%m-%d'))
         
         transazione.delete()  
         
@@ -2216,7 +2219,7 @@ def investment_section(request, symbol, nome_azienda):
                             'conto' : transazione.conto.to_dict(),
                             'nome_conto' : (Conto.objects.get(pk = transazione.conto.pk )).nome,
                             'utente' : (transazione.utente).to_dict(),
-                            'ticker' : symbol,
+                            'ticker' : transazione.ticker,
                             'prezzo_azione' : float(transazione.prezzo_azione),
                             'numero_azioni' : float(transazione.numero_azioni),
                         }
@@ -2242,6 +2245,11 @@ def investment_section(request, symbol, nome_azienda):
             labels = [str(saldo.data_aggiornamento) for saldo in saldo_data]  
             data = [saldo.saldo_totale for saldo in saldo_data]
                     
+          
+            formInvestimento = NuovaVenditaForm(utente=request.user)
+            formInvestimento_html = render_to_string('investments/posizioni.html', {'formTransazione': formInvestimento})
+            
+           
             return JsonResponse({
                         'success': True,
                         'conti': conti_data,
@@ -2250,6 +2258,7 @@ def investment_section(request, symbol, nome_azienda):
                         'data' : data,
                         'posizioni' : posizioni_data,
                         'conti_json' : json.dumps(conti_data),
+                        'formInvestimento' : formInvestimento_html,
                     })
         return JsonResponse({'success' : False,'errors': formTransazione.errors})
 
@@ -2278,6 +2287,23 @@ def sell_section(request):
             #print(closing_price_eur)
             prezzo = Decimal(closing_price_eur)
             AccountService.registra_posizione_vendita(utente, conto, ticker, numero_azioni, prezzo,pmc)
+            
+            
+            Transazione.objects.create(
+                        conto=conto,
+                        importo= numero_azioni*prezzo,
+                        data=  timezone.now().date(),
+                        tipo_transazione= CategoriaTransazione.INVESTIMENTO,
+                        utente=  utente, 
+                        eseguita = True,
+                        ticker = ticker,
+                        prezzo_azione = prezzo,
+                        numero_azioni = numero_azioni,
+                        categoria = CategoriaSpesa.objects.get(nome = "Income"),
+                        sotto_categoria = SottoCategoriaSpesa.objects.get(nome = "Capital Gains"),
+                    )
+
+            
             return JsonResponse({'message': 'Posizioni aggiornate con successo', 'success' : True}, status=200)
         return JsonResponse({'success' : False,'errors': formVendinta.errors})
     

@@ -108,7 +108,7 @@ class NuovaTransazioneForm(forms.ModelForm):
             if (-importo) > conto_obj.saldo:
                 raise ValidationError("The amount cannot exceed the selected account balance.")
 
-        
+       
         if data and data > timezone.now().date() and tipo_transazione != "futura" and tipo_transazione != "periodica":
             raise ValidationError("The selected date cannot be in the future (you should use a future transaction)")
 
@@ -129,6 +129,13 @@ class NuovaTransazioneForm(forms.ModelForm):
         
         if tipo_transazione == "trasferimento" and importo <= 0:
             raise ValidationError("The transfer amount must be positive.")
+        
+        if tipo_transazione == "trasferimento":
+            conto_obj = Conto.objects.get(pk=conto.pk)
+            if conto_obj.tipo == 'investimento':
+                if conto_obj.liquidita < importo:
+                    raise ValidationError(f"The transfer amount cannot exceed the selected account liquidity -> {conto_obj.liquidita}€ .")
+       
         
         return cleaned_data
 
@@ -416,7 +423,7 @@ class NuovoInvestimentoForm(forms.ModelForm):
                 'min': '0',
             }),
             'prezzo_azione': forms.NumberInput(attrs={
-                'placeholder': 'Enter share price',
+                'placeholder': 'Enter share price €',
                 'class': 'form-control',
                 'step': '0.01',
                 'min': '0',

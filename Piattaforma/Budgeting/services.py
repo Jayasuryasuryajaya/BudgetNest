@@ -175,7 +175,7 @@ class BudgetingService:
                     transazione.save()
                     BudgetingService.ricalcola_lista_piani_risparmio(utente)
                     BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, transazione.data, transazione.importo)
-                    ChallengeService.aggiorna_sfida(utente,transazione.categoria,transazione.importo)
+                    ChallengeService.aggiorna_sfida(utente,transazione.categoria,transazione.importo, transazione.data.strftime('%Y-%m-%d'))
                     if any(transazione.categoria == obbiettivo.categoria_target for obbiettivo in obbiettivi_spesa):
                         obbiettivi_spesa_filtrati = obbiettivi_spesa.filter(
                             categoria_target=transazione.categoria,
@@ -206,7 +206,7 @@ class BudgetingService:
                     
                     BudgetingService.ricalcola_lista_piani_risparmio(utente)
                     BudgetingService.aggiorna_saldo_totale_dopo_inserimento(utente, transazione.data, transazione.importo)
-                    ChallengeService.aggiorna_sfida(utente,transazione.categoria,transazione.importo)
+                    ChallengeService.aggiorna_sfida(utente,transazione.categoria,transazione.importo, transazione.data.strftime('%Y-%m-%d'))
                     if any(transazione.categoria == obbiettivo.categoria_target for obbiettivo in obbiettivi_spesa):
                         obbiettivi_spesa_filtrati = obbiettivi_spesa.filter(
                             categoria_target=transazione.categoria,
