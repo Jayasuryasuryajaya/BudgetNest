@@ -138,6 +138,7 @@ class BudgetingService:
             utente=utente, 
             eseguita=True, 
             importo__lt=0, 
+            categoria__isnull=False ,
         )
         .values('categoria') 
         .annotate(totale=Sum('importo'))  
@@ -147,11 +148,11 @@ class BudgetingService:
         
         categorie = []
         importi = []
+        print(spese_per_categoria)
         for spesa in spese_per_categoria:
-            categoria = CategoriaSpesa.objects.get(pk = spesa['categoria'])
             
+            categoria = CategoriaSpesa.objects.get(pk = spesa['categoria'])
             cat = categoria.nome
-                
             categorie.append(cat)
             importi.append(float(spesa['totale']))
 
