@@ -182,8 +182,12 @@ def crea_account_famiglia(request, id):
                 }
                 for conto in conti
             ]
+            formTransazione = NuovaTransazioneForm(utente=request.user) 
+            formTransazione_html = render_to_string('personal/conto_field.html', {'formTransazione': formTransazione})
+
             
-            return JsonResponse({'success': True, 'conti': conti_data})
+            
+            return JsonResponse({'success': True, 'conti': conti_data, 'formTransazione': formTransazione_html,})
         else:
             return JsonResponse({'success': False, 'errors': form.errors})
 
@@ -939,7 +943,7 @@ def savings_section(request):
         
        
         
-    
+   
             
             return JsonResponse({'success': True, "piani_risparmio" : piani_data })
         else:
@@ -2205,6 +2209,7 @@ def investment_section(request, symbol, nome_azienda):
             
 
             transazioni = BudgetingService.get_transazioni_by_conti(conti).order_by('-data')
+            print(transazioni)
             transazioni_data = [
                         {
                             'id': float(transazione.id),
@@ -2275,8 +2280,7 @@ def sell_section(request):
             ticker = posizione_obj.ticker
             conto = posizione_obj.conto
             pmc = posizione_obj.pmc
-            #print(ticker)
-            
+
             prezzo_attuale_data = (get_latest_price_in_euro(request, ticker)).content
             #print(prezzo_attuale_data)
             json_string = prezzo_attuale_data.decode('utf-8')

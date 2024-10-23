@@ -61,7 +61,7 @@
                                     <input type="text" id="cognome" name="cognome" class="form-control" value="{{ utente.cognome }}" required>
                                 </div>
                             </div>
-                                                        <!-- Date of Birth -->
+                            <!-- Date of Birth -->
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="data_di_nascita">Date of Birth</label>
@@ -125,7 +125,7 @@
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}' // Includere il token CSRF
+                'X-CSRFToken': '{{ csrf_token }}' 
             }
         })
         .then(response => response.json())
@@ -139,7 +139,7 @@
             document.getElementById('indirizzo').value = data.indirizzo || document.getElementById('indirizzo').value;
             document.getElementById('sesso').value = data.sesso || document.getElementById('sesso').value;
 
-            alert('Profile updated successfully!'); // Notifica di aggiornamento riuscito
+            alert('Profile updated successfully!'); 
         })
         .catch(error => {
             console.error('Error:', error);

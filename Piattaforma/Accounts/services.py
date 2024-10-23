@@ -45,7 +45,7 @@ class AccountService:
         accounts_grouped = accounts.values('conto').annotate(num_utenti=Count('utente'))
         
         
-        # Filtra solo i conti che hanno intestazioni per tutti i membri della famiglia
+        
         accounts_with_all_members = accounts_grouped.filter(num_utenti=len(family_members))
        
         
@@ -68,10 +68,10 @@ class AccountService:
             saldo.save()
             
         except ObjectDoesNotExist:
-            # Se non esiste, crea un nuovo oggetto SaldoTotale
+           
             SaldoTotale.objects.create(
                 utente=utente,
-                saldo_totale=totale,  # Assicurati che il campo si chiami 'saldo_totale'
+                saldo_totale=totale, 
                 data_aggiornamento=data_aggiornamento
             )
           
@@ -93,10 +93,10 @@ class AccountService:
             saldo.save()
            
         except ObjectDoesNotExist:
-            # Se non esiste, crea un nuovo oggetto SaldoTotale
+           
             SaldoTotaleInvestimenti.objects.create(
                 utente=utente,
-                saldo_totale=totale,  # Assicurati che il campo si chiami 'saldo_totale'
+                saldo_totale=totale,  
                 data_aggiornamento=data_aggiornamento
             )
             print("Nuovo saldo totale creato.")
@@ -176,5 +176,5 @@ class AccountService:
                 
                 return
         
-        # Se la posizione non esiste, puoi decidere di gestire la situazione
+        
         raise ValueError("Posizione non trovata per la vendita.")

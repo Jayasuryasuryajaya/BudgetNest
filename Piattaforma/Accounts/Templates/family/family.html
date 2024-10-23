@@ -196,7 +196,7 @@
                 <div class="mb-3" id =  "tipo">
                     {{ formPiano.data_scadenza }}
                 </div>
-                <div class="mb-3" id =  "formSavingsContainer">
+                <div class="mb-3" id = "formSavingsContainer">
                     <label for="id_tipo" style="color: #100d30; padding-bottom:10px">Choose saving accout</label>
                     {{ formPiano.conto }}
                 </div>
@@ -418,9 +418,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    
                     const contiElements = document.querySelectorAll('.singolo-conto');
-        
+                    document.getElementById('formTransazioneContainer').innerHTML = data.formTransazione;
+                    document.getElementById('formSavingsContainer').innerHTML = data.formTransazione;
                     contiElements.forEach(conto => conto.remove());
                     data.conti.forEach(conto => {
                         const contoDiv = document.createElement('div');

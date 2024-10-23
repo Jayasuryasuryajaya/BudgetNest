@@ -9,6 +9,3 @@ admin.site.register(PianoDiRisparmio)
 admin.site.register(Transazione)
 
 
-# Register your models here.
-
-# Register your models here.

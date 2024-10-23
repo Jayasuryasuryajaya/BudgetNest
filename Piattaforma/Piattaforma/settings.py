@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 
 ALPHA_VANTAGE_API_KEY = os.environ.get('ALPHA_VANTAGE_API_KEY')
-FINHUB_API_KEY = os.getenv('FINHUB_API_KEY')
+FINHUB_API_KEY = os.environ.get('FINHUB_API_KEY')
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'Budgeting',
     'Challenges',
     'HomePage',
-    'Notifications',
     'Reward',
     'Users',
     'Faq',
@@ -106,8 +105,6 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {

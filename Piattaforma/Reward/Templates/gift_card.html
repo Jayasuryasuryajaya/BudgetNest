@@ -3,7 +3,7 @@
 {% block content %}
 <section id="purchase-section" class="sections section dark-background d-flex align-items-center justify-content-center" style="min-height: 95vh; position: relative;">
     <div class="container">
-        <!-- Icona utente in alto a destra con monete -->
+       
         <div class="row">
             <div class="col d-flex justify-content-end">
                 <div class="coin-container d-flex align-items-center">
@@ -48,11 +48,11 @@
             selectedItem = this.getAttribute('data-item');
             selectedPrice = this.getAttribute('data-price');
             
-            // Usa il dialogo `confirm()` per la conferma dell'acquisto
+           
             const confirmPurchase = confirm(`Are you sure you want to purchase?`);
             
             if (confirmPurchase) {
-                // Invia la richiesta di acquisto
+           
                 fetch(`/dashboard/purchase/`, {
                     method: 'POST',
                     headers: {
@@ -69,7 +69,7 @@
                     if (data.success) {
                         alert('Purchase successful! Please check your email for details.');
                         
-                        // Aggiorna dinamicamente il numero di monete
+                   
                         coinBalanceSpan.textContent = `${data.new_coin_balance} coins`;
                     } else {
                         alert('Insufficient coins.');

@@ -33,15 +33,12 @@ def purchase_item(request):
             if utente.monete_account >= premio.costo_monete:
                 utente.monete_account -= premio.costo_monete
                 utente.save()
-
-                
                 acquisto = AcquistoPremio.objects.create(
                     utente=utente,
                     premio=premio,
                     data_acquisto=timezone.now()
                 )
 
-                # Rispondi con successo e nuovo saldo
                 return JsonResponse({
                     'success': True,
                     'new_coin_balance': utente.monete_account

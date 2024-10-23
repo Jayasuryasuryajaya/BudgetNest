@@ -1,5 +1,5 @@
 
-from .models import Transazione, PianoDiRisparmio, CategoriaSpesa, ObbiettivoSpesa, SottoCategoriaSpesa
+from .models import Transazione, PianoDiRisparmio, CategoriaSpesa, ObbiettivoSpesa, SottoCategoriaSpesa, CategoriaTransazione
 from Accounts.models import IntestazioniConto, Conto
 from django.utils import timezone
 from Users.services import *
@@ -25,10 +25,13 @@ class BudgetingService:
         return lista_piani_risparmio
     
     def get_transazioni_by_conti(conti):
-        data_corrente = timezone.now().date()  
-        lista_transazioni = Transazione.objects.filter(conto__in=conti, data__lte=data_corrente, eseguita = True)
+        data_corrente = timezone.now().date()      
+        if all(conto.tipo == 'investimento' for conto in conti):
+            lista_transazioni = Transazione.objects.filter(conto__in=conti, data__lte=data_corrente, eseguita=True, tipo_transazione = CategoriaTransazione.INVESTIMENTO)
+        else:
+            lista_transazioni = Transazione.objects.filter(conto__in=conti, data__lte=data_corrente, eseguita=True)
         return lista_transazioni
-    
+
     def get_lista_SavingPlan_byConto(conto_id):
         data_corrente = timezone.now().date()
         lista_piani_risparmio = PianoDiRisparmio.objects.filter(
@@ -107,12 +110,12 @@ class BudgetingService:
         Transazione.objects.filter(
             utente=utente, 
             eseguita=True, 
-            importo__lt=0,  # Filtro per importo negativo
+            importo__lt=0,  
             categoria__isnull=False ,
-            data__gte= un_mese_fa# Solo le transazioni con una categoria assegnata
+            data__gte= un_mese_fa
         )
-        .values('categoria')  # Supponendo che tu abbia un campo 'nome' nella categoria
-        .annotate(totale=Sum('importo'))  # Somma degli importi per categoria
+        .values('categoria')  
+        .annotate(totale=Sum('importo')) 
     )
        
 
@@ -134,11 +137,10 @@ class BudgetingService:
         Transazione.objects.filter(
             utente=utente, 
             eseguita=True, 
-            importo__lt=0,  # Filtro per importo negativo
-            categoria__isnull=False  # Solo le transazioni con una categoria assegnata
+            importo__lt=0, 
         )
-        .values('categoria')  # Supponendo che tu abbia un campo 'nome' nella categoria
-        .annotate(totale=Sum('importo'))  # Somma degli importi per categoria
+        .values('categoria') 
+        .annotate(totale=Sum('importo'))  
     )
        
 
@@ -179,8 +181,8 @@ class BudgetingService:
                     if any(transazione.categoria == obbiettivo.categoria_target for obbiettivo in obbiettivi_spesa):
                         obbiettivi_spesa_filtrati = obbiettivi_spesa.filter(
                             categoria_target=transazione.categoria,
-                            data_creazione__lte=transazione.data,  # data_creazione <= data_esecuzione
-                            data_scadenza__gte=transazione.data   # data_scadenza >= data_esecuzione
+                            data_creazione__lte=transazione.data,  
+                            data_scadenza__gte=transazione.data   
                         )
                         for obbiettivo in obbiettivi_spesa_filtrati:
                             obbiettivo.importo_speso -= transazione.importo
@@ -210,8 +212,8 @@ class BudgetingService:
                     if any(transazione.categoria == obbiettivo.categoria_target for obbiettivo in obbiettivi_spesa):
                         obbiettivi_spesa_filtrati = obbiettivi_spesa.filter(
                             categoria_target=transazione.categoria,
-                            data_creazione__lte=transazione.data,  # data_creazione <= data_esecuzione
-                            data_scadenza__gte=transazione.data   # data_scadenza >= data_esecuzione
+                            data_creazione__lte=transazione.data,
+                            data_scadenza__gte=transazione.data 
                         )
                         for obbiettivo in obbiettivi_spesa_filtrati:
                             obbiettivo.importo_speso -= transazione.importo

@@ -68,7 +68,7 @@ class NuovaTransazioneForm(forms.ModelForm):
         self.fields['categoria'].queryset = CategoriaSpesa.objects.all()
         self.fields['categoria'].empty_label = "Select category"
 
-        # Imposta il queryset per 'sotto_categoria' usando l'utente
+        
         self.fields['sotto_categoria'].queryset = SottoCategoriaSpesa.objects.filter(Q(utente=Utente.pk) | Q(personalizzata=False))
         self.fields['sotto_categoria'].empty_label = "Select sub-category"
         
@@ -89,20 +89,20 @@ class NuovaTransazioneForm(forms.ModelForm):
         
         tipo_rinnovo = cleaned_data.get('tipo_rinnovo')
         
-        # 1. If the transaction type is not investment, do not allow operations on an investment account
+      
         if tipo_transazione and conto:
             conto_obj = Conto.objects.get(pk=conto.pk)
             if (tipo_transazione != 'investimento' and tipo_transazione != 'trasferimento') and conto_obj.tipo == 'investimento':
                 raise ValidationError("You cannot perform operations on an investment account unless the transaction type is investment or transfer .")
 
-        # 2. Ensure the selected sub-category corresponds to the chosen category
+   
         if categoria and sotto_categoria:
             sottocategoria_obj = SottoCategoriaSpesa.objects.get(pk=sotto_categoria.pk)
            
             if sottocategoria_obj.categoria_superiore.pk != categoria.pk:
                 raise ValidationError("The selected sub-category does not correspond to the chosen category.")
 
-        # 3. The transaction amount cannot exceed the selected account balance, unless it's a future transaction
+
         if importo and conto:
             conto_obj = Conto.objects.get(pk=conto.pk)
             if (-importo) > conto_obj.saldo:
@@ -218,20 +218,20 @@ class NuovaTransazioneFamigliaForm(forms.ModelForm):
         
         tipo_rinnovo = cleaned_data.get('tipo_rinnovo')
         
-        # 1. If the transaction type is not investment, do not allow operations on an investment account
+        
         if tipo_transazione and conto:
             conto_obj = Conto.objects.get(pk=conto.pk)
             if (tipo_transazione != 'investimento' and tipo_transazione != 'trasferimento') and conto_obj.tipo == 'investimento':
                 raise ValidationError("You cannot perform operations on an investment account unless the transaction type is investment or transfer .")
 
-        # 2. Ensure the selected sub-category corresponds to the chosen category
+   
         if categoria and sotto_categoria:
             sottocategoria_obj = SottoCategoriaSpesa.objects.get(pk=sotto_categoria.pk)
            
             if sottocategoria_obj.categoria_superiore.pk != categoria.pk:
                 raise ValidationError("The selected sub-category does not correspond to the chosen category.")
 
-        # 3. The transaction amount cannot exceed the selected account balance, unless it's a future transaction
+        
         if importo and conto:
             conto_obj = Conto.objects.get(pk=conto.pk)
             if (-importo) > conto_obj.saldo:
@@ -289,21 +289,21 @@ class NuovoPianoRisparmo(forms.ModelForm):
     def __init__(self, *args, utente=None, **kwargs):  
         super().__init__(*args, **kwargs)  
     
-        # Controlla se l'utente è fornito
+        
         if utente is not None:
             utente_obj = UserService.get_utenti_by_user(utente.id)
 
-            tipo_conto_desiderato = 'risparmio'  # Specifica il tipo di conto che vuoi filtrare
+            tipo_conto_desiderato = 'risparmio'  
             conti_filtrati = [
                 conto for conto in AccountService.get_conti_utente(utente_obj.pk) 
                 if conto.tipo == tipo_conto_desiderato
             ]
 
-            # Imposta le choices filtrate
+            
             self.fields['conto'].choices = [(conto.pk, str(conto)) for conto in conti_filtrati]
             self.fields['conto'].empty_label = "Select account"
         
-        # Puoi usar
+     
 
    
     def clean(self):
@@ -450,7 +450,7 @@ class NuovoInvestimentoForm(forms.ModelForm):
 
             importo_investimento = numero_azioni * prezzo_azione
 
-            # Verifica se la liquidità del conto è sufficiente
+            
             if conto.liquidita < importo_investimento:
                 raise forms.ValidationError(f"The account does not have enough funds. Available balance: {conto.liquidita}, required: {importo_investimento}.")
 

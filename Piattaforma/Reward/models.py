@@ -1,9 +1,8 @@
 
 from django.db import models
 from django.utils import timezone
-
 from Users.models import Utente
-# Create your models here.
+
 
 class Premio(models.Model):
     costo_monete = models.DecimalField(max_digits=10, decimal_places=2, default=0)

@@ -16,7 +16,7 @@
 
       {% for conto in conti %}
         <div id="singolo_conto_{{ conto.id }}" class="singolo-conto conto-box" style="margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; text-align: left;">
-          <!-- Icona in base al tipo di conto -->
+          
           {% if conto.tipo == 'corrente' %}
             <i class="bi bi-bank"></i>
           {% elif conto.tipo == 'investimento' %}
@@ -55,7 +55,7 @@
 
     <!-- Modal per nuova transazione -->
     <div id="transactionModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
-      <div class="modal-content" style="background-color: white; border-radius: 10px; width: 80%; margin: 10% auto; padding: 20px;">
+      <div class="modal-content" style="background-color: white; border-radius: 10px; width: 40%; margin: 10% auto; padding: 20px;">
         <button id="closeModalBtn" class="close" style="border: none; background: none; font-size: 24px; cursor: pointer;">&times;</button>
         <div id="searchResponseMessage" style="color: red;"></div>
         <h4 style="color: #100d30;">Search for a Company by Ticker Symbol</h4>
@@ -117,7 +117,7 @@
       </div>
     </div>
 
-    <!-- Sezione Transazioni -->
+    <!-- Sezione Posizioni -->
     <div data-aos="fade-up" data-aos-delay="300"  style="display: flex; justify-content: space-between; width: 100%; margin-top: 20px; padding: 0 30px;  ">
       <div  id = "contenitore_transazione" style="flex: 5; margin-right: 30px; padding: 10px; text-align: center; border-radius: 15px; background-color: white; box-shadow: 0 0 18px rgba(0, 0, 0, 0.1);">
        
@@ -133,7 +133,7 @@
                       <i class="bi bi-arrow-down-circle-fill" style="font-size: 25px; color: red;"></i>
                   {% endif %}
               </div>
-  
+
               <!-- Dettagli della posizione -->
               <div class="dettagli-posizione" style="flex: 1; text-align: left;">
                   <h3 style="margin: 0; font-size: 18px; color: white;">{{ posizione.nome_azienda }} ({{ posizione.ticker }})</h3>
@@ -153,7 +153,28 @@
           </div>
       {% endfor %}
       {% else %}
-          <p style="color: white;">Nessuna posizione aperta trovata.</p>
+         
+          <div class="posizione-box" style="display: flex; align-items: center; justify-content: space-between; margin: 10px 0; padding: 10px; border-radius: 10px; background-color: #100d30; color: white; width: 100%; height: auto;">
+                
+            <div class="icona-posizione" style="margin-right: 15px;">
+                <i class="bi bi-arrow-up-circle-fill" style="font-size: 25px; color: green;"></i>
+            </div>
+
+            <div class="dettagli-posizione" style="flex: 1; text-align: left;">
+                <h3 style="margin: 0; font-size: 18px; color: white;">Example Company (Ticker)</h3>
+                <p style="margin: 0; font-size: 14px; color: #ccc;">Account: Example Account</p>
+                <p style="margin: 0; font-size: 14px; color: #ccc;">Shares: XX</p>
+            </div>
+
+            <div class="saldo-posizione" style="flex: 1; text-align: right;">
+                <h3 style="margin: 0; font-size: 18px; color: white;">Total balance: € YYYY</h3>
+                <p style="margin: 0; font-size: 14px; color: #ccc;">Invested balance: € ZZZZ</p>
+                <p style="margin: 0; font-size: 14px; color: #ccc;">PMC: € AA</p>
+                <p style="margin: 0; font-size: 14px; color: green;">
+                    Difference: € BBB
+                </p>
+            </div>
+        </div>
       {% endif %}
       </div>
     </div>
@@ -242,7 +263,7 @@
         document.getElementById('closeModelSell').addEventListener('click', function() {
           document.getElementById('venditaModal').style.display = 'none';
         });
-        // Gestione del modal
+       
         document.getElementById('openModalBtn').addEventListener('click', function() {
           document.getElementById('transactionModal').style.display = 'block';
         });
@@ -260,14 +281,14 @@
           event.preventDefault();
           const companyName = document.getElementById("companyName").value;
           
-          // Mostra la rotella di caricamento
+         
           loadingSpinner.style.display = 'block';
-          resultsContainer.innerHTML = '';  // Resetta i risultati precedenti
+          resultsContainer.innerHTML = ''; 
           
           fetch(`/dashboard/api/get-company-data/${encodeURIComponent(companyName)}/`)
             .then(response => response.json())
             .then(data => {
-              // Nascondi la rotella di caricamento
+          
               loadingSpinner.style.display = 'none';
               resultsContainer.innerHTML = '';
 
@@ -303,8 +324,8 @@
             const loadingSpinner = document.getElementById('spinnerForm');
             const buyButton = this.querySelector('button[type="submit"]');
             
-            loadingSpinner.style.display = 'block'; // Mostra il caricamento
-            buyButton.disabled = true; // Disabilita il pulsante
+            loadingSpinner.style.display = 'block'; 
+            buyButton.disabled = true; 
        
 
             const formData = new FormData(TransazioneForm);
@@ -312,7 +333,7 @@
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                    'X-Requested-With': 'XMLHttpRequest' 
                 }
             })
             .then(response => response.json())
@@ -361,7 +382,7 @@
             posizioniElements.forEach(posizione => posizione.remove());
 
            
-            const posizioniContainer = document.getElementById('contenitore_transazione');  // Trova il contenitore delle posizioni
+            const posizioniContainer = document.getElementById('contenitore_transazione'); 
             data.posizioni.forEach(posizione => {
                 const posizioneDiv = document.createElement('div');
                 posizioneDiv.className = 'posizione-box';
@@ -376,7 +397,7 @@
                 posizioneDiv.style.width = '100%';
                 posizioneDiv.style.height = 'auto';
 
-                // Icona
+               
                 let iconHtml = '';
                 if (posizione.differenza >= 0) {
                     iconHtml = '<i class="bi bi-arrow-up-circle-fill" style="font-size: 25px; color: green;"></i>';
@@ -384,7 +405,7 @@
                     iconHtml = '<i class="bi bi-arrow-down-circle-fill" style="font-size: 25px; color: red;"></i>';
                 }
 
-                // Contenuto HTML della posizione
+                
                 posizioneDiv.innerHTML = `
                     <div class="icona-posizione" style="margin-right: 15px;">
                         ${iconHtml}
@@ -411,10 +432,10 @@
                     document.getElementById('transactionModal').style.display = 'none';
                     document.getElementById('investimentoModal').style.display = 'none';
 
-                    saldoChart.data.labels = [];  // Svuota le etichette
-                    saldoChart.data.datasets[0].data = [];  // Svuota i dati del saldo
-                    saldoChart.data.labels = data.labels;  // Imposta le nuove etichette
-                    saldoChart.data.datasets[0].data = data.data;  // Imposta i nuovi saldi
+                    saldoChart.data.labels = [];  
+                    saldoChart.data.datasets[0].data = [];  
+                    saldoChart.data.labels = data.labels; 
+                    saldoChart.data.datasets[0].data = data.data;  
                     saldoChart.update();
                     document.getElementById('investimentoModal').style.display = 'none';
                     document.getElementById('transactionModal').style.display = 'none';
@@ -439,7 +460,7 @@
               method: 'POST',
               body: formData,
               headers: {
-                  'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                  'X-Requested-With': 'XMLHttpRequest'
               }
           })
           .then(response => response.json())
@@ -469,7 +490,7 @@
                 const NomeConto = (conti.filter(conto => conto.id == contoId))[0]?.nome;
                 console.log(NomeConto)
                 console.log(transazioniDelConto)
-                createModal(contoId, transazioniDelConto, NomeConto); // Crea e visualizza il modal per questo conto
+                createModal(contoId, transazioniDelConto, NomeConto); 
             }
         }
         
@@ -488,12 +509,12 @@
         
             
             currentClickListener = createClickListener(dataset);
-            contiContainer.addEventListener('click', currentClickListener); // Aggiungi il nuovo listener
+            contiContainer.addEventListener('click', currentClickListener); 
          }
         
       function updateTransazioni(dataset, newConti) {
-            conti = newConti; // Aggiorna la variabile globale conti
-            addClickListener(dataset); // Aggiungi il listener dopo l'aggiornamento
+            conti = newConti; 
+            addClickListener(dataset); 
         }
 
       updateTransazioni(transazioni, conti)
@@ -508,7 +529,7 @@
             modal.id = `contoModal_${contoId}`;
             modal.classList.add('modal');
             
-            // Contenuto dinamico del modal
+            
             modal.innerHTML = `
                 <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto;">
         <button id="closeModelDettagliConto_${contoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
@@ -525,9 +546,7 @@
                    
                     <div class="transactions-section">
                         <div id="transactionList_${contoId}" style="max-height: 370px; overflow-y: auto; padding: 10px;">
-                            <!-- Le transazioni saranno caricate qui -->
                         </div>
-                        <!-- Paginazione -->
                         <div class="pagination" style="display: flex; justify-content: center; margin-top: 30px;">
                             <button id="prevPage_${contoId}" class="pagination-btn" style="margin-right: 10px; background: #100d30; color:White; border-radius: 5px;">&laquo; Previous</button>
                             <button id="nextPage_${contoId}" class="pagination-btn" style= "background: #100d30; color:White; border-radius: 5px;" >Next &raquo;</button>
@@ -554,7 +573,7 @@
                 closeButtonDettagliConto.addEventListener('click', function() {
                     modal = document.getElementById(`contoModal_${contoId}`);
                     if (modal) {
-                        modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                        modal.style.display = 'none';
                     }
                 });
             }
@@ -574,14 +593,14 @@
         const end = start + transactionsPerPage;
         
         const transactionList = document.getElementById(`transactionList_${contoId}`);
-        transactionList.innerHTML = ''; // Pulisce la lista
+        transactionList.innerHTML = ''; 
         
         const pageTransactions = transazioniDelConto.slice(start, end);
         pageTransactions.forEach(transazione => {
             const transactionItem = document.createElement('div');
-            transactionItem.style.display = 'flex'; // Usa flexbox per allineare gli elementi
-            transactionItem.style.justifyContent = 'space-between'; // Spazia gli elementi
-            transactionItem.style.alignItems = 'center'; // Centra verticalmente
+            transactionItem.style.display = 'flex'; 
+            transactionItem.style.justifyContent = 'space-between';
+            transactionItem.style.alignItems = 'center';
         
           
             const transactionText = document.createElement('span');
@@ -590,26 +609,18 @@
                 transactionText.textContent = `Ticker: ${transazione.ticker}  | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
                 } else {
                 transactionText.textContent = `Ticker: ${transazione.ticker}  | Amount: ${transazione.importo} | Date: ${transazione.data} `;}
-                transactionText.style.padding = '5px 0'; // Padding per il testo
+                transactionText.style.padding = '5px 0'; 
                 transactionItem.appendChild(transactionText);
-                
-            
-      
-    
-      
-          
-            
-        
-            // Aggiungi la transazione alla lista
+              
             transactionList.appendChild(transactionItem);
         
-            // Aggiungi una linea divisiva
+            
             const divider = document.createElement('hr');
-            divider.style.margin = '5px 0'; // Spaziatura attorno alla linea divisiva
+            divider.style.margin = '5px 0'; 
             transactionList.appendChild(divider);
         });
         
-        // Gestione paginea
+       
         document.getElementById(`prevPage_${contoId}`).onclick = function() {
             if (page > 1) {
                 loadTransactions(contoId, transazioniDelConto, page - 1);
@@ -669,7 +680,7 @@
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
-                  'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                  'X-CSRFToken': getCSRFToken() 
               },
               body: JSON.stringify({
                   'new_name': newName

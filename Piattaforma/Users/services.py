@@ -1,5 +1,5 @@
-# services.py
-from .models import Utente,Famiglia  # Importa il tuo modello
+
+from .models import Utente,Famiglia  
 
 class UserService:
     def get_all_utente():

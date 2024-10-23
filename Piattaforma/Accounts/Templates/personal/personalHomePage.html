@@ -401,12 +401,12 @@
         var ctx2 = document.getElementById('speseChart').getContext('2d');
         var ctx3 = document.getElementById('speseChart_ultimo_mese').getContext('2d');
         var speseChart = new Chart(ctx2, {
-            type: 'pie',  // Cambiato in 'pie' per il grafico a torta
+            type: 'pie',  
             data: {
-                labels: categorie,  // Le categorie come etichette
+                labels: categorie,  
                 datasets: [{
-                    data: importi,  // Gli importi delle categorie
-                    backgroundColor: [ // Colori per ciascuna categoria
+                    data: importi, 
+                    backgroundColor: [ 
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',
                         'rgba(255, 206, 86, 0.2)',
@@ -448,12 +448,12 @@
         });
         
         var speseChart_ultimo_mese = new Chart(ctx3, {
-            type: 'pie',  // Cambiato in 'pie' per il grafico a torta
+            type: 'pie',  
             data: {
-                labels: categorie,  // Le categorie come etichette
+                labels: categorie,  
                 datasets: [{
-                    data: importi,  // Gli importi delle categorie
-                    backgroundColor: [ // Colori per ciascuna categoria
+                    data: importi, 
+                    backgroundColor: [ 
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',
                         'rgba(255, 206, 86, 0.2)',
@@ -602,7 +602,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                        'X-CSRFToken': getCSRFToken() 
                     },
                     body: JSON.stringify({
                         'new_name': newName
@@ -642,13 +642,13 @@
         contoForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
-            const formData = new FormData(contoForm); // Crea un oggetto FormData con i dati del form
+            const formData = new FormData(contoForm);
 
             fetch(contoForm.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                    'X-Requested-With': 'XMLHttpRequest' 
                 }
             })
             .then(response => response.json())
@@ -716,10 +716,10 @@
                         modal.style.display = 'block';
                     };
 
-                    saldoChart.data.labels = [];  // Svuota le etichette
-                    saldoChart.data.datasets[0].data = [];  // Svuota i dati del saldo
-                    saldoChart.data.labels = data.labels;  // Imposta le nuove etichette
-                    saldoChart.data.datasets[0].data = data.data;  // Imposta i nuovi saldi
+                    saldoChart.data.labels = [];  
+                    saldoChart.data.datasets[0].data = [];
+                    saldoChart.data.labels = data.labels;  
+                    saldoChart.data.datasets[0].data = data.data; 
                     saldoChart.update();
                     
                     updateTransazioni(transazioni, data.conti)
@@ -750,7 +750,7 @@
                 const transazioniDelConto = dataset.filter(transazione => transazione.conto.pk == contoId);
                 const NomeConto = (conti.filter(conto => conto.id == contoId))[0]?.nome;
                 
-                createModal(contoId, transazioniDelConto, NomeConto); // Crea e visualizza il modal per questo conto
+                createModal(contoId, transazioniDelConto, NomeConto); 
             }
         }
         
@@ -763,19 +763,19 @@
         function addClickListener(dataset) {
             const contiContainer = document.getElementById('contiContainer');
         
-            // Rimuovi il listener esistente se ce n'è uno
+            
             if (currentClickListener) {
                 contiContainer.removeEventListener('click', currentClickListener); 
             }
         
             
             currentClickListener = createClickListener(dataset);
-            contiContainer.addEventListener('click', currentClickListener); // Aggiungi il nuovo listener
+            contiContainer.addEventListener('click', currentClickListener); 
         }
         
         function updateTransazioni(dataset, newConti) {
-            conti = newConti; // Aggiorna la variabile globale conti
-            addClickListener(dataset); // Aggiungi il listener dopo l'aggiornamento
+            conti = newConti;
+            addClickListener(dataset);
         }
         updateTransazioni(transazioni, conti)
        
@@ -794,14 +794,14 @@
         function createModal(contoId, transazioniDelConto, NomeConto) {
             let modal = document.getElementById(`contoModal_${contoId}`);
             if (modal) {
-                modal.remove(); // Rimuove il modal esistente dal DOM
+                modal.remove(); 
             }
            
                 modal = document.createElement('div');
                 modal.id = `contoModal_${contoId}`;
                 modal.classList.add('modal');
                 
-                // Contenuto dinamico del modal
+              
                 modal.innerHTML = `
                     <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto;">
             <button id="closeModelDettagliConto_${contoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
@@ -818,9 +818,9 @@
                        
                         <div class="transactions-section">
                             <div id="transactionList_${contoId}" style="max-height: 370px; overflow-y: auto; padding: 10px;">
-                                <!-- Le transazioni saranno caricate qui -->
+                                
                             </div>
-                            <!-- Paginazione -->
+                          
                             <div class="pagination" style="display: flex; justify-content: center; margin-top: 30px;">
                                 <button id="prevPage_${contoId}" class="pagination-btn" style="margin-right: 10px; background: #100d30; color:White; border-radius: 5px;">&laquo; Previous</button>
                                 <button id="nextPage_${contoId}" class="pagination-btn" style= "background: #100d30; color:White; border-radius: 5px;" >Next &raquo;</button>
@@ -847,7 +847,8 @@
                     closeButtonDettagliConto.addEventListener('click', function() {
                         modal = document.getElementById(`contoModal_${contoId}`);
                         if (modal) {
-                            modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                            modal.style.display = 'none'; 
+
                         }
                     });
                 }
@@ -867,14 +868,14 @@
             const end = start + transactionsPerPage;
             
             const transactionList = document.getElementById(`transactionList_${contoId}`);
-            transactionList.innerHTML = ''; // Pulisce la lista
+            transactionList.innerHTML = ''; 
             
             const pageTransactions = transazioniDelConto.slice(start, end);
             pageTransactions.forEach(transazione => {
                 const transactionItem = document.createElement('div');
-                transactionItem.style.display = 'flex'; // Usa flexbox per allineare gli elementi
-                transactionItem.style.justifyContent = 'space-between'; // Spazia gli elementi
-                transactionItem.style.alignItems = 'center'; // Centra verticalmente
+                transactionItem.style.display = 'flex';
+                transactionItem.style.justifyContent = 'space-between'; 
+                transactionItem.style.alignItems = 'center';
             
                
                 const transactionText = document.createElement('span');
@@ -882,7 +883,7 @@
                 if(transazione.tipo_transazione == "investimento")
                 {
                     transactionText.textContent = `Ticker: ${transazione.ticker} |  Amount: ${transazione.importo} | Date: ${transazione.data} `;
-                    transactionText.style.padding = '5px 0'; // Padding per il testo
+                    transactionText.style.padding = '5px 0'; 
                     transactionItem.appendChild(transactionText); 
                 } 
                 else {
@@ -897,7 +898,7 @@
                                     transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
                                     } else {
                                     transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
-                                    transactionText.style.padding = '5px 0'; // Padding per il testo
+                                    transactionText.style.padding = '5px 0'; 
                                     transactionItem.appendChild(transactionText);
                             }
                             else
@@ -906,7 +907,7 @@
                                     transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
                                     } else {
                                     transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
-                                    transactionText.style.padding = '5px 0'; // Padding per il testo
+                                    transactionText.style.padding = '5px 0'; 
                                     transactionItem.appendChild(transactionText);
                             }
     
@@ -914,14 +915,14 @@
                         }
                     } else {
                     if (transazione.tipo === 'trasferimento') {
-                        // Se è un trasferimento, utilizza transazione.categoria
+                        
                         transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;
                     } else {
                         if (transazione.descrizione != ''){
                         transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione} | Initiator : ${transazione.utente.nome}`;
                         } else {
                         transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Initiator : ${transazione.utente.nome}`;}
-                        transactionText.style.padding = '5px 0'; // Padding per il testo
+                        transactionText.style.padding = '5px 0';
                         transactionItem.appendChild(transactionText);
                     }
                 }
@@ -939,7 +940,7 @@
                                 transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
                                 } else {
                                 transactionText.textContent = `Category: ${transazione.categoria.nome} | Sub-Category: ${transazione.sottocategoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} `;}
-                                transactionText.style.padding = '5px 0'; // Padding per il testo
+                                transactionText.style.padding = '5px 0'; 
                                 transactionItem.appendChild(transactionText);
                         }
                         else
@@ -948,7 +949,7 @@
                                 transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
                                 } else {
                                 transactionText.textContent = `Category: ${transazione.categoria.nome} | Amount: ${transazione.importo} | Date: ${transazione.data} `;}
-                                transactionText.style.padding = '5px 0'; // Padding per il testo
+                                transactionText.style.padding = '5px 0'; 
                                 transactionItem.appendChild(transactionText);
                         }
 
@@ -959,14 +960,14 @@
                 
                 
                 if (transazione.tipo === 'trasferimento') {
-                    // Se è un trasferimento, utilizza transazione.categoria
+                   
                     transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data}`;
                 } else {
                     if (transazione.descrizione != ''){
                     transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} | Description: ${transazione.descrizione}`;
                     } else {
                     transactionText.textContent = `Category: null | Amount: ${transazione.importo} | Date: ${transazione.data} `;}
-                    transactionText.style.padding = '5px 0'; // Padding per il testo
+                    transactionText.style.padding = '5px 0';
                     transactionItem.appendChild(transactionText);
                 }
             }
@@ -977,23 +978,23 @@
                     editIcon = document.createElement('i');
                     editIcon.className = 'bi bi-trash'; 
                     editIcon.style.paddingLeft = '10px'
-                    editIcon.style.cursor = 'pointer'; // Mostra il cursore come puntatore
+                    editIcon.style.cursor = 'pointer'; 
                     editIcon.onclick = () => deleteTransaction(transazione.id, contoId);
                 
                     transactionItem.appendChild(editIcon);
                 }
                 
            
-                // Aggiungi la transazione alla lista
+                
                 transactionList.appendChild(transactionItem);
             
-                // Aggiungi una linea divisiva
+                
                 const divider = document.createElement('hr');
-                divider.style.margin = '5px 0'; // Spaziatura attorno alla linea divisiva
+                divider.style.margin = '5px 0'; 
                 transactionList.appendChild(divider);
             });
             
-            // Gestione paginea
+           
             document.getElementById(`prevPage_${contoId}`).onclick = function() {
                 if (page > 1) {
                     loadTransactions(contoId, transazioniDelConto, page - 1);
@@ -1016,9 +1017,9 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                        'X-CSRFToken': '{{ csrf_token }}',  
                     },
-                    body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                    body: JSON.stringify({}) 
                 })
                 .then(response => {
                     if (!response.ok) {
@@ -1030,7 +1031,7 @@
                    
                     const transazioniFIltrate = transazioniAggiornate.filter(transazione => transazione.conto_id == contoId);
                     const transactionList = document.getElementById(`transactionList_${contoId}`);
-                    transactionList.innerHTML = ''; // Pulisce la lista esistente
+                    transactionList.innerHTML = ''; 
                     loadTransactions(contoId, transazioniFIltrate, 1 );
                     closeButtonDettagliConto = document.getElementById(`closeModelDettagliConto_${contoId}`);
                     if (closeButtonDettagliConto) {
@@ -1054,41 +1055,41 @@
         const closeModalTransazione = () => {
             const modal = document.getElementById('transactionModal');
             document.querySelectorAll('.periodica, .investimento, .futura, .delegata, .trasferimento').forEach(function(field) {
-                field.style.display = 'none'; // Nasconde tutti i campi di transazione
+                field.style.display = 'none'; 
             });
             document.querySelectorAll('.singola').forEach(function(field) {
-                field.style.display = 'block'; // Nasconde tutti i campi di transazione
+                field.style.display = 'block'; 
             });
             modal.style.display = 'none';
             responseMessageTransaction.textContent = '';
             TransazioneForm.reset();
         };
 
-        // Aggiungi l'evento click al documento per chiudere il modulo della transazione
+        
         document.addEventListener('click', function(event) {
             const modal = document.getElementById('transactionModal');
             const isClickInside = modal.contains(event.target) || event.target === document.getElementById('newTransactionBtn');
 
             if (!isClickInside) {
-                closeModalTransazione(); // Chiudi il modulo se il click è all'esterno
+                closeModalTransazione();
             }
         });
 
-        // Aggiungi l'evento click al pulsante di chiusura del modale transazione
+        
         document.getElementById('closeModelTransaction').onclick = function() {
-            closeModalTransazione(); // Chiudi il modale delle transazioni
+            closeModalTransazione(); 
         };
 
        
         TransazioneForm.addEventListener('submit', function(event) {
             event.preventDefault();
-            const formData = new FormData(TransazioneForm); // Crea un oggetto FormData con i dati del form
+            const formData = new FormData(TransazioneForm); 
 
             fetch(TransazioneForm.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                    'X-Requested-With': 'XMLHttpRequest' 
                 }
             })
             .then(response => response.json())
@@ -1129,7 +1130,7 @@
                         
                     });
 
-                    // Per il bottone
+                   
                     const addButton = document.createElement('div');
                     addButton.id = 'openModalBtn';
                     addButton.className = 'conto-box singolo-conto';
@@ -1168,11 +1169,9 @@
                     let pianiElements = document.querySelectorAll('.singolo-piano');
                     pianiElements.forEach(piano => piano.remove());
         
-                    // Sezione contenitore dove vuoi inserire i nuovi piani di risparmio
-                    let container = document.getElementById('pianiContainer'); // Assicurati che esista nel tuo HTML
                     
-                   
-                   
+                    let container = document.getElementById('pianiContainer'); 
+                
                     data.piani_risparmio.forEach(piano => {
                         
                         const pianoDiv = document.createElement('div');
@@ -1181,12 +1180,12 @@
                         pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
         
                         console.log(pianoDiv);
-                        // Crea il contenitore del progress circle
+                     
                         const progressDiv = document.createElement('div');
                         progressDiv.classList.add('progress-circle');
                         progressDiv.style = "position: relative; display: inline-block; margin-bottom: 10px;";
         
-                        // Crea il SVG per la barra di progresso
+                      
                         const svg = `
                             <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
                                 <path class="circle-bg"
@@ -1209,37 +1208,38 @@
                         `;
                         progressDiv.innerHTML = svg;
         
-                        // Crea il logo al centro della barra
+                        
+                        
                         const logoDiv = document.createElement('div');
                         logoDiv.classList.add('logo');
                         logoDiv.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
                         logoDiv.innerHTML = `<i class="bi bi-safe" style="font-size: 20px;"></i>`;
         
-                        // Aggiungi il logo e il progress SVG al div del progress
+                       
                         progressDiv.appendChild(logoDiv);
         
-                        // Crea il titolo del conto
+                    
                         const contoTitle = document.createElement('h3');
                         contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
                         contoTitle.innerText = piano.conto;
         
-                        // Crea l'elemento per l'obbiettivo del conto
+                  
                         const goal = document.createElement('h6');
                         goal.style = "color: white; font-size: 14px;";
                         goal.innerText = `Goal: ${piano.obbiettivo} €`;
         
-                        // Crea l'elemento per la data di scadenza
+                      
                         const scadenza = document.createElement('h6');
                         scadenza.style = "color: white; font-size: 12px; margin-top: 10px;";
                         scadenza.innerText = piano.data_scadenza;
         
-                        // Assembla tutto dentro il div del piano
+                      
                         pianoDiv.appendChild(progressDiv);
                         pianoDiv.appendChild(contoTitle);
                         pianoDiv.appendChild(goal);
                         pianoDiv.appendChild(scadenza);
         
-                        // Aggiungi il piano al contenitore
+                    
                         container.appendChild(pianoDiv);
                     });
 
@@ -1257,22 +1257,22 @@
         
                     data.obbiettivi_spesa.forEach(obbiettivo => {
                         
-                        // Crea il div principale per l'obiettivo di spesa
+                       
                         const pianoDiv = document.createElement('div');
                         pianoDiv.classList.add('piano-spesa', 'conto-box');
                         pianoDiv.id = `obbiettivoSpesa_${obbiettivo.id}`; 
                         pianoDiv.style = "display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);";
         
-                        // Nome della categoria target
+                       
                         const categoriaDiv = document.createElement('div');
                         categoriaDiv.classList.add('categoria-target');
                         categoriaDiv.style = "flex: 1; text-align: left;";
                         const categoriaTitle = document.createElement('h3');
                         categoriaTitle.style = "margin: 0; font-size: 18px; color: white;";
-                        categoriaTitle.innerText = obbiettivo.categoria_target.nome; // Assicurati che questo campo esista
+                        categoriaTitle.innerText = obbiettivo.categoria_target.nome;
                         categoriaDiv.appendChild(categoriaTitle);
         
-                        // Barra di completamento
+                        
                         const progressBarContainer = document.createElement('div');
                         progressBarContainer.classList.add('progress-bar-container');
                         progressBarContainer.style = "flex: 2; margin: 0 20px; position: relative;";
@@ -1281,25 +1281,25 @@
                         progressBarBg.style = "background-color: #ddd; border-radius: 5px; height: 20px; width: 100%;";
                         const progressBar = document.createElement('div');
                         progressBar.classList.add('progress-bar');
-                        progressBar.style = `width: ${obbiettivo.percentuale_completamento}%; background-color: red; height: 100%; border-radius: 5px;`; // Assicurati che questo campo esista
+                        progressBar.style = `width: ${obbiettivo.percentuale_completamento}%; background-color: red; height: 100%; border-radius: 5px;`; 
                         progressBarBg.appendChild(progressBar);
                         progressBarContainer.appendChild(progressBarBg);
         
-                        // Data di scadenza
+                 
                         const scadenzaDiv = document.createElement('div');
                         scadenzaDiv.classList.add('data-scadenza');
                         scadenzaDiv.style = "flex: 1; text-align: right;";
                         const scadenzaTitle = document.createElement('h6');
                         scadenzaTitle.style = "margin: 0; font-size: 14px; color: white;";
-                        scadenzaTitle.innerText = obbiettivo.data_scadenza; // Assicurati che questo campo esista
+                        scadenzaTitle.innerText = obbiettivo.data_scadenza; 
                         scadenzaDiv.appendChild(scadenzaTitle);
         
-                        // Assembla tutto dentro il div del piano
+                        
                         pianoDiv.appendChild(categoriaDiv);
                         pianoDiv.appendChild(progressBarContainer);
                         pianoDiv.appendChild(scadenzaDiv);
         
-                        // Aggiungi il piano al contenitore
+                        
                         container2.appendChild(pianoDiv);
                     });
                     
@@ -1317,7 +1317,7 @@
                     
 
                     const transazioniOggi = data.transazioni.filter(transazione => {
-                        const oggi = new Date().toISOString().split('T')[0]; // Ottieni la data di oggi in formato YYYY-MM-DD
+                        const oggi = new Date().toISOString().split('T')[0];
                         return new Date(transazione.data).toISOString().split('T')[0] === oggi;
                     });
 
@@ -1338,7 +1338,7 @@
                     transazioneBox.style.width = 'calc(100% - 30px)';
                     transazioneBox.style.height = '55px';
 
-                    // Creare l'icona della transazione
+                  
                     const iconaTransazione = document.createElement('div');
                     iconaTransazione.className = 'icona-transazione';
                     iconaTransazione.style.marginRight = '15px';
@@ -1353,7 +1353,7 @@
                     iconElement.style.color = 'white';
                     iconaTransazione.appendChild(iconElement);
 
-                    // Creare i dettagli della transazione
+                   
                     const dettagliTransazione = document.createElement('div');
                     dettagliTransazione.className = 'dettagli-transazione';
                     dettagliTransazione.style.flex = '1';
@@ -1384,7 +1384,7 @@
                     dettagliTransazione.appendChild(categoriaH3);
                     dettagliTransazione.appendChild(contoP);
 
-                    // Creare l'importo della transazione
+                
                     const importoTransazione = document.createElement('div');
                     importoTransazione.className = 'importo-transazione';
                     importoTransazione.style.flex = '1';
@@ -1405,12 +1405,12 @@
                     importoTransazione.appendChild(importoH3);
                     importoTransazione.appendChild(dataP);
 
-                    // Aggiungere tutti i componenti al box della transazione
+                   
                     transazioneBox.appendChild(iconaTransazione);
                     transazioneBox.appendChild(dettagliTransazione);
                     transazioneBox.appendChild(importoTransazione);
 
-                    // Aggiungere il box della transazione al contenitore
+                 
                     container3.appendChild(transazioneBox);
 
 
@@ -1421,7 +1421,7 @@
                 } else {
                
                 transazioniOggi.forEach(transazione => {
-                    // Creare un elemento per ogni transazione
+                    
                     const transazioneBox = document.createElement('div');
                     transazioneBox.className = 'transazione-box';
                     transazioneBox.style.display = 'flex';
@@ -1435,7 +1435,7 @@
                     transazioneBox.style.width = 'calc(100% - 30px)';
                     transazioneBox.style.height = '55px';
 
-                    // Creare l'icona della transazione
+                   
                     const iconaTransazione = document.createElement('div');
                     iconaTransazione.className = 'icona-transazione';
                     iconaTransazione.style.marginRight = '15px';
@@ -1450,7 +1450,7 @@
                     iconElement.style.color = 'white';
                     iconaTransazione.appendChild(iconElement);
 
-                    // Creare i dettagli della transazione
+                    
                     const dettagliTransazione = document.createElement('div');
                     dettagliTransazione.className = 'dettagli-transazione';
                     dettagliTransazione.style.flex = '1';
@@ -1480,7 +1480,7 @@
                     dettagliTransazione.appendChild(categoriaH3);
                     dettagliTransazione.appendChild(contoP);
 
-                    // Creare l'importo della transazione
+                    
                     const importoTransazione = document.createElement('div');
                     importoTransazione.className = 'importo-transazione';
                     importoTransazione.style.flex = '1';
@@ -1501,12 +1501,12 @@
                     importoTransazione.appendChild(importoH3);
                     importoTransazione.appendChild(dataP);
 
-                    // Aggiungere tutti i componenti al box della transazione
+                   
                     transazioneBox.appendChild(iconaTransazione);
                     transazioneBox.appendChild(dettagliTransazione);
                     transazioneBox.appendChild(importoTransazione);
 
-                    // Aggiungere il box della transazione al contenitore
+                 
                     container3.appendChild(transazioneBox);
                 });
             }
@@ -1514,23 +1514,23 @@
             
 
         
-            saldoChart.data.labels = [];  // Svuota le etichette
-            saldoChart.data.datasets[0].data = [];  // Svuota i dati del saldo
-            saldoChart.data.labels = data.labels;  // Imposta le nuove etichette
-            saldoChart.data.datasets[0].data = data.data;  // Imposta i nuovi saldi   
+            saldoChart.data.labels = [];
+            saldoChart.data.datasets[0].data = [];  
+            saldoChart.data.labels = data.labels;
+            saldoChart.data.datasets[0].data = data.data;  
             saldoChart.update();
 
          
-            speseChart.data.labels = [];  // Svuota le etichette
-            speseChart.data.datasets[0].data = [];  // Svuota i dati delle spese
-            speseChart.data.labels = data.labels_spese;  // Imposta le nuove etichette
-            speseChart.data.datasets[0].data = data.data_spese;  // Imposta i nuovi saldi delle spese
+            speseChart.data.labels = [];  
+            speseChart.data.datasets[0].data = [];  
+            speseChart.data.labels = data.labels_spese; 
+            speseChart.data.datasets[0].data = data.data_spese;  
             speseChart.update();
 
-            speseChart_ultimo_mese.data.labels_ultimo_mese = [];  // Svuota le etichette
-            speseChart_ultimo_mese.data.datasets[0].data_ultimo_mese = [];  // Svuota i dati delle spese
-            speseChart_ultimo_mese.data.labels = data.labels_spese_ultimo_mese;  // Imposta le nuove etichette
-            speseChart_ultimo_mese.data.datasets[0].data = data.data_spese_ultimo_mese;  // Imposta i nuovi saldi delle spese
+            speseChart_ultimo_mese.data.labels_ultimo_mese = [];  
+            speseChart_ultimo_mese.data.datasets[0].data_ultimo_mese = [];  
+            speseChart_ultimo_mese.data.labels = data.labels_spese_ultimo_mese; 
+            speseChart_ultimo_mese.data.datasets[0].data = data.data_spese_ultimo_mese; 
             speseChart_ultimo_mese.update();
 
 
@@ -1543,19 +1543,18 @@
         });
 
         document.getElementById('tipo').addEventListener('change', function() {
-            var tipoTransazione = this.querySelector('select').value; // Assicurati di selezionare il valore corretto
-
-            // Nascondi tutte le descrizioni
+            var tipoTransazione = this.querySelector('select').value; 
+           
             document.querySelectorAll('.descrizione').forEach(function(descrizione) {
-                descrizione.style.display = 'none'; // Nasconde tutte le descrizioni
+                descrizione.style.display = 'none'; 
             });
 
-            // Nascondi tutti i campi di transazione
+        
             document.querySelectorAll('.singola, .periodica, .investimento, .futura, .delegata').forEach(function(field) {
-                field.style.display = 'none'; // Nasconde tutti i campi di transazione
+                field.style.display = 'none'; 
             });
 
-            // Mostra solo la descrizione corrispondente
+           
             if (tipoTransazione === 'singola') {
                 document.querySelectorAll('.singola').forEach(function(singola) {
                     singola.style.display = 'block';  
@@ -1601,7 +1600,7 @@
 
         document.getElementById('SavingsPlanModalExit').onclick = function() {
             const modal = document.getElementById('SavingsPlanModal');
-            closeModalSavingPlan(modal); // Chiudi il modale corretto
+            closeModalSavingPlan(modal); 
         };
 
 
@@ -1612,40 +1611,39 @@
         document.getElementById('SavingsPlanForm').addEventListener('submit', function(event) {
             event.preventDefault();
         
-            const formData = new FormData(this); // Crea un oggetto FormData con i dati del form
+            const formData = new FormData(this); 
         
             fetch(document.getElementById('SavingsPlanForm').action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest' // Informa il server che si tratta di una richiesta AJAX
+                    'X-Requested-With': 'XMLHttpRequest' 
                 }
             })
             .then(
                 response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Rimuovi gli elementi esistenti
+                    
                     const pianiElements = document.querySelectorAll('.singolo-piano');
                     pianiElements.forEach(piano => piano.remove());
         
-                    // Sezione contenitore dove vuoi inserire i nuovi piani di risparmio
-                    const container = document.getElementById('pianiContainer'); // Assicurati che esista nel tuo HTML
+                   
+                    const container = document.getElementById('pianiContainer'); 
         
-                    // Itera attraverso i dati dei piani ricevuti
+                  
                     data.piani_risparmio.forEach(piano => {
-                        // Crea il div principale del singolo piano
+                        
                         const pianoDiv = document.createElement('div');
                         pianoDiv.classList.add('singolo-piano', 'conto-box');
                         pianoDiv.id=`singolo_piano_${piano.id}`;
                         pianoDiv.style = "margin: 10px; padding: 15px; border-radius: 10px; flex: 0 0 auto; color: white; background-color: #100d30; text-align: center; height: auto; position: relative; width: 30%;";
         
-                        // Crea il contenitore del progress circle
                         const progressDiv = document.createElement('div');
                         progressDiv.classList.add('progress-circle');
                         progressDiv.style = "position: relative; display: inline-block; margin-bottom: 10px;";
         
-                        // Crea il SVG per la barra di progresso
+           
                         const svg = `
                             <svg viewBox="0 0 36 36" class="circular-chart" style="width: 60px; height: 60px;">
                                 <path class="circle-bg"
@@ -1668,37 +1666,37 @@
                         `;
                         progressDiv.innerHTML = svg;
         
-                        // Crea il logo al centro della barra
+                       
                         const logoDiv = document.createElement('div');
                         logoDiv.classList.add('logo');
                         logoDiv.style = "position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);";
                         logoDiv.innerHTML = `<i class="bi bi-safe" style="font-size: 20px;"></i>`;
         
-                        // Aggiungi il logo e il progress SVG al div del progress
+                      
                         progressDiv.appendChild(logoDiv);
         
-                        // Crea il titolo del conto
+                    
                         const contoTitle = document.createElement('h3');
                         contoTitle.style = "margin-top: 5px; color: white; font-size: 18px;";
                         contoTitle.innerText = piano.conto;
         
-                        // Crea l'elemento per l'obbiettivo del conto
+                      
                         const goal = document.createElement('h6');
                         goal.style = "color: white; font-size: 14px;";
                         goal.innerText = `Goal: ${piano.obbiettivo} €`;
         
-                        // Crea l'elemento per la data di scadenza
+                    
                         const scadenza = document.createElement('h6');
                         scadenza.style = "color: white; font-size: 12px; margin-top: 10px;";
                         scadenza.innerText = piano.data_scadenza;
         
-                        // Assembla tutto dentro il div del piano
+                   
                         pianoDiv.appendChild(progressDiv);
                         pianoDiv.appendChild(contoTitle);
                         pianoDiv.appendChild(goal);
                         pianoDiv.appendChild(scadenza);
         
-                        // Aggiungi il piano al contenitore
+                      
                         container.appendChild(pianoDiv);
                     });
                     updatePianiRisparmio(data.piani_risparmio);
@@ -1716,31 +1714,31 @@
         
         
 
-        // Funzione per aprire il modal
+      
         function openSpendingGoalModal() {
             spendingGoalModal.style.display = "block";
-            document.body.style.overflow = "hidden";  // Evita lo scroll della pagina quando il modal è aperto
+            document.body.style.overflow = "hidden";  
         }
 
-        // Funzione per chiudere il modal
+       
         function closeSpendingGoalModal() {
             spendingGoalModal.style.display = "none";
             responseMessageGoalSpending.textContent = "";
             document.getElementById('SpendingGoalForm').reset();
-            document.body.style.overflow = "auto";  // Ripristina lo scroll della pagina
+            document.body.style.overflow = "auto";  
         }
 
-        // Quando l'utente clicca sul bottone di apertura
+ 
         if (openSpendingGoalBtn) {
             openSpendingGoalBtn.addEventListener("click", openSpendingGoalModal);
         }
 
-        // Quando l'utente clicca sulla 'x' per chiudere
+       
         if (spendingGoalModalExit) {
             spendingGoalModalExit.addEventListener("click", closeSpendingGoalModal);
         }
 
-        // Chiudi il modal se l'utente clicca fuori dal modal stesso
+        
         window.addEventListener("click", function(event) {
             if (event.target === spendingGoalModal) {
                 closeSpendingGoalModal();
@@ -1751,15 +1749,15 @@
 
 
         document.getElementById('SpendingGoalForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Previene il comportamento predefinito del form
+            event.preventDefault(); 
            
-            const formData = new FormData(this); // Crea un oggetto FormData con i dati del form
+            const formData = new FormData(this);
         
             fetch(document.getElementById('SpendingGoalForm').action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest' // Indica che si tratta di una richiesta AJAX
+                    'X-Requested-With': 'XMLHttpRequest' 
                 }
             })
             .then(response => {
@@ -1774,26 +1772,25 @@
                    
                     let pianiElements = document.querySelectorAll('.piano-spesa');
                     pianiElements.forEach(piano => piano.remove());
-                    let container = document.getElementById('ObbiettiviContainer'); // Assicurati che esista nel tuo HTML
+                    let container = document.getElementById('ObbiettiviContainer'); 
                     
                     data.obbiettivi_spesa.forEach(obbiettivo => {
-                        // Crea il div principale per l'obiettivo di spesa
+                        
                         let pianoDiv = document.createElement('div');
                         pianoDiv.id = `obbiettivoSpesa_${obbiettivo.id}`; 
                         pianoDiv.classList.add('piano-spesa', 'conto-box');
                         pianoDiv.style = "display: flex; align-items: center; justify-content: space-between; margin: 10px; padding: 15px; border-radius: 10px; background-color: #100d30; color: white; width: calc(100% - 20px);";
                        
-                        console.log(pianoDiv)
-                        // Nome della categoria target
+                        
                         let categoriaDiv = document.createElement('div');
                         categoriaDiv.classList.add('categoria-target');
                         categoriaDiv.style = "flex: 1; text-align: left;";
                         let categoriaTitle = document.createElement('h3');
                         categoriaTitle.style = "margin: 0; font-size: 18px; color: white;";
-                        categoriaTitle.innerText = obbiettivo.categoria_target.nome; // Assicurati che questo campo esista
+                        categoriaTitle.innerText = obbiettivo.categoria_target.nome; 
                         categoriaDiv.appendChild(categoriaTitle);
         
-                        // Barra di completamento
+                        
                         let progressBarContainer = document.createElement('div');
                         progressBarContainer.classList.add('progress-bar-container');
                         progressBarContainer.style = "flex: 2; margin: 0 20px; position: relative;";
@@ -1802,25 +1799,25 @@
                         progressBarBg.style = "background-color: #ddd; border-radius: 5px; height: 20px; width: 100%;";
                         let progressBar = document.createElement('div');
                         progressBar.classList.add('progress-bar');
-                        progressBar.style = `width: ${obbiettivo.percentuale_completamento}%; background-color: red; height: 100%; border-radius: 5px;`; // Assicurati che questo campo esista
+                        progressBar.style = `width: ${obbiettivo.percentuale_completamento}%; background-color: red; height: 100%; border-radius: 5px;`; 
                         progressBarBg.appendChild(progressBar);
                         progressBarContainer.appendChild(progressBarBg);
         
-                        // Data di scadenza
+                        
                         let scadenzaDiv = document.createElement('div');
                         scadenzaDiv.classList.add('data-scadenza');
                         scadenzaDiv.style = "flex: 1; text-align: right;";
                         let scadenzaTitle = document.createElement('h6');
                         scadenzaTitle.style = "margin: 0; font-size: 14px; color: white;";
-                        scadenzaTitle.innerText = obbiettivo.data_scadenza; // Assicurati che questo campo esista
+                        scadenzaTitle.innerText = obbiettivo.data_scadenza;
                         scadenzaDiv.appendChild(scadenzaTitle);
         
-                        // Assembla tutto dentro il div del piano
+                        
                         pianoDiv.appendChild(categoriaDiv);
                         pianoDiv.appendChild(progressBarContainer);
                         pianoDiv.appendChild(scadenzaDiv);
         
-                        // Aggiungi il piano al contenitore
+                      
                         container.appendChild(pianoDiv);
                     });
                     updateObbiettivoSpesa(data.obbiettivi_spesa);
@@ -1838,7 +1835,7 @@
         });
 
 
-        let currentClickListenerPianoRisparmio; // Variabile per tenere traccia del listener corrente
+        let currentClickListenerPianoRisparmio;
 
 
         function handleContoClickPianoRisparmio(event, dataset) {
@@ -1846,7 +1843,7 @@
                
                 const pianoId = event.target.id.split('_')[2];
                 const pianoOggetto = dataset.filter(piano => piano.id == pianoId);
-                createPianoDiRisparmioModal(pianoId, pianoOggetto[0]); // Crea e visualizza il modal per questo conto
+                createPianoDiRisparmioModal(pianoId, pianoOggetto[0]); 
             };
         };
 
@@ -1865,7 +1862,7 @@
         
             
             currentClickListenerPianoRisparmio = createClickListenerPianiRisparmio(dataset);
-            pianiContainer.addEventListener('click', currentClickListenerPianoRisparmio); // Aggiungi il nuovo listener
+            pianiContainer.addEventListener('click', currentClickListenerPianoRisparmio); 
         };
         
         function updatePianiRisparmio(dataset) {
@@ -1891,9 +1888,9 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                            'X-CSRFToken': '{{ csrf_token }}',  
                         },
-                        body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                        body: JSON.stringify({})  
                     })
                     .then(response => {
                         if (!response.ok) {
@@ -1929,7 +1926,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                            'X-CSRFToken': getCSRFToken()  
                         },
                         body: JSON.stringify({})
                     })
@@ -1975,7 +1972,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                            'X-CSRFToken': getCSRFToken()  
                         },
                         body: JSON.stringify({})
                     })
@@ -2006,21 +2003,21 @@
 
             
           
-
+        
         
 
         function createPianoDiRisparmioModal(pianoId, pianoOggetto) {
 
             let modal = document.getElementById(`pianoModal_${pianoId}`);
             if (modal) {
-                modal.remove(); // Rimuove il modal esistente dal DOM
+                modal.remove(); 
             }
         
             modal = document.createElement('div');
             modal.id = `pianoModal_${pianoId}`;
             modal.classList.add('modal');
         
-            // Contenuto dinamico del modal
+     
             modal.innerHTML = `
                 <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto; padding: 20px;">
         <button id="closeModelDettagliPiano_${pianoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
@@ -2035,34 +2032,34 @@
         </div>
         
         <div class="details-section" style="padding: 10px; width: 70%;">
-            <!-- Divider -->
+          
             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
             
-            <!-- Obiettivo -->
+           
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <p id = "ObbiettivoPiano_${pianoId}" style="margin: 0;"><strong>Goal:</strong> €${pianoOggetto.obbiettivo}</p>
                 <i class="bi bi-pencil" id="editObbiettivo_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
             </div>
 
-            <!-- Divider -->
+           
             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
 
-            <!-- Data di Scadenza -->
+            
             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <p id = "ScadenzaPiano_${pianoId}" style="margin: 0;"><strong>Due date:</strong> ${pianoOggetto.data_scadenza}</p>
                 <i class="bi bi-pencil" id="editScadenza_${pianoId}" style="font-size: 20px; cursor: pointer;"></i>
             </div>
 
-            <!-- Divider -->
+          
             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
 
-            <!-- Data di Creazione -->
+           
             <p><strong>Creation date:</strong> ${pianoOggetto.data_creazione}</p>
 
-            <!-- Divider -->
+         
             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
 
-            <!-- Percentuale di Completamento -->
+           
             <p id = "PercentualePiano_${pianoId}" ><strong>Completion percentage:</strong> ${pianoOggetto.percentuale_completamento}%</p>
         </div>
     </div>
@@ -2071,22 +2068,22 @@
             
                 document.body.appendChild(modal);
             
-                // Gestione degli eventi per le icone di cancellazione e modifica
+                
                 const deleteIcon = document.getElementById(`deletePianoIcon_${pianoId}`);
                 deleteIcon.addEventListener('click', function() {
-                    deletePianoDiRisparmio(pianoId); // Funzione per eliminare il piano di risparmio
+                    deletePianoDiRisparmio(pianoId);
                 });
             
 
                 const editScadenza= document.getElementById(`editScadenza_${pianoId}`);
                 editScadenza.addEventListener('click', function() {
-                    editPianoDiRisparmio(pianoId,"scadenza"); // Funzione per modificare il piano di risparmio
+                    editPianoDiRisparmio(pianoId,"scadenza");
                 });
                 
 
                 const editObbiettivo = document.getElementById(`editObbiettivo_${pianoId}`);
                 editObbiettivo.addEventListener('click', function() {
-                    editPianoDiRisparmio(pianoId, "Obbiettivo"); // Funzione per modificare il piano di risparmio
+                    editPianoDiRisparmio(pianoId, "Obbiettivo");
                 });
 
                 const closeButtonDettagliPiano = document.getElementById(`closeModelDettagliPiano_${pianoId}`);
@@ -2094,19 +2091,19 @@
                     closeButtonDettagliPiano.addEventListener('click', function() {
                         modal = document.getElementById(`pianoModal_${pianoId}`);
                         if (modal) {
-                            modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                            modal.style.display = 'none'; 
                         }
                     });
                 }
             
-                modal.style.display = 'block'; // Mostra il modal
+                modal.style.display = 'block';
             };
             
     
 
 
 
-            let currentClickListenerObbiettivoSpesa; // Variabile per tenere traccia del listener corrente
+            let currentClickListenerObbiettivoSpesa; 
 
 
             function handleContoClickObbiettivoSpesa(event, dataset) {
@@ -2115,7 +2112,7 @@
                     const obbiettivoId = event.target.id.split('_')[1];
                     console.log("ciao" + (obbiettivoId));
                     const ObbiettivoOggetto = dataset.filter(obbiettivo => obbiettivo.id == obbiettivoId);
-                    createObbiettivoSpesaModal(obbiettivoId, ObbiettivoOggetto[0]); // Crea e visualizza il modal per questo conto
+                    createObbiettivoSpesaModal(obbiettivoId, ObbiettivoOggetto[0]); 
                 };
             };
 
@@ -2135,7 +2132,7 @@
             
                 
                 currentClickListenerObbiettivoSpesa = createClickListenerObbiettivoSpesa(dataset);
-                obbiettiviContainer.addEventListener('click', currentClickListenerObbiettivoSpesa); // Aggiungi il nuovo listener
+                obbiettiviContainer.addEventListener('click', currentClickListenerObbiettivoSpesa); 
             };
         
             function updateObbiettivoSpesa(dataset) {
@@ -2160,9 +2157,9 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token }}',  // Includi il token CSRF per sicurezza
+                                'X-CSRFToken': '{{ csrf_token }}',  
                             },
-                            body: JSON.stringify({})  // Invia un body vuoto (opzionale)
+                            body: JSON.stringify({}) 
                         })
                         .then(response => {
                             if (!response.ok) {
@@ -2198,7 +2195,7 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                                'X-CSRFToken': getCSRFToken() 
                             },
                             body: JSON.stringify({})
                         })
@@ -2240,7 +2237,7 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRFToken': getCSRFToken()  // Recupera il token CSRF
+                                'X-CSRFToken': getCSRFToken() 
                             },
                             body: JSON.stringify({})
                         })
@@ -2276,7 +2273,7 @@
 
                 let modal = document.getElementById(`obbiettivoSpesaModal_${obbiettivoId}`);
                 if (modal) {
-                    modal.remove(); // Rimuove il modal esistente dal DOM
+                    modal.remove(); 
                 }
             
                 modal = document.createElement('div');
@@ -2284,7 +2281,7 @@
                 modal.classList.add('modal');
                 
                 console.log(obbiettivoId)
-                // Contenuto dinamico del modal
+             
                 modal.innerHTML = `
                     <div class="modal-content" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -80%); z-index: 1000; pointer-events: auto; padding: 20px;">
                         <button id="closeModalDettagliObbiettivo_${obbiettivoId}" style="border: none; background: none; font-size: 24px; cursor: pointer; float: right;">&times;</button>
@@ -2299,40 +2296,40 @@
                         </div>
                         
                         <div class="details-section" style="padding: 10px; width: 70%;">
-                            <!-- Divider -->
+                       
                             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
                             
-                            <!-- Importo Obbiettivo -->
+                        
                             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                                 <p id="ImportoObbiettivo_${obbiettivoId}" style="margin: 0;"><strong> Goal:</strong> €${obbiettivoOggetto.importo}</p>
                                 <i class="bi bi-pencil" id="editImportoObbiettivo_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
                             </div>
             
-                            <!-- Divider -->
+                            
                             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
             
-                            <!-- Importo Speso -->
+                          
                             <p id="ImportoSpeso_${obbiettivoId}"><strong>Amount:</strong> €${obbiettivoOggetto.importo_speso}</p>
                             
-                            <!-- Divider -->
+                           
                             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
             
-                            <!-- Data di Scadenza -->
+                          
                             <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                                 <p id="ScadenzaObbiettivo_${obbiettivoId}" style="margin: 0;"><strong>Due date:</strong> ${obbiettivoOggetto.data_scadenza}</p>
                                 <i class="bi bi-pencil" id="editScadenzaObbiettivo_${obbiettivoId}" style="font-size: 20px; cursor: pointer;"></i>
                             </div>
             
-                            <!-- Divider -->
+                            
                             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
             
-                            <!-- Data di Creazione -->
+                           
                             <p><strong>Creation date:</strong> ${obbiettivoOggetto.data_creazione}</p>
             
-                            <!-- Divider -->
+                           
                             <div class="divider" style="border-bottom: 1px solid #ddd; margin: 10px 0;"></div>
             
-                            <!-- Percentuale di Completamento -->
+                          
                             <p id="PercentualeObbiettivo_${obbiettivoId}"><strong>Completion percentage:</strong> ${obbiettivoOggetto.percentuale_completamento}%</p>
                         </div>
                     </div>
@@ -2340,20 +2337,20 @@
             
                 document.body.appendChild(modal);
             
-                // Gestione degli eventi per le icone di cancellazione e modifica
+              
                 const deleteIcon = document.getElementById(`deleteObbiettivoIcon_${obbiettivoId}`);
                 deleteIcon.addEventListener('click', function() {
-                    deleteObbiettivoSpesa(obbiettivoId); // Funzione per eliminare l'obbiettivo di spesa
+                    deleteObbiettivoSpesa(obbiettivoId); 
                 });
             
                 const editScadenza = document.getElementById(`editScadenzaObbiettivo_${obbiettivoId}`);
                 editScadenza.addEventListener('click', function() {
-                    editObbiettivoSpesa(obbiettivoId, "scadenza"); // Funzione per modificare la scadenza dell'obbiettivo
+                    editObbiettivoSpesa(obbiettivoId, "scadenza"); 
                 });
             
                 const editImportoObbiettivo = document.getElementById(`editImportoObbiettivo_${obbiettivoId}`);
                 editImportoObbiettivo.addEventListener('click', function() {
-                    editObbiettivoSpesa(obbiettivoId, "importo"); // Funzione per modificare l'importo dell'obbiettivo
+                    editObbiettivoSpesa(obbiettivoId, "importo"); 
                 });
             
                 const closeButtonDettagliObbiettivo = document.getElementById(`closeModalDettagliObbiettivo_${obbiettivoId}`);
@@ -2361,12 +2358,12 @@
                     closeButtonDettagliObbiettivo.addEventListener('click', function() {
                         modal = document.getElementById(`obbiettivoSpesaModal_${obbiettivoId}`);
                         if (modal) {
-                            modal.style.display = 'none'; // Nasconde il modal impostando display a 'none'
+                            modal.style.display = 'none'; 
                         }
                     });
                 }
             
-                modal.style.display = 'block'; // Mostra il modal
+                modal.style.display = 'block';
             }
             
 

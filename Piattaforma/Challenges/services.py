@@ -41,7 +41,7 @@ class ChallengeService:
                     sfida_in_corso.percentuale_sfidante = (sfida_in_corso.importo_sfidante / totale_importo) * 100
                     sfida_in_corso.percentuale_sfidato = (sfida_in_corso.importo_sfidato / totale_importo) * 100
                 
-                # Salva le modifiche nel database
+                
                 sfida_in_corso.save()
           
     def concludi_sfida(utente):

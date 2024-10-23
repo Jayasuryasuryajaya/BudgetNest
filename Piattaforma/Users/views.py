@@ -42,7 +42,7 @@ def registration(request):
                 user_profile=user,
                 username=form.cleaned_data['username'],
                 email=form.cleaned_data['email'],
-                password=form.cleaned_data['password'],  # Usa un hash per la password
+                password=form.cleaned_data['password'],
                 nome=form.cleaned_data['nome'],
                 cognome=form.cleaned_data['cognome'],
                 data_di_nascita=form.cleaned_data['data_di_nascita'],

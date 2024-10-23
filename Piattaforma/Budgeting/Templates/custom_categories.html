@@ -96,7 +96,7 @@
     });
 
     document.getElementById('subcategoryTable').addEventListener('click', function (event) {
-        // Controlla se il clic è avvenuto su un pulsante con la classe 'saveSubcategory'
+        
         if (event.target.classList.contains('saveSubcategory')) {
             const button = event.target;
             const row = button.closest('tr');
@@ -128,7 +128,7 @@
 
     
     document.getElementById('subcategoryTable').addEventListener('click', function (event) {
-        // Controlla se il clic è avvenuto su un pulsante con la classe 'deleteSubcategory'
+    
         if (event.target.classList.contains('deleteSubcategory')) {
             const button = event.target;
             const row = button.closest('tr');
@@ -172,15 +172,14 @@
                 if (data.success) if (data.success) {
                     
                     alert('Subcategory created successfully');
-        
-                    // Ottieni l'elemento <tbody> della tabella dove inserire le nuove righe
+
                     const subcategoryTable = document.getElementById('subcategoryTable');
                     
-                    // Svuota tutte le righe esistenti
+               
                     subcategoryTable.innerHTML = '';
                    
                     data.sottocategorie.forEach(function(subcategory) {
-                        // Crea un nuovo elemento <tr>
+                      
                         const newRow = document.createElement('tr');
                         newRow.setAttribute('data-id', subcategory.id);
         
