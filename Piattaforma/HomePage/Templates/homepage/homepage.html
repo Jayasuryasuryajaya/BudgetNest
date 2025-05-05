@@ -13,18 +13,15 @@
   <meta name="description" content="">
   <meta name="keywords" content="">
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-  <!-- Vendor CSS Files -->
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
   <link href="{% static 'vendor/aos/aos.css' %}" rel="stylesheet">
   <link href="{% static 'vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
   <link href="{% static 'vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
-  <!-- Main CSS File -->
   <link href="{% static 'css/main.css' %}" rel="stylesheet">
 </head>
 
@@ -71,10 +68,10 @@
         </g>
       </svg>
     
-    </section><!-- /Hero Section -->
+    </section>
     
 
-    <!-- About Section -->
+   
     <section id="features" class="about section">
 
       <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -96,15 +93,14 @@
                   <h3>Insert your transactions</h3>
                   <p>Easily log your income and expenses to keep track of your financial movements.</p>
                 </div>
-              </div> <!-- End Icon Box -->
-
-              <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+              </div> 
+                            <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
                 <div class="icon-box">
                   <i class="bi bi-piggy-bank"></i>
                   <h3>Create personalized savings plans</h3>
                   <p>Set up custom savings plans with practical tips to help you reach your financial goals.</p>
                 </div>
-              </div> <!-- End Icon Box -->
+              </div>
 
               <div class="col-md-6" data-aos="fade-up" data-aos-delay="400">
                 <div class="icon-box">
@@ -112,7 +108,7 @@
                   <h3>Track your family finances</h3>
                   <p>Monitor income and expenses for the entire family, with tools for shared financial transparency</p>
                 </div>
-              </div> <!-- End Icon Box -->
+              </div> 
 
               <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
                 <div class="icon-box">
@@ -128,7 +124,7 @@
                   <h3>Monitor your expenses with reports</h3>
                   <p>Gain insights into your spending habits through detailed reports and charts.</p>
                 </div>
-              </div> <!-- End Icon Box -->
+              </div> 
 
               <div class="col-md-6" data-aos="fade-up" data-aos-delay="500">
                 <div class="icon-box">
@@ -138,7 +134,6 @@
                 </div>
               </div>
               
-              <!-- End Icon Box -->
 
             </div>
           </div>
@@ -146,9 +141,7 @@
         </div>
       </div>
 
-    </section><!-- /About Section -->
-
-   <!-- Stat section -->
+    </section>
     <section id="stats" class="stats section light-background">
 
       <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -169,7 +162,7 @@
               <span data-purecounter-start="0" data-purecounter-end="{{famiglie}}" data-purecounter-duration="1" class="purecounter"></span>
               <p>Registered Families</p>
             </div>
-          </div><!-- End Stats Item -->
+          </div>
     
           <div class="col-lg-3 col-md-6 d-flex flex-column align-items-center">
             <i class="bi bi-wallet2"></i>
@@ -177,13 +170,13 @@
               <span data-purecounter-start="0" data-purecounter-end="{{transazioni}}" data-purecounter-duration="1" class="purecounter"></span>
               <p>Registered Transactions</p>
             </div>
-          </div><!-- End Stats Item -->
+          </div>
     
         </div>
     
       </div>
     
-    </section><!-- /Stats Section -->
+    </section>
     
 
   
@@ -199,7 +192,6 @@
 
   {% include 'footer/footer.html' %}
 
-  <!-- Scroll Top -->
   <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
 
